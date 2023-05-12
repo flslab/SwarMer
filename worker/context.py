@@ -28,23 +28,32 @@ class WorkerContext:
         self.lease = dict()
         self.metrics = metrics
 
+    def set_pair(self, pair_el):
+        if self.shm_name:
+            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
+            shared_array = np.ndarray((6,), dtype=np.float64, buffer=shared_mem.buf)
+            shared_array[:3] = self.el[:]
+            shared_array[3:6] = pair_el[:]
+            # print(shared_array)
+            shared_mem.close()
+
     def set_swarm_id(self, swarm_id):
         # print(f"{self.fid}({self.swarm_id}) merged into {swarm_id}")
         self.swarm_id = swarm_id
-        if self.shm_name:
-            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-            shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
-            shared_array[3] = self.swarm_id
-            shared_mem.close()
+        # if self.shm_name:
+        #     shared_mem = shared_memory.SharedMemory(name=self.shm_name)
+        #     shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
+        #     shared_array[3] = self.swarm_id
+        #     shared_mem.close()
         # self.history.log(MetricTypes.SWARM_ID, self.swarm_id)
 
     def set_el(self, el):
         self.el = el
-        if self.shm_name:
-            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-            shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
-            shared_array[:3] = self.el[:]
-            shared_mem.close()
+        # if self.shm_name:
+        #     shared_mem = shared_memory.SharedMemory(name=self.shm_name)
+        #     shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
+        #     shared_array[:3] = self.el[:]
+        #     shared_mem.close()
 
         # self.history.log(MetricTypes.LOCATION, self.el)
 
@@ -62,18 +71,18 @@ class WorkerContext:
 
     def deploy(self):
         self.move(self.gtl - self.el)
-        if self.shm_name:
-            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-            shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
-            shared_array[4] = 0
-            shared_mem.close()
+        # if self.shm_name:
+        #     shared_mem = shared_memory.SharedMemory(name=self.shm_name)
+        #     shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
+        #     shared_array[4] = 0
+        #     shared_mem.close()
 
     def fail(self):
-        if self.shm_name:
-            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-            shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
-            shared_array[4] = 2
-            shared_mem.close()
+        # if self.shm_name:
+        #     shared_mem = shared_memory.SharedMemory(name=self.shm_name)
+        #     shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
+        #     shared_array[4] = 2
+        #     shared_mem.close()
         self.reset_swarm()
         self.set_el(np.array([.0, .0, .0]))
         self.radio_range = Config.INITIAL_RANGE

@@ -31,8 +31,6 @@ class NetworkThread(threading.Thread):
         if msg is None:
             self.context.log_dropped_messages()
             return False
-        if self.context.fid == 1 and msg.type == message.MessageTypes.THAW_SWARM:
-            print('thaw')
         if msg.type == message.MessageTypes.STOP:
             return True
         if Config.DROP_PROB_RECEIVER:
@@ -47,7 +45,7 @@ class NetworkThread(threading.Thread):
             return False
         if msg.fid in self.latest_message_id and msg.id < self.latest_message_id[msg.fid]:
             return False
-        if msg.type == message.MessageTypes.CHALLENGE_INIT:
+        if msg.type == message.MessageTypes.INIT:
             dist = np.linalg.norm(msg.el - self.context.el)
             if dist > msg.range:
                 return False
@@ -55,15 +53,9 @@ class NetworkThread(threading.Thread):
 
     @staticmethod
     def prioritize_message(msg):
-        if msg.type == message.MessageTypes.STOP or msg.type == message.MessageTypes.THAW_SWARM:
+        if msg.type == message.MessageTypes.STOP or msg.type == message.MessageTypes.BREAK:
             return PrioritizedItem(0, msg, False)
-        if msg.type == message.MessageTypes.SIZE_QUERY or msg.type == message.MessageTypes.SIZE_REPLY:
-            return PrioritizedItem(2, msg, False)
-        if msg.type == message.MessageTypes.SET_WAITING or msg.type == message.MessageTypes.FOLLOW_MERGE\
-                or msg.type == message.MessageTypes.FOLLOW or msg.type == message.MessageTypes.MERGE\
-                or msg.type == message.MessageTypes.CHALLENGE_FIN:
-            return PrioritizedItem(1, msg, False)
-        return PrioritizedItem(3, msg, False)
+        return PrioritizedItem(1, msg, False)
 
 
 @dataclass(order=True)

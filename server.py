@@ -11,10 +11,11 @@ from constants import Constants
 from message import Message, MessageTypes
 import worker
 import utils
-import glob
 import sys
-from stop import stop_all
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 
+mpl.use('macosx')
 
 hd_timer = None
 hd_round = []
@@ -60,6 +61,7 @@ if __name__ == '__main__':
         os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
     mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
     point_cloud = mat['p']
+    # point_cloud = np.array([[0, 0, 0], [5, 0, 0], [0, 20, 0], [5, 20, 0]])
 
     if Config.SAMPLE_SIZE != 0:
         np.random.shuffle(point_cloud)
@@ -69,8 +71,7 @@ if __name__ == '__main__':
     h = np.log2(total_count)
 
     gtl_point_cloud = np.random.uniform(0, 5, size=(total_count, 3))
-    # x y z swarm_id is_failed
-    sample = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+    sample = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     node_point_idx = []
     for i in range(total_count):
@@ -130,170 +131,21 @@ if __name__ == '__main__':
     ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     ser_sock.settimeout(.2)
 
-    if Config.PROBABILISTIC_ROUND:
-        while True:
-            time.sleep(1)
-            t = time.time()
+    time.sleep(10)
+    stop_message = Message(MessageTypes.STOP).from_server().to_all()
+    dumped_stop_msg = pickle.dumps(stop_message)
+    ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
+    ser_sock.close()
+    print("done")
 
-            hdt = compute_hd([arr[:3] for arr in shared_arrays], gtl_point_cloud)
-            hd_time.append((t, hdt))
+    time.sleep(1)
 
-            swarms = compute_swarm_size(shared_arrays)
-            if 1 in swarms:
-                print(swarms[1])
-                if Config.DURATION < 660:
-                    swarms_metrics.append((t, swarms))
+    for sha in shared_arrays:
+        # print(sha)
+        # print([sha[0], sha[3]], [sha[1], sha[4]])
+        plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
+    plt.show()
 
-            if should_stop:
-                stop_message = Message(MessageTypes.STOP).from_server().to_all()
-                dumped_stop_msg = pickle.dumps(stop_message)
-                ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
-                time.sleep(1)
-                break
-
-    elif Config.CENTRALIZED_ROUND:
-        last_thaw_time = time.time()
-        thaw_message = Message(MessageTypes.THAW_SWARM).from_server().to_all()
-        dumped_thaw_msg = pickle.dumps(thaw_message)
-
-        while True:
-            time.sleep(1)
-            t = time.time()
-
-            surviving_flss = []
-            gtl_p = []
-            for i in range(len(shared_arrays)):
-                arr = shared_arrays[i]
-                if arr[4] < 1:
-                    surviving_flss.append(arr[:3])
-                    gtl_p.append(gtl_point_cloud[i])
-
-            hdt = compute_hd(surviving_flss, np.stack(gtl_p))
-            hd_time.append((t, hdt))
-
-            swarms = compute_swarm_size(shared_arrays)
-            print(max(swarms.values()))
-            if Config.DURATION < 660:
-                swarms_metrics.append((t, swarms))
-
-            # if N == 1 or nid == 0:
-            if t - last_thaw_time >= h:
-                ser_sock.sendto(dumped_thaw_msg, Constants.BROADCAST_ADDRESS)
-                last_thaw_time = t
-
-            if should_stop:
-                if N == 1 or nid == 0:
-                    stop_message = Message(MessageTypes.STOP).from_server().to_all()
-                    dumped_stop_msg = pickle.dumps(stop_message)
-                    ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
-                time.sleep(1)
-                break
-
-    elif Config.CENTRALIZED_SWARM_SIZE:
-        thaw_message = Message(MessageTypes.THAW_SWARM).from_server().to_all()
-        dumped_thaw_msg = pickle.dumps(thaw_message)
-
-        while True:
-            swarms = compute_swarm_size(shared_arrays)
-            # print(swarms)
-            if 1 in swarms:
-                t = time.time()
-                print(swarms[1])
-                if Config.DURATION < 660:
-                    swarms_metrics.append((t, swarms))
-
-                if should_stop and Config.FAILURE_TIMEOUT:
-                    stop_message = Message(MessageTypes.STOP).from_server().to_all()
-                    dumped_stop_msg = pickle.dumps(stop_message)
-                    ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
-                    time.sleep(1)
-                    break
-
-                if len(swarms) == 1 and swarms[1] == count:
-                    num_round += 1
-                    print(f'one swarm was detected by the server round{num_round}')
-                    round_time.append(t)
-                    hd_round.append((t, compute_hd([arr[:3] for arr in shared_arrays], gtl_point_cloud)))
-                    if should_stop:
-                        stop_message = Message(MessageTypes.STOP).from_server().to_all()
-                        dumped_stop_msg = pickle.dumps(stop_message)
-                        ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
-                        time.sleep(1)
-                        break
-                    else:
-                        ser_sock.sendto(dumped_thaw_msg, Constants.BROADCAST_ADDRESS)
-            time.sleep(1)
-    else:
-        server_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        server_sock.bind(Constants.SERVER_ADDRESS)
-
-        while True:
-            data, _ = server_sock.recvfrom(2048)
-            msg = pickle.loads(data)
-
-            if msg.type == MessageTypes.FIN and not fin_message_sent:
-                num_round += 1
-                round_time.append(time.time())
-                if num_round < max_rounds:
-                    msg_type = MessageTypes.THAW_SWARM
-                    msg_args = (round_time,)
-                else:
-                    msg_type = MessageTypes.STOP
-                    fin_message_sent = True
-                    msg_args = None
-
-                server_message = Message(msg_type, args=msg_args).from_server().to_all()
-                # send_message_to_all(server_message)
-                continue
-
-            final_point_cloud[msg.fid - 1] = msg.el
-            if msg.args is not None:
-                metrics[msg.fid] = msg.args[0]
-            fin_processes[msg.fid - 1] = 1
-
-            shared_memories[msg.fid - 1].close()
-            shared_memories[msg.fid - 1].unlink()
-
-            print(f"process {msg.fid} finished")
-
-            if np.sum(fin_processes) == count:
-                if hd_timer is not None:
-                    hd_timer.cancel()
-                start_time = time.time()
-                final_hd = utils.hausdorff_distance(final_point_cloud, gtl_point_cloud)
-                end_time = time.time()
-                print(f"final hd: {final_hd} computed in {end_time-start_time} (s)")
-                break
-        server_sock.close()
-
+    # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)
     for p in processes:
-        p.join(45)
-        if p.is_alive():
-            stop_all()
-            time.sleep(45)
-            break
-
-    for p in processes:
-        if p.is_alive():
-            p.terminate()
-
-    if Config.PROBABILISTIC_ROUND or Config.CENTRALIZED_ROUND:
-        utils.write_hds_time(hd_time, results_directory, nid)
-    else:
-        utils.write_hds_round(hd_round, round_time, results_directory, nid)
-    if Config.DURATION < 660:
-        utils.write_swarms(swarms_metrics, round_time, results_directory, nid)
-
-    if nid == 0:
-        utils.write_configs(results_directory)
-
-    if N > 1 and nid == 0:
-        print("wait a fixed time for other nodes")
-        time.sleep(60)
-
-        utils.create_csv_from_json(results_directory)
-        utils.combine_csvs(results_directory, shape_directory)
-
-    for s in shared_memories:
-        s.close()
-        s.unlink()
+        p.join()
