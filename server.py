@@ -131,7 +131,7 @@ if __name__ == '__main__':
     ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     ser_sock.settimeout(.2)
 
-    time.sleep(10)
+    time.sleep(20)
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
     dumped_stop_msg = pickle.dumps(stop_message)
     ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)

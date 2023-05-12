@@ -36,6 +36,7 @@ class StateMachine:
         self.start_timers()
 
     def clear_group(self):
+        self.verified = False
         self.m = None
         self.w = -1
 
