@@ -14,54 +14,64 @@ class StateMachine:
         self.metrics = metrics
         self.sock = sock
         self.timer_single = None
-        self.w = 0
+        self.w = -1
         self.m = None
+        self.delta = 0.1
+        self.max_delta = 1
         self.req_accept = False
+        self.verified = False
 
     @staticmethod
     def get_w(u, v):
         return 1 / np.linalg.norm(u.el - v.el)
+
+    def double_delta(self):
+        new_delta = self.delta * 2
+        if new_delta <= self.max_delta:
+            self.delta = new_delta
 
     def start(self):
         self.context.deploy()
         self.enter(StateTypes.SINGLE)
         self.start_timers()
 
+    def clear_group(self):
+        self.m = None
+        self.w = -1
+
+    def confirm_group(self):
+        self.verified = True
+        print(f"{self.context.fid} matched to {self.m.fid}, w={self.w}")
+
+    def set_group(self, w, m):
+        self.w = w
+        self.m = m
+
     def handle_init(self, msg):
-        new_w = StateMachine.get_w(self.context, msg)
         sender_w = msg.args[0]
-        if new_w > self.w and new_w > sender_w:
-            if self.m is not None:
-                break_msg = Message(MessageTypes.BREAK).to_fls(self.m)
-                self.broadcast(break_msg)
-
-            self.m = msg
-            self.w = new_w
-
-            accept_msg = Message(MessageTypes.ACCEPT, args=(sender_w, new_w)).to_fls(msg)
-            self.broadcast(accept_msg)
-            self.enter(StateTypes.MARRIED)
-
-    def handle_accept(self, msg):
-        old_w = msg.args[0]
-        new_w = StateMachine.get_w(self.context, msg)
-        if old_w != self.w:
-            break_msg = Message(MessageTypes.BREAK).to_fls(msg)
-            self.broadcast(break_msg)
-            return
-
-        if new_w > self.w:
-            self.req_accept = True
-            if self.m is not None:
-                break_msg = Message(MessageTypes.BREAK).to_fls(self.m)
-                self.broadcast(break_msg)
-
-            self.m = msg
-            self.w = new_w
-            self.enter(StateTypes.MARRIED)
+        sender_m = msg.args[1]
+        w_to_sender = StateMachine.get_w(self.context, msg)
+        if self.m is not None:
+            m = self.m.fid
         else:
-            break_msg = Message(MessageTypes.BREAK).to_fls(msg)
-            self.broadcast(break_msg)
+            m = -1
+
+        # xmitter_wv > -1 and xmitter_wv == W_To_Xmitter and Self.FID > xmitter_mv
+        if sender_w > -1 and sender_w == w_to_sender and self.context.fid > sender_m:
+            self.clear_group()
+        # xmitter_wv > W_To_Xmitter & & mv == Xmitter & & xmitter_mv != Self.FID
+        if sender_w > w_to_sender and m == msg.fid and sender_m != self.context.fid:
+            self.clear_group()
+        # mv == Xmitter_mv & & Wv == Xmitter.wv & & verified == true
+        if self.context.fid == sender_m and m == msg.fid and self.w == sender_w and self.verified is True:
+            self.double_delta()
+        # mv == Xmitter_mv & & Wv == Xmitter.wv & & verified == false & & W_To_Xmitter == Wv
+        if self.context.fid == sender_m and m == msg.fid and self.w == sender_w and self.verified is False and\
+                w_to_sender == self.w:
+            self.confirm_group()
+        # W_To_Xmitter > Wv & & W_To_Xmitter > xmitter_wv & & (mv == -1 | | Self.FID <= xmitter_mv
+        if w_to_sender > self.w and w_to_sender > sender_w and (m == -1 or self.context.fid <= sender_m):
+            self.set_group(w_to_sender, msg)
 
     def handle_thaw(self, msg):
         self.cancel_timers()
@@ -80,19 +90,13 @@ class StateMachine:
             self.context.set_pair(self.context.el)
             print(f"{self.context.fid} is single")
 
-    def handle_break(self, msg):
-        if self.m is not None and msg.fid == self.m.fid:
-            self.w = 0
-            self.m = None
-            self.enter(StateTypes.SINGLE)
-
     def enter_single_state(self):
-        if not self.req_accept:
-            self.context.increment_range()
-
-        self.req_accept = False
-        challenge_msg = Message(MessageTypes.INIT, args=(self.w,)).to_all()
-        self.broadcast(challenge_msg)
+        if self.m is not None:
+            m = self.m.fid
+        else:
+            m = -1
+        discover_msg = Message(MessageTypes.INIT, args=(self.w, m)).to_all()
+        self.broadcast(discover_msg)
 
     def enter_married_state(self):
         print(f"{self.context.fid} matched to {self.m.fid}, w={self.w}")
@@ -116,14 +120,12 @@ class StateMachine:
         elif self.state == StateTypes.MARRIED:
             self.enter_married_state()
 
-        if self.state != StateTypes.MARRIED:
-            rand_time = 0.1 + np.random.random() * Config.STATE_TIMEOUT
-            self.timer_single = threading.Timer(rand_time, self.reenter, (StateTypes.SINGLE,))
-            self.timer_single.start()
+        rand_time = 0.1 + np.random.random() * Config.STATE_TIMEOUT
+        self.timer_single = threading.Timer(rand_time, self.reenter, (StateTypes.SINGLE,))
+        self.timer_single.start()
 
     def reenter(self, state):
-        if self.state != StateTypes.MARRIED:
-            self.enter(state)
+        self.enter(state)
 
     def leave(self, state):
         if state == StateTypes.SINGLE:
@@ -137,16 +139,10 @@ class StateMachine:
 
         if event == MessageTypes.INIT:
             self.handle_init(msg)
-        elif event == MessageTypes.ACCEPT:
-            self.handle_accept(msg)
         elif event == MessageTypes.STOP:
             self.handle_stop(msg)
         elif event == MessageTypes.THAW:
             self.handle_thaw(msg)
-
-        if self.state == StateTypes.MARRIED:
-            if event == MessageTypes.BREAK:
-                self.handle_break(msg)
 
     def broadcast(self, msg):
         msg.from_fls(self.context)
