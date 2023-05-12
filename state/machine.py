@@ -16,8 +16,8 @@ class StateMachine:
         self.timer_single = None
         self.w = -1
         self.m = None
-        self.delta = 0.1
-        self.max_delta = 1
+        self.delta = 0.01
+        self.max_delta = 0.1
         self.req_accept = False
         self.verified = False
 
@@ -120,8 +120,7 @@ class StateMachine:
         elif self.state == StateTypes.MARRIED:
             self.enter_married_state()
 
-        rand_time = 0.1 + np.random.random() * Config.STATE_TIMEOUT
-        self.timer_single = threading.Timer(rand_time, self.reenter, (StateTypes.SINGLE,))
+        self.timer_single = threading.Timer(self.delta, self.reenter, (StateTypes.SINGLE,))
         self.timer_single.start()
 
     def reenter(self, state):
