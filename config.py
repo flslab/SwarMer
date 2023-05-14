@@ -1,6 +1,6 @@
 class Config:
     THAW_SWARMS = False
-    INITIAL_RANGE = 5
+    INITIAL_RANGE = 1
     MAX_RANGE = 200
     DROP_PROB_SENDER = 0
     DROP_PROB_RECEIVER = 0
@@ -25,7 +25,7 @@ class Config:
     CENTRALIZED_ROUND = True
     BUSY_WAITING = False
     MIN_ADJUSTMENT = 0
-    SAMPLE_SIZE = 12
+    SAMPLE_SIZE = 32
     DURATION = 600
     SHAPE = 'butterfly'
     RESULTS_PATH = 'results'

@@ -87,6 +87,7 @@ class StateMachine:
             self.enter(StateTypes.SINGLE)
 
     def enter_single_state(self):
+        self.context.set_single()
         if not self.req_accept:
             self.context.increment_range()
 
