@@ -71,7 +71,7 @@ if __name__ == '__main__':
     h = np.log2(total_count)
 
     gtl_point_cloud = np.random.uniform(0, 5, size=(total_count, 3))
-    sample = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    sample = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     node_point_idx = []
     for i in range(total_count):
@@ -131,7 +131,11 @@ if __name__ == '__main__':
     ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     ser_sock.settimeout(.2)
 
-    time.sleep(10)
+    while True:
+        time.sleep(1)
+        if sum([sha[6] for sha in shared_arrays]) == count:
+            break
+
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
     dumped_stop_msg = pickle.dumps(stop_message)
     ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
@@ -139,6 +143,8 @@ if __name__ == '__main__':
     print("done")
 
     time.sleep(1)
+    for p in processes:
+        p.join()
 
     for sha in shared_arrays:
         # print(sha)
@@ -147,5 +153,4 @@ if __name__ == '__main__':
     plt.show()
 
     # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)
-    for p in processes:
-        p.join()
+

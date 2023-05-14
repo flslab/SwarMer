@@ -95,6 +95,7 @@ class StateMachine:
         self.broadcast(challenge_msg)
 
     def enter_married_state(self):
+        self.context.set_married()
         print(f"{self.context.fid} matched to {self.m.fid}, w={self.w}")
 
     def leave_single_state(self):
@@ -136,17 +137,16 @@ class StateMachine:
         # self.context.update_neighbor(msg)
 
         if event == MessageTypes.INIT:
-            self.handle_init(msg)
+            if self.state == StateTypes.SINGLE:
+                self.handle_init(msg)
         elif event == MessageTypes.ACCEPT:
             self.handle_accept(msg)
         elif event == MessageTypes.STOP:
             self.handle_stop(msg)
         elif event == MessageTypes.THAW:
             self.handle_thaw(msg)
-
-        if self.state == StateTypes.MARRIED:
-            if event == MessageTypes.BREAK:
-                self.handle_break(msg)
+        elif event == MessageTypes.BREAK:
+            self.handle_break(msg)
 
     def broadcast(self, msg):
         msg.from_fls(self.context)
