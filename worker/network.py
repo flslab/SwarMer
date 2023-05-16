@@ -45,7 +45,7 @@ class NetworkThread(threading.Thread):
             return False
         if msg.fid in self.latest_message_id and msg.id < self.latest_message_id[msg.fid]:
             return False
-        if msg.type == message.MessageTypes.INIT:
+        if msg.type == message.MessageTypes.DISCOVER:
             dist = np.linalg.norm(msg.el - self.context.el)
             if dist > msg.range:
                 return False

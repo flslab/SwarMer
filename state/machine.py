@@ -27,7 +27,7 @@ class StateMachine:
         self.enter(StateTypes.SINGLE)
         self.start_timers()
 
-    def handle_init(self, msg):
+    def handle_discover(self, msg):
         # break_args = (self.w, -1 if self.m is None else self.m.fid)
         break_args = {}
         new_w = StateMachine.get_w(self.context, msg)
@@ -42,7 +42,7 @@ class StateMachine:
 
             accept_msg = Message(MessageTypes.ACCEPT, args=(sender_w, new_w)).to_fls(msg)
             self.broadcast(accept_msg)
-            self.enter(StateTypes.MARRIED)
+            self.enter(StateTypes.PAIRED)
 
     def handle_accept(self, msg):
         # break_args = (self.w, -1 if self.m is None else self.m.fid)
@@ -62,7 +62,7 @@ class StateMachine:
 
             self.m = msg
             self.w = new_w
-            self.enter(StateTypes.MARRIED)
+            self.enter(StateTypes.PAIRED)
         else:
             break_msg = Message(MessageTypes.BREAK, args=break_args).to_fls(msg)
             self.broadcast(break_msg)
@@ -99,17 +99,17 @@ class StateMachine:
             self.context.increment_range()
 
         self.req_accept = False
-        challenge_msg = Message(MessageTypes.INIT, args=(self.w,)).to_all()
+        challenge_msg = Message(MessageTypes.DISCOVER, args=(self.w,)).to_all()
         self.broadcast(challenge_msg)
 
-    def enter_married_state(self):
-        self.context.set_married()
+    def enter_paired_state(self):
+        self.context.set_paired()
         print(f"{self.context.fid} matched to {self.m.fid}, w={self.w}")
 
     def leave_single_state(self):
         pass
 
-    def leave_married_state(self):
+    def leave_paired_state(self):
         print(f"{self.context.fid} broke")
 
     def enter(self, state):
@@ -122,31 +122,31 @@ class StateMachine:
 
         if self.state == StateTypes.SINGLE:
             self.enter_single_state()
-        elif self.state == StateTypes.MARRIED:
-            self.enter_married_state()
+        elif self.state == StateTypes.PAIRED:
+            self.enter_paired_state()
 
-        if self.state != StateTypes.MARRIED:
+        if self.state != StateTypes.PAIRED:
             # rand_time = 0.1 + np.random.random() * Config.STATE_TIMEOUT
             self.timer_single = threading.Timer(Config.STATE_TIMEOUT, self.reenter, (StateTypes.SINGLE,))
             self.timer_single.start()
 
     def reenter(self, state):
-        if self.state != StateTypes.MARRIED:
+        if self.state != StateTypes.PAIRED:
             self.enter(state)
 
     def leave(self, state):
         if state == StateTypes.SINGLE:
             self.leave_single_state()
-        elif state == StateTypes.MARRIED:
-            self.leave_married_state()
+        elif state == StateTypes.PAIRED:
+            self.leave_paired_state()
 
     def drive(self, msg):
         event = msg.type
         # self.context.update_neighbor(msg)
 
-        if event == MessageTypes.INIT:
+        if event == MessageTypes.DISCOVER:
             # if self.state == StateTypes.SINGLE:
-            self.handle_init(msg)
+            self.handle_discover(msg)
         elif event == MessageTypes.ACCEPT:
             self.handle_accept(msg)
         elif event == MessageTypes.STOP:

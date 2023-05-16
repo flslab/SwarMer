@@ -3,7 +3,7 @@ from enum import Enum
 
 class MessageTypes(Enum):
     STOP = 0
-    INIT = 1
+    DISCOVER = 1
     ACCEPT = 2
     ACK = 3
     BREAK = 4

@@ -37,7 +37,7 @@ class WorkerContext:
             # print(shared_array)
             shared_mem.close()
 
-    def set_married(self):
+    def set_paired(self):
         if self.shm_name:
             shared_mem = shared_memory.SharedMemory(name=self.shm_name)
             shared_array = np.ndarray((7,), dtype=np.float64, buffer=shared_mem.buf)
