@@ -28,7 +28,8 @@ class StateMachine:
         self.start_timers()
 
     def handle_init(self, msg):
-        break_args = (self.w, -1 if self.m is None else self.m.fid)
+        # break_args = (self.w, -1 if self.m is None else self.m.fid)
+        break_args = {}
         new_w = StateMachine.get_w(self.context, msg)
         sender_w = msg.args[0]
         if new_w > self.w and new_w > sender_w:
@@ -44,7 +45,8 @@ class StateMachine:
             self.enter(StateTypes.MARRIED)
 
     def handle_accept(self, msg):
-        break_args = (self.w, -1 if self.m is None else self.m.fid)
+        # break_args = (self.w, -1 if self.m is None else self.m.fid)
+        break_args = {}
         old_w = msg.args[0]
         new_w = StateMachine.get_w(self.context, msg)
         if old_w != self.w:
