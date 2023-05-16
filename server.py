@@ -133,6 +133,7 @@ if __name__ == '__main__':
         if sum([sha[6] for sha in shared_arrays]) == count:
             break
 
+    time.sleep(1)
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
     dumped_stop_msg = pickle.dumps(stop_message)
     ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
