@@ -5,7 +5,6 @@ from multiprocessing import shared_memory
 import scipy.io
 import time
 import os
-import threading
 from config import Config
 from constants import Constants
 from message import Message, MessageTypes
@@ -121,8 +120,6 @@ if __name__ == '__main__':
     max_rounds = Config.NUMBER_ROUND
     round_time = [time.time()]
     swarms_metrics = []
-
-    threading.Timer(Config.DURATION, set_stop).start()
 
     print('waiting for processes ...')
 

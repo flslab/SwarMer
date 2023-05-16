@@ -28,11 +28,12 @@ class StateMachine:
         self.start_timers()
 
     def handle_init(self, msg):
+        break_args = (self.w, -1 if self.m is None else self.m.fid)
         new_w = StateMachine.get_w(self.context, msg)
         sender_w = msg.args[0]
         if new_w > self.w and new_w > sender_w:
             if self.m is not None:
-                break_msg = Message(MessageTypes.BREAK).to_fls(self.m)
+                break_msg = Message(MessageTypes.BREAK, args=break_args).to_fls(self.m)
                 self.broadcast(break_msg)
 
             self.m = msg
@@ -43,24 +44,25 @@ class StateMachine:
             self.enter(StateTypes.MARRIED)
 
     def handle_accept(self, msg):
+        break_args = (self.w, -1 if self.m is None else self.m.fid)
         old_w = msg.args[0]
         new_w = StateMachine.get_w(self.context, msg)
         if old_w != self.w:
-            break_msg = Message(MessageTypes.BREAK).to_fls(msg)
+            break_msg = Message(MessageTypes.BREAK, args=break_args).to_fls(msg)
             self.broadcast(break_msg)
             return
 
         if new_w > self.w:
             self.req_accept = True
             if self.m is not None:
-                break_msg = Message(MessageTypes.BREAK).to_fls(self.m)
+                break_msg = Message(MessageTypes.BREAK, args=break_args).to_fls(self.m)
                 self.broadcast(break_msg)
 
             self.m = msg
             self.w = new_w
             self.enter(StateTypes.MARRIED)
         else:
-            break_msg = Message(MessageTypes.BREAK).to_fls(msg)
+            break_msg = Message(MessageTypes.BREAK, args=break_args).to_fls(msg)
             self.broadcast(break_msg)
 
     def handle_thaw(self, msg):
@@ -81,6 +83,9 @@ class StateMachine:
             print(f"{self.context.fid} is single")
 
     def handle_break(self, msg):
+        # m = -1 if self.m is None else self.m.fid
+        # w = self.w
+        # if w == msg.args[0] and m == msg.fid and msg.args[0] == self.context.fid:
         if self.m is not None and msg.fid == self.m.fid:
             self.w = 0
             self.m = None
@@ -119,8 +124,8 @@ class StateMachine:
             self.enter_married_state()
 
         if self.state != StateTypes.MARRIED:
-            rand_time = 0.1 + np.random.random() * Config.STATE_TIMEOUT
-            self.timer_single = threading.Timer(rand_time, self.reenter, (StateTypes.SINGLE,))
+            # rand_time = 0.1 + np.random.random() * Config.STATE_TIMEOUT
+            self.timer_single = threading.Timer(Config.STATE_TIMEOUT, self.reenter, (StateTypes.SINGLE,))
             self.timer_single.start()
 
     def reenter(self, state):
@@ -138,8 +143,8 @@ class StateMachine:
         # self.context.update_neighbor(msg)
 
         if event == MessageTypes.INIT:
-            if self.state == StateTypes.SINGLE:
-                self.handle_init(msg)
+            # if self.state == StateTypes.SINGLE:
+            self.handle_init(msg)
         elif event == MessageTypes.ACCEPT:
             self.handle_accept(msg)
         elif event == MessageTypes.STOP:
