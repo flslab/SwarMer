@@ -67,7 +67,7 @@ if __name__ == '__main__':
     #     os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
 
     if Config.READ_FROM_NPY:
-        with open(f'results/{1}.npy', 'rb') as f:
+        with open(f'{Config.RESULTS_PATH}/{Config.READ_FROM_NPY}.npy', 'rb') as f:
             point_cloud = np.load(f)
     else:
         mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
@@ -175,10 +175,10 @@ if __name__ == '__main__':
             count_keys(point_connections, point_a)
             count_keys(point_connections, point_b)
         plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
-    plt.savefig(f'results/{experiment_name}.jpg')
+    plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
 
     if any([v != 2 for v in point_connections.values()]):
-        with open(f'results/{experiment_name}.npy', 'wb') as f:
+        with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
             np.save(f, point_cloud)
 
     for s in shared_memories:
