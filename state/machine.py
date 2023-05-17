@@ -5,10 +5,11 @@ import threading
 from message import Message, MessageTypes
 from config import Config
 from .types import StateTypes
+from worker.network import PrioritizedItem
 
 
 class StateMachine:
-    def __init__(self, context, sock, metrics):
+    def __init__(self, context, sock, metrics, event_queue):
         self.state = None
         self.context = context
         self.metrics = metrics
@@ -17,6 +18,7 @@ class StateMachine:
         self.w = 0
         self.m = None
         self.req_accept = False
+        self.event_queue = event_queue
 
     @staticmethod
     def get_w(u, v):
@@ -104,13 +106,14 @@ class StateMachine:
 
     def enter_paired_state(self):
         self.context.set_paired()
-        print(f"{self.context.fid} matched to {self.m.fid}, w={self.w}")
+        # print(f"{self.context.fid} matched to {self.m.fid}, w={self.w}")
 
     def leave_single_state(self):
         pass
 
     def leave_paired_state(self):
-        print(f"{self.context.fid} broke")
+        pass
+        # print(f"{self.context.fid} broke")
 
     def enter(self, state):
         if self.timer_single is not None:
@@ -127,12 +130,16 @@ class StateMachine:
 
         if self.state != StateTypes.PAIRED:
             # rand_time = 0.1 + np.random.random() * Config.STATE_TIMEOUT
-            self.timer_single = threading.Timer(Config.STATE_TIMEOUT, self.reenter, (StateTypes.SINGLE,))
+            self.timer_single = threading.Timer(Config.STATE_TIMEOUT, self.put_state_in_q, (StateTypes.SINGLE,))
             self.timer_single.start()
 
     def reenter(self, state):
         if self.state != StateTypes.PAIRED:
             self.enter(state)
+
+    def put_state_in_q(self, state):
+        item = PrioritizedItem(1, state, False)
+        self.event_queue.put(item)
 
     def leave(self, state):
         if state == StateTypes.SINGLE:

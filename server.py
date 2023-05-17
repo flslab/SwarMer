@@ -14,7 +14,7 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-mpl.use('macosx')
+# mpl.use('macosx')
 
 hd_timer = None
 hd_round = []
@@ -130,7 +130,9 @@ if __name__ == '__main__':
 
     while True:
         time.sleep(1)
-        if sum([sha[6] for sha in shared_arrays]) == count:
+        num_married = sum([sha[6] for sha in shared_arrays])
+        # print(num_married)
+        if num_married == count or (count % 2 == 1 and num_married == count - 1):
             break
 
     time.sleep(1)

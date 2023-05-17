@@ -1,6 +1,7 @@
 import threading
 import time
 from message import MessageTypes
+from state import StateTypes
 
 
 class HandlerThread(threading.Thread):
@@ -14,6 +15,10 @@ class HandlerThread(threading.Thread):
         self.state_machine.start()
         while True:
             item = self.event_queue.get()
+            if isinstance(item.event, StateTypes):
+                self.state_machine.reenter(item.event)
+                continue
+
             if item.stale:
                 continue
 
