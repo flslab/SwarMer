@@ -101,11 +101,15 @@ class StateMachine:
             self.context.increment_range()
 
         self.req_accept = False
-        challenge_msg = Message(MessageTypes.DISCOVER, args=(self.w,)).to_all()
-        self.broadcast(challenge_msg)
+        m = -1 if self.m is None else self.m.fid
+        discover_msg = Message(MessageTypes.DISCOVER, args=(self.w, m)).to_all()
+        self.broadcast(discover_msg)
 
     def enter_paired_state(self):
         self.context.set_paired()
+        # m = -1 if self.m is None else self.m.fid
+        # discover_msg = Message(MessageTypes.DISCOVER, args=(self.w, m)).to_fls(self.m)
+        # self.broadcast(discover_msg)
         # print(f"{self.context.fid} matched to {self.m.fid}, w={self.w}")
 
     def leave_single_state(self):

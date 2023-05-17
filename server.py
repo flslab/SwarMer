@@ -55,9 +55,9 @@ if __name__ == '__main__':
         experiment_name = sys.argv[3]
 
     results_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE, experiment_name)
-    shape_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE)
-    if not os.path.exists(results_directory):
-        os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
+    # shape_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE)
+    # if not os.path.exists(results_directory):
+    #     os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
     mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
     point_cloud = mat['p']
     # point_cloud = np.array([[0, 0, 0], [5, 0, 0], [0, 20, 0], [5, 20, 0]])
