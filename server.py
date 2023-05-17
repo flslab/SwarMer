@@ -22,6 +22,13 @@ hd_time = []
 should_stop = False
 
 
+def count_keys(d, k):
+    if k in d:
+        d[k] += 1
+    else:
+        d[k] = 1
+
+
 def set_stop():
     global should_stop
     should_stop = True
@@ -58,8 +65,13 @@ if __name__ == '__main__':
     # shape_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE)
     # if not os.path.exists(results_directory):
     #     os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
-    mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
-    point_cloud = mat['p']
+
+    if Config.READ_FROM_NPY:
+        with open(f'results/{1}.npy', 'rb') as f:
+            point_cloud = np.load(f)
+    else:
+        mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
+        point_cloud = mat['p']
     # point_cloud = np.array([[0, 0, 0], [5, 0, 0], [0, 20, 0], [5, 20, 0]])
 
     if Config.SAMPLE_SIZE != 0:
@@ -151,11 +163,20 @@ if __name__ == '__main__':
     for p in processes:
         p.join()
 
+    point_connections = dict()
     for sha in shared_arrays:
         # print(sha)
         # print([sha[0], sha[3]], [sha[1], sha[4]])
+        point_a = f"{sha[0],sha[1]}"
+        point_b = f"{sha[3],sha[4]}"
+        count_keys(point_connections, point_a)
+        count_keys(point_connections, point_b)
         plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
     plt.savefig(f'results/{experiment_name}.jpg')
+
+    if any([v != 2 for v in point_connections.values()]):
+        with open(f'results/{experiment_name}.npy', 'wb') as f:
+            np.save(f, point_cloud)
 
     for s in shared_memories:
         s.close()
