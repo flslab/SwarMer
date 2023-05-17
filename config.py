@@ -27,5 +27,6 @@ class Config:
     MIN_ADJUSTMENT = 0
     SAMPLE_SIZE = 12
     DURATION = 600
+    READ_FROM_NPY = '1684362642'
     SHAPE = 'butterfly'
     RESULTS_PATH = 'results'

@@ -17,8 +17,8 @@ class StateMachine:
         self.timer_single = None
         self.w = -1
         self.m = None
-        self.delta = 0.05
-        self.max_delta = 1
+        self.delta = 1
+        self.max_delta = 4
         self.req_accept = False
         self.verified = False
         self.event_queue = event_queue
@@ -56,10 +56,8 @@ class StateMachine:
         sender_w = msg.args[0]
         sender_m = msg.args[1]
         w_to_sender = StateMachine.get_w(self.context, msg)
-        if self.m is not None:
-            m = self.m.fid
-        else:
-            m = -1
+
+        m = -1 if self.m is None else self.m.fid
 
         if sender_w > -1 and sender_w == w_to_sender and self.context.fid > sender_m:
             self.clear_group()
@@ -74,11 +72,7 @@ class StateMachine:
             self.set_group(w_to_sender, msg)
 
     def handle_thaw(self, msg):
-        self.cancel_timers()
-        self.enter(StateTypes.SINGLE)
-        self.w = 0
-        self.m = None
-        self.start_timers()
+        pass
 
     def handle_stop(self, msg):
         self.cancel_timers()
@@ -91,10 +85,8 @@ class StateMachine:
             print(f"{self.context.fid} is single")
 
     def enter_single_state(self):
-        if self.m is not None:
-            m = self.m.fid
-        else:
-            m = -1
+        self.context.increment_range()
+        m = -1 if self.m is None else self.m.fid
         discover_msg = Message(MessageTypes.INIT, args=(self.w, m)).to_all()
         self.broadcast(discover_msg)
 

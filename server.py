@@ -14,12 +14,19 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-# mpl.use('macosx')
+mpl.use('macosx')
 
 hd_timer = None
 hd_round = []
 hd_time = []
 should_stop = False
+
+
+def count_keys(d, k):
+    if k in d:
+        d[k] += 1
+    else:
+        d[k] = 1
 
 
 def set_stop():
@@ -55,11 +62,16 @@ if __name__ == '__main__':
         experiment_name = sys.argv[3]
 
     results_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE, experiment_name)
-    shape_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE)
-    if not os.path.exists(results_directory):
-        os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
-    mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
-    point_cloud = mat['p']
+    # shape_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE)
+    # if not os.path.exists(results_directory):
+    #     os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
+
+    if Config.READ_FROM_NPY:
+        with open(f'results/{Config.READ_FROM_NPY}.npy', 'rb') as f:
+            point_cloud = np.load(f)
+    else:
+        mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
+        point_cloud = mat['p']
     # point_cloud = np.array([[0, 0, 0], [5, 0, 0], [0, 20, 0], [5, 20, 0]])
 
     if Config.SAMPLE_SIZE != 0:
@@ -128,12 +140,17 @@ if __name__ == '__main__':
     ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     ser_sock.settimeout(.2)
 
+    last_num = 0
+    num_freeze = 0
     while True:
         time.sleep(1)
         num_married = sum([sha[6] for sha in shared_arrays])
-        # print(num_married)
-        if num_married == count or (count % 2 == 1 and num_married == count - 1):
+        print(num_married)
+        if num_married == last_num:
+            num_freeze += 1
+        if num_freeze == 10 or num_married == count or (count % 2 == 1 and num_married == count - 1):
             break
+        last_num = num_married
 
     time.sleep(1)
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
@@ -146,10 +163,26 @@ if __name__ == '__main__':
     for p in processes:
         p.join()
 
+    point_connections = dict()
     for sha in shared_arrays:
         # print(sha)
         # print([sha[0], sha[3]], [sha[1], sha[4]])
+        point_a = f"{sha[0],sha[1]}"
+        point_b = f"{sha[3],sha[4]}"
+        if point_b == point_a:
+            count_keys(point_connections, point_a)
+        else:
+            count_keys(point_connections, point_a)
+            count_keys(point_connections, point_b)
         plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
     plt.show()
+    # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
 
+    if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
+        with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
+            np.save(f, point_cloud)
+
+    for s in shared_memories:
+        s.close()
+        s.unlink()
     # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)
