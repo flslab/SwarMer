@@ -150,7 +150,7 @@ if __name__ == '__main__':
         # print(sha)
         # print([sha[0], sha[3]], [sha[1], sha[4]])
         plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
-    plt.show()
+    plt.savefig(f'results/{experiment_name}.png')
 
     # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)
 
