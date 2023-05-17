@@ -5,10 +5,11 @@ import threading
 from message import Message, MessageTypes
 from config import Config
 from .types import StateTypes
+from worker.network import PrioritizedItem
 
 
 class StateMachine:
-    def __init__(self, context, sock, metrics):
+    def __init__(self, context, sock, metrics, event_queue):
         self.state = None
         self.context = context
         self.metrics = metrics
@@ -16,10 +17,11 @@ class StateMachine:
         self.timer_single = None
         self.w = -1
         self.m = None
-        self.delta = 0.01
-        self.max_delta = 0.1
+        self.delta = 0.05
+        self.max_delta = 1
         self.req_accept = False
         self.verified = False
+        self.event_queue = event_queue
 
     @staticmethod
     def get_w(u, v):
@@ -39,9 +41,11 @@ class StateMachine:
         self.verified = False
         self.m = None
         self.w = -1
+        self.context.set_single()
 
     def confirm_group(self):
         self.verified = True
+        self.context.set_paired()
         print(f"{self.context.fid} matched to {self.m.fid}, w={self.w}")
 
     def set_group(self, w, m):
@@ -57,20 +61,15 @@ class StateMachine:
         else:
             m = -1
 
-        # xmitter_wv > -1 and xmitter_wv == W_To_Xmitter and Self.FID > xmitter_mv
         if sender_w > -1 and sender_w == w_to_sender and self.context.fid > sender_m:
             self.clear_group()
-        # xmitter_wv > W_To_Xmitter & & mv == Xmitter & & xmitter_mv != Self.FID
         if sender_w > w_to_sender and m == msg.fid and sender_m != self.context.fid:
             self.clear_group()
-        # mv == Xmitter_mv & & Wv == Xmitter.wv & & verified == true
         if self.context.fid == sender_m and m == msg.fid and self.w == sender_w and self.verified is True:
             self.double_delta()
-        # mv == Xmitter_mv & & Wv == Xmitter.wv & & verified == false & & W_To_Xmitter == Wv
         if self.context.fid == sender_m and m == msg.fid and self.w == sender_w and self.verified is False and\
                 w_to_sender == self.w:
             self.confirm_group()
-        # W_To_Xmitter > Wv & & W_To_Xmitter > xmitter_wv & & (mv == -1 | | Self.FID <= xmitter_mv
         if w_to_sender > self.w and w_to_sender > sender_w and (m == -1 or self.context.fid <= sender_m):
             self.set_group(w_to_sender, msg)
 
@@ -121,11 +120,15 @@ class StateMachine:
         elif self.state == StateTypes.MARRIED:
             self.enter_married_state()
 
-        self.timer_single = threading.Timer(self.delta, self.reenter, (StateTypes.SINGLE,))
+        self.timer_single = threading.Timer(self.delta, self.put_state_in_q, (StateTypes.SINGLE,))
         self.timer_single.start()
 
     def reenter(self, state):
         self.enter(state)
+
+    def put_state_in_q(self, state):
+        item = PrioritizedItem(1, state, False)
+        self.event_queue.put(item)
 
     def leave(self, state):
         if state == StateTypes.SINGLE:

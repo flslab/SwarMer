@@ -31,10 +31,24 @@ class WorkerContext:
     def set_pair(self, pair_el):
         if self.shm_name:
             shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-            shared_array = np.ndarray((6,), dtype=np.float64, buffer=shared_mem.buf)
+            shared_array = np.ndarray((7,), dtype=np.float64, buffer=shared_mem.buf)
             shared_array[:3] = self.el[:]
             shared_array[3:6] = pair_el[:]
             # print(shared_array)
+            shared_mem.close()
+
+    def set_paired(self):
+        if self.shm_name:
+            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
+            shared_array = np.ndarray((7,), dtype=np.float64, buffer=shared_mem.buf)
+            shared_array[6] = 1
+            shared_mem.close()
+
+    def set_single(self):
+        if self.shm_name:
+            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
+            shared_array = np.ndarray((7,), dtype=np.float64, buffer=shared_mem.buf)
+            shared_array[6] = 0
             shared_mem.close()
 
     def set_swarm_id(self, swarm_id):
@@ -142,7 +156,7 @@ class WorkerContext:
 
     def increment_range(self):
         if self.radio_range < Config.MAX_RANGE:
-            self.set_radio_range(self.radio_range + 5)
+            self.set_radio_range(self.radio_range + 1)
             logger.critical(f"{self.fid} range incremented to {self.radio_range}")
             return True
         else:

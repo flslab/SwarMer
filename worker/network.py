@@ -44,6 +44,7 @@ class NetworkThread(threading.Thread):
         if msg.dest_swarm_id != self.context.swarm_id and msg.dest_swarm_id != '*':
             return False
         if msg.fid in self.latest_message_id and msg.id < self.latest_message_id[msg.fid]:
+            print("_______hi")
             return False
         if msg.type == message.MessageTypes.INIT:
             dist = np.linalg.norm(msg.el - self.context.el)
@@ -53,8 +54,8 @@ class NetworkThread(threading.Thread):
 
     @staticmethod
     def prioritize_message(msg):
-        if msg.type == message.MessageTypes.STOP or msg.type == message.MessageTypes.BREAK:
-            return PrioritizedItem(0, msg, False)
+        if msg.type == message.MessageTypes.STOP:
+            return PrioritizedItem(2, msg, False)
         return PrioritizedItem(1, msg, False)
 
 
