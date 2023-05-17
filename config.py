@@ -4,7 +4,7 @@ class Config:
     MAX_RANGE = 200
     DROP_PROB_SENDER = 0
     DROP_PROB_RECEIVER = 0
-    STATE_TIMEOUT = 0.05
+    STATE_TIMEOUT = 0
     SIZE_QUERY_TIMEOUT = 10
     DEAD_RECKONING_ANGLE = 0
     CHALLENGE_PROB_DECAY = 5
@@ -25,7 +25,8 @@ class Config:
     CENTRALIZED_ROUND = True
     BUSY_WAITING = False
     MIN_ADJUSTMENT = 0
-    SAMPLE_SIZE = 0
+    SAMPLE_SIZE = 8
     DURATION = 600
+    READ_FROM_NPY = 0
     SHAPE = 'butterfly'
     RESULTS_PATH = 'results'
