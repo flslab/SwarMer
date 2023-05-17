@@ -152,5 +152,8 @@ if __name__ == '__main__':
         plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
     plt.savefig(f'results/{experiment_name}.png')
 
+    for s in shared_memories:
+        s.close()
+        s.unlink()
     # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)
 
