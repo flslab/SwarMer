@@ -55,7 +55,7 @@ class NetworkThread(threading.Thread):
     @staticmethod
     def prioritize_message(msg):
         if msg.type == message.MessageTypes.STOP:
-            return PrioritizedItem(2, msg, False)
+            return PrioritizedItem(1, msg, False)
         return PrioritizedItem(1, msg, False)
 
 
