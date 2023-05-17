@@ -67,7 +67,7 @@ if __name__ == '__main__':
     #     os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
 
     if Config.READ_FROM_NPY:
-        with open(f'{Config.RESULTS_PATH}/{Config.READ_FROM_NPY}.npy', 'rb') as f:
+        with open(f'results/{Config.READ_FROM_NPY}.npy', 'rb') as f:
             point_cloud = np.load(f)
     else:
         mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
