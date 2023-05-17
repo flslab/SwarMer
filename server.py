@@ -128,12 +128,17 @@ if __name__ == '__main__':
     ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     ser_sock.settimeout(.2)
 
+    last_num = 0
+    num_freeze = 0
     while True:
         time.sleep(1)
         num_married = sum([sha[6] for sha in shared_arrays])
-        # print(num_married)
-        if num_married == count or (count % 2 == 1 and num_married == count - 1):
+        print(num_married)
+        if num_married == last_num:
+            num_freeze += 1
+        if num_freeze == 10 or num_married == count or (count % 2 == 1 and num_married == count - 1):
             break
+        last_num = num_married
 
     time.sleep(1)
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
@@ -150,7 +155,7 @@ if __name__ == '__main__':
         # print(sha)
         # print([sha[0], sha[3]], [sha[1], sha[4]])
         plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
-    plt.savefig(f'results/{experiment_name}.png')
+    plt.savefig(f'results/{experiment_name}.jpg')
 
     for s in shared_memories:
         s.close()
