@@ -169,8 +169,11 @@ if __name__ == '__main__':
         # print([sha[0], sha[3]], [sha[1], sha[4]])
         point_a = f"{sha[0],sha[1]}"
         point_b = f"{sha[3],sha[4]}"
-        count_keys(point_connections, point_a)
-        count_keys(point_connections, point_b)
+        if point_b == point_a:
+            count_keys(point_connections, point_a)
+        else:
+            count_keys(point_connections, point_a)
+            count_keys(point_connections, point_b)
         plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
     plt.savefig(f'results/{experiment_name}.jpg')
 
