@@ -5,9 +5,8 @@ class MessageTypes(Enum):
     STOP = 0
     DISCOVER = 1
     ACCEPT = 2
-    ACK = 3
-    BREAK = 4
-    THAW = 5
+    BREAK = 3
+    REENTER_SINGLE_STATE = 4
 
     def get_cat(self):
         pass

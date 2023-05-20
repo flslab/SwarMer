@@ -15,17 +15,10 @@ class HandlerThread(threading.Thread):
         self.state_machine.start()
         while True:
             item = self.event_queue.get()
-            if isinstance(item.event, StateTypes):
-                self.state_machine.reenter(item.event)
-                continue
-
             if item.stale:
                 continue
 
             event = item.event
-            if event.type == MessageTypes.THAW:
-                self.flush_all()
-
             self.state_machine.drive(event)
             if event.type == MessageTypes.STOP:
                 break
@@ -36,7 +29,7 @@ class HandlerThread(threading.Thread):
         with self.event_queue.mutex:
             for item in self.event_queue.queue:
                 t = item.event.type
-                if t == MessageTypes.BREAK or t == MessageTypes.STOP:
+                if t == MessageTypes.BREAK or t == MessageTypes.STOP or MessageTypes.REENTER_SINGLE_STATE:
                     item.stale = False
                 else:
                     item.stale = True

@@ -113,25 +113,17 @@ class StateMachine:
 
         if self.state == StateTypes.SINGLE:
             # rand_time = 0.1 + np.random.random() * Config.STATE_TIMEOUT
-            self.timer_single = threading.Timer(Config.STATE_TIMEOUT, self.put_state_in_q, (StateTypes.SINGLE,))
+            self.timer_single = threading.Timer(
+                Config.STATE_TIMEOUT, self.put_state_in_q, (MessageTypes.REENTER_SINGLE_STATE,))
             self.timer_single.start()
 
     def reenter(self, state):
-        if self.state == StateTypes.SINGLE:
-            self.enter(state)
+        self.enter(state)
 
-    def put_state_in_q(self, state):
-        item = PrioritizedItem(1, state, False)
+    def put_state_in_q(self, event):
+        msg = Message(event).to_fls(self.context)
+        item = PrioritizedItem(1, msg, False)
         self.event_queue.put(item)
-
-    def flush_queue(self):
-        with self.event_queue.mutex:
-            for item in self.event_queue.queue:
-                t = 0 if isinstance(item.event, StateTypes) else item.event.type
-                if t == MessageTypes.STOP or t == MessageTypes.BREAK:
-                    item.stale = False
-                else:
-                    item.stale = True
 
     def leave(self, state):
         if state == StateTypes.SINGLE:
@@ -152,6 +144,9 @@ class StateMachine:
             self.handle_stop(msg)
         elif event == MessageTypes.BREAK:
             self.handle_break(msg)
+        elif event == MessageTypes.REENTER_SINGLE_STATE:
+            if self.state == StateTypes.SINGLE:
+                self.reenter(StateTypes.SINGLE)
 
     def broadcast(self, msg):
         msg.from_fls(self.context)
