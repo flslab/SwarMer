@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import threading
 from message import Message, MessageTypes
@@ -20,9 +18,8 @@ class StateMachine:
         self.req_accept = False
         self.event_queue = event_queue
 
-    @staticmethod
-    def get_w(u, v):
-        return 1 / np.linalg.norm(u.el - v.el)
+    def compute_w_v(self, u):
+        return 1 / np.linalg.norm(self.context.el - u.el)
 
     def start(self):
         self.context.deploy()
@@ -30,51 +27,36 @@ class StateMachine:
         self.start_timers()
 
     def handle_discover(self, msg):
-        # break_args = (self.w, -1 if self.m is None else self.m.fid)
-        break_args = {}
-        new_w = StateMachine.get_w(self.context, msg)
+        new_w = self.compute_w_v(msg)
         sender_w = msg.args[0]
         if new_w > self.w and new_w > sender_w:
-            if self.m is not None:
-                break_msg = Message(MessageTypes.BREAK, args=break_args).to_fls(self.m)
-                self.broadcast(break_msg)
-
-            self.m = msg
-            self.w = new_w
-
-            accept_msg = Message(MessageTypes.ACCEPT, args=(sender_w, new_w)).to_fls(msg)
-            self.broadcast(accept_msg)
+            self.send_break_msg(self.m)
+            self.set_pair(msg)
+            self.send_accept_msg(msg, (sender_w, new_w))
             self.enter(StateTypes.PAIRED)
 
     def handle_accept(self, msg):
-        # break_args = (self.w, -1 if self.m is None else self.m.fid)
-        break_args = {}
         old_w = msg.args[0]
-        new_w = StateMachine.get_w(self.context, msg)
         if old_w != self.w:
-            break_msg = Message(MessageTypes.BREAK, args=break_args).to_fls(msg)
-            self.broadcast(break_msg)
-            return
-
-        if new_w > self.w:
-            self.req_accept = True
-            if self.m is not None:
-                break_msg = Message(MessageTypes.BREAK, args=break_args).to_fls(self.m)
-                self.broadcast(break_msg)
-
-            self.m = msg
-            self.w = new_w
-            self.enter(StateTypes.PAIRED)
+            self.send_break_msg(msg)
         else:
-            break_msg = Message(MessageTypes.BREAK, args=break_args).to_fls(msg)
+            self.req_accept = True
+            self.send_break_msg(self.m)
+            self.set_pair(msg)
+            self.enter(StateTypes.PAIRED)
+
+    def send_break_msg(self, ctx):
+        if ctx is not None:
+            break_msg = Message(MessageTypes.BREAK).to_fls(ctx)
             self.broadcast(break_msg)
 
-    def handle_thaw(self, msg):
-        self.cancel_timers()
-        self.enter(StateTypes.SINGLE)
-        self.w = 0
-        self.m = None
-        self.start_timers()
+    def send_accept_msg(self, ctx, args):
+        accept_msg = Message(MessageTypes.ACCEPT, args=args).to_fls(ctx)
+        self.broadcast(accept_msg)
+
+    def set_pair(self, m):
+        self.m = m
+        self.w = self.compute_w_v(m)
 
     def handle_stop(self, msg):
         self.cancel_timers()
@@ -87,9 +69,6 @@ class StateMachine:
             print(f"{self.context.fid} is single")
 
     def handle_break(self, msg):
-        # m = -1 if self.m is None else self.m.fid
-        # w = self.w
-        # if w == msg.args[0] and m == msg.fid and msg.args[0] == self.context.fid:
         if self.m is not None and msg.fid == self.m.fid:
             self.w = 0
             self.m = None
@@ -132,18 +111,27 @@ class StateMachine:
         elif self.state == StateTypes.PAIRED:
             self.enter_paired_state()
 
-        if self.state != StateTypes.PAIRED:
+        if self.state == StateTypes.SINGLE:
             # rand_time = 0.1 + np.random.random() * Config.STATE_TIMEOUT
             self.timer_single = threading.Timer(Config.STATE_TIMEOUT, self.put_state_in_q, (StateTypes.SINGLE,))
             self.timer_single.start()
 
     def reenter(self, state):
-        if self.state != StateTypes.PAIRED:
+        if self.state == StateTypes.SINGLE:
             self.enter(state)
 
     def put_state_in_q(self, state):
         item = PrioritizedItem(1, state, False)
         self.event_queue.put(item)
+
+    def flush_queue(self):
+        with self.event_queue.mutex:
+            for item in self.event_queue.queue:
+                t = 0 if isinstance(item.event, StateTypes) else item.event.type
+                if t == MessageTypes.STOP or t == MessageTypes.BREAK:
+                    item.stale = False
+                else:
+                    item.stale = True
 
     def leave(self, state):
         if state == StateTypes.SINGLE:
@@ -162,8 +150,6 @@ class StateMachine:
             self.handle_accept(msg)
         elif event == MessageTypes.STOP:
             self.handle_stop(msg)
-        elif event == MessageTypes.THAW:
-            self.handle_thaw(msg)
         elif event == MessageTypes.BREAK:
             self.handle_break(msg)
 

@@ -35,23 +35,6 @@ def set_stop():
     print('will stop next round')
 
 
-def compute_hd(sh_arrays, gtl):
-    hd_t = utils.hausdorff_distance(np.stack(sh_arrays), gtl)
-    print(f"__hd__ {hd_t}")
-    return hd_t
-
-
-def compute_swarm_size(sh_arrays):
-    swarm_counts = {}
-    for arr in sh_arrays:
-        swarm_id = arr[3]
-        if swarm_id in swarm_counts:
-            swarm_counts[swarm_id] += 1
-        else:
-            swarm_counts[swarm_id] = 1
-    return swarm_counts
-
-
 if __name__ == '__main__':
     N = 1
     nid = 0
@@ -62,9 +45,6 @@ if __name__ == '__main__':
         experiment_name = sys.argv[3]
 
     results_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE, experiment_name)
-    # shape_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE)
-    # if not os.path.exists(results_directory):
-    #     os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
 
     if Config.READ_FROM_NPY:
         with open(f'results/{Config.READ_FROM_NPY}.npy', 'rb') as f:
@@ -82,7 +62,7 @@ if __name__ == '__main__':
     h = np.log2(total_count)
 
     gtl_point_cloud = np.random.uniform(0, 5, size=(total_count, 3))
-    sample = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    sample = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])  # el, elf of m, state (single = 0, married = 1)
 
     node_point_idx = []
     for i in range(total_count):
@@ -121,18 +101,6 @@ if __name__ == '__main__':
 
     gtl_point_cloud = local_gtl_point_cloud
 
-    fin_message_sent = False
-    final_point_cloud = np.zeros([count, 3])
-    fin_processes = np.zeros(count)
-    metrics = {}
-
-    # compute_hd(shared_arrays, gtl_point_cloud)
-
-    num_round = 0
-    max_rounds = Config.NUMBER_ROUND
-    round_time = [time.time()]
-    swarms_metrics = []
-
     print('waiting for processes ...')
 
     ser_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -165,8 +133,6 @@ if __name__ == '__main__':
 
     point_connections = dict()
     for sha in shared_arrays:
-        # print(sha)
-        # print([sha[0], sha[3]], [sha[1], sha[4]])
         point_a = f"{sha[0],sha[1]}"
         point_b = f"{sha[3],sha[4]}"
         if point_b == point_a:
@@ -175,9 +141,10 @@ if __name__ == '__main__':
             count_keys(point_connections, point_a)
             count_keys(point_connections, point_b)
         plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
-    plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
+    # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
+    plt.show()
 
-    if any([v != 2 for v in point_connections.values()]):
+    if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
         with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
             np.save(f, point_cloud)
 
@@ -185,4 +152,3 @@ if __name__ == '__main__':
         s.close()
         s.unlink()
     # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)
-
