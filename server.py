@@ -52,7 +52,10 @@ if __name__ == '__main__':
     else:
         mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
         point_cloud = mat['p']
-    # point_cloud = np.array([[0, 0, 0], [5, 0, 0], [0, 20, 0], [5, 20, 0]])
+    # point_cloud = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0],
+    #                         [0, 1, 0], [1, 1, 0], [2, 1, 0], [3, 1, 0]])
+    #                         [0, 2, 0], [1, 2, 0], [2, 2, 0], [3, 2, 0],
+    #                         [0, 3, 0], [1, 3, 0], [2, 3, 0], [3, 3, 0]])
 
     if Config.SAMPLE_SIZE != 0:
         np.random.shuffle(point_cloud)
@@ -78,6 +81,9 @@ if __name__ == '__main__':
     shared_memories = []
 
     local_gtl_point_cloud = []
+    # pidx = np.array(node_point_idx)
+    # np.random.shuffle(pidx)
+    # print(pidx)
     try:
         for i in node_point_idx:
             shm = shared_memory.SharedMemory(create=True, size=sample.nbytes)
@@ -141,8 +147,8 @@ if __name__ == '__main__':
             count_keys(point_connections, point_a)
             count_keys(point_connections, point_b)
         plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
-    # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
-    plt.show()
+    plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
+    # plt.show()
 
     if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
         with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:

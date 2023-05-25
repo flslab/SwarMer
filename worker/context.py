@@ -6,6 +6,7 @@ import velocity
 from config import Config
 from utils import logger
 from .metrics import MetricTypes
+from .history import History
 
 
 class WorkerContext:
@@ -27,6 +28,9 @@ class WorkerContext:
         self.alpha = Config.DEAD_RECKONING_ANGLE / 180 * np.pi
         self.lease = dict()
         self.metrics = metrics
+        self.m = None
+        self.w = -1
+        self.history = History(2)
 
     def set_pair(self, pair_el):
         if self.shm_name:
@@ -152,12 +156,12 @@ class WorkerContext:
         return norm_v * erred_v / np.linalg.norm(erred_v)
 
     def update_neighbor(self, ctx):
-        self.neighbors[ctx.fid] = ctx.swarm_id
+        self.neighbors[ctx.fid] = ctx
 
     def increment_range(self):
         if self.radio_range < Config.MAX_RANGE:
             self.set_radio_range(self.radio_range + 1)
-            logger.critical(f"{self.fid} range incremented to {self.radio_range}")
+            # logger.critical(f"{self.fid} range incremented to {self.radio_range}")
             return True
         else:
             return False
@@ -176,18 +180,20 @@ class WorkerContext:
         self.query_id = None
         self.challenge_id = None
 
-    def log_received_message(self, msg_type, length):
+    def log_received_message(self, msg, length):
         meta = {"length": length}
-        # self.history.log(MetricTypes.RECEIVED_MASSAGES, msg_type, meta)
+        msg_type = msg.type
+        self.history.log(MetricTypes.RECEIVED_MASSAGES, msg, meta)
         self.metrics.log_received_msg(msg_type, length)
 
     def log_dropped_messages(self):
         # self.history.log_sum(MetricTypes.DROPPED_MESSAGES)
         self.metrics.log_sum("A4_num_dropped_messages", 1)
 
-    def log_sent_message(self, msg_type, length):
+    def log_sent_message(self, msg, length):
         meta = {"length": length}
-        # self.history.log(MetricTypes.SENT_MESSAGES, msg_type, meta)
+        msg_type = msg.type
+        self.history.log(MetricTypes.SENT_MESSAGES, msg, meta)
         self.metrics.log_sent_msg(msg_type, length)
         self.message_id += 1
 

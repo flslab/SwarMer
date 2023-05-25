@@ -11,14 +11,19 @@ class Message:
         self.gtl = gtl
         self.args = args
         self.id = None
+        self.w = -1
+        self.m = None
 
     def from_fls(self, ctx):
         self.fid = ctx.fid
         self.swarm_id = ctx.swarm_id
         self.el = ctx.el
         self.gtl = ctx.gtl
-        self.range = ctx.radio_range
+        if self.range is None:
+            self.range = ctx.radio_range
         self.id = ctx.message_id
+        self.m = -1 if ctx.m is None else ctx.m.fid
+        self.w = ctx.w
         return self
 
     def from_server(self):
@@ -38,12 +43,10 @@ class Message:
         return self
 
     def to_fls(self, ctx):
-        if ctx is None:
-            self.dest_fid = -1
-            self.dest_swarm_id = -1
-        else:
-            self.dest_fid = ctx.fid
-            self.dest_swarm_id = ctx.swarm_id
+        self.dest_fid = ctx.fid
+        self.dest_swarm_id = ctx.swarm_id
+        if hasattr(ctx, 'range'):
+            self.range = ctx.range
         return self
 
     def to_fls_id(self, fid, swarm_id):
@@ -57,6 +60,8 @@ class Message:
         return self
 
     def __repr__(self):
-        return f"Message(type={self.type.name}," \
-               f"from={self.fid}:{self.swarm_id}," \
-               f"to={self.dest_fid}:{self.dest_swarm_id})"
+        return f"{self.type.name} " \
+               f"{self.fid} " \
+               f"{self.dest_fid} " \
+               f"{self.w} " \
+               f"{self.m}"
