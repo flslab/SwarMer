@@ -75,6 +75,7 @@ if __name__ == '__main__':
 
     count = len(node_point_idx)
     print(count)
+    exit()
 
     processes = []
     shared_arrays = []
@@ -174,6 +175,6 @@ if __name__ == '__main__':
         s.close()
         s.unlink()
 
-    with open(f'results/{Config.SHAPE}.txt', 'a+') as f:
+    with open(f'results/{Config.SHAPE}_{Config.K}.txt', 'a+') as f:
         f.write(f'{end_time-start_time}\n')
     # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)

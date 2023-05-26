@@ -67,13 +67,13 @@ class StateMachine:
 
     def handle_stop(self, msg):
         self.cancel_timers()
-        if len(self.get_c()):
-            # self.context.set_pair(self.get_m().el)
-            print(f"{self.context.fid} is paired with {self.get_c()} w={self.get_w()}")
-
-        else:
-            # self.context.set_pair(self.context.el)
-            print(f"{self.context.fid} is single")
+        # if len(self.get_c()):
+        #     # self.context.set_pair(self.get_m().el)
+        #     print(f"{self.context.fid} is paired with {self.get_c()} w={self.get_w()}")
+        #
+        # else:
+        #     # self.context.set_pair(self.context.el)
+        #     print(f"{self.context.fid} is single")
 
         # if self.context.fid in [2, 4, 8]:
         #     with open(f"results/{self.context.fid}.txt", "w") as f:
