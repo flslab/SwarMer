@@ -75,7 +75,6 @@ if __name__ == '__main__':
 
     count = len(node_point_idx)
     print(count)
-    exit()
 
     processes = []
     shared_arrays = []
@@ -154,18 +153,18 @@ if __name__ == '__main__':
     for p in processes:
         p.join()
 
-    visited = set()
-    for c in connections.values():
-        key = str(c)
-        if key in visited:
-            continue
-        visited.add(key)
-
-        xs = [gtl_point_cloud[ci - 1][0] for ci in c]
-        ys = [gtl_point_cloud[ci - 1][1] for ci in c]
-        plt.plot(xs + [xs[0]], ys + [ys[0]], '-o')
+    # visited = set()
+    # for c in connections.values():
+    #     key = str(c)
+    #     if key in visited:
+    #         continue
+    #     visited.add(key)
+    #
+    #     xs = [gtl_point_cloud[ci - 1][0] for ci in c]
+    #     ys = [gtl_point_cloud[ci - 1][1] for ci in c]
+    #     plt.plot(xs + [xs[0]], ys + [ys[0]], '-o')
     # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
-    plt.show()
+    # plt.show()
 
     # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
     #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
