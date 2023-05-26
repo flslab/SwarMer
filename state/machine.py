@@ -1,7 +1,10 @@
+from itertools import combinations
+
 import numpy as np
 import threading
 from message import Message, MessageTypes
 from config import Config
+from utils import write_json
 from .types import StateTypes
 from worker.network import PrioritizedItem
 
@@ -116,13 +119,33 @@ class StateMachine:
 
     def handle_stop(self, msg):
         self.cancel_timers()
-        if self.get_m() is not None:
-            self.context.set_pair(self.get_m().el)
-            print(f"{self.context.fid} is paired with {self.get_m_fid()} w={self.get_w()}")
 
-        else:
-            self.context.set_pair(self.context.el)
-            print(f"{self.context.fid} is single")
+        if self.context.fid < self.get_m_fid():
+            dists = []
+            els = [self.context.el, self.get_m().el]
+            combs = combinations(els, 2)
+            count = 0
+            for el_i, el_j in combs:
+                dists.append(np.linalg.norm(el_i - el_j))
+                count += 1
+            results = {
+                "5 weight": self.get_w(),
+                "0 clique members": [self.context.fid, self.get_m_fid()],
+                "6 dist between each pair": dists,
+                "7 coordinates": [list(el) for el in els],
+                "1 min dist": min(dists),
+                "2 avg dist": sum(dists) / count,
+                "3 max dist": max(dists),
+                "4 total dist": sum(dists)
+            }
+            write_json(self.context.fid, results, self.metrics.results_directory)
+        # if self.get_m() is not None:
+        #     self.context.set_pair(self.get_m().el)
+        #     print(f"{self.context.fid} is paired with {self.get_m_fid()} w={self.get_w()}")
+        #
+        # else:
+        #     self.context.set_pair(self.context.el)
+        #     print(f"{self.context.fid} is single")
 
         # if self.context.fid in [2, 4, 8]:
         #     with open(f"results/{self.context.fid}.txt", "w") as f:

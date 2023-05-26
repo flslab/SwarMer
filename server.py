@@ -45,6 +45,9 @@ if __name__ == '__main__':
         experiment_name = sys.argv[3]
 
     results_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE, experiment_name)
+    shape_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE)
+    if not os.path.exists(results_directory):
+        os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
 
     if Config.READ_FROM_NPY:
         with open(f'results/{Config.READ_FROM_NPY}.npy', 'rb') as f:
@@ -105,6 +108,7 @@ if __name__ == '__main__':
             s.unlink()
         exit()
 
+    start_time = time.time()
     gtl_point_cloud = local_gtl_point_cloud
 
     print('waiting for processes ...')
@@ -125,7 +129,7 @@ if __name__ == '__main__':
         if num_freeze == 10 or num_married == count or (count % 2 == 1 and num_married == count - 1):
             break
         last_num = num_married
-
+    end_time = time.time()
     time.sleep(1)
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
     dumped_stop_msg = pickle.dumps(stop_message)
@@ -147,12 +151,16 @@ if __name__ == '__main__':
             count_keys(point_connections, point_a)
             count_keys(point_connections, point_b)
         plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
-    plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
+    # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
     # plt.show()
 
     if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
         with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
             np.save(f, point_cloud)
+
+    utils.create_csv_from_json(results_directory, end_time - start_time)
+    utils.write_configs(results_directory)
+    utils.combine_csvs(results_directory, shape_directory)
 
     for s in shared_memories:
         s.close()
