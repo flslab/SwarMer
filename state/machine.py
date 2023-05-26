@@ -5,6 +5,7 @@ from config import Config
 from .types import StateTypes
 from worker.network import PrioritizedItem
 from itertools import combinations
+from utils import write_json
 
 
 class StateMachine:
@@ -67,6 +68,25 @@ class StateMachine:
 
     def handle_stop(self, msg):
         self.cancel_timers()
+        min_fid = min(self.get_c() + (self.context.fid,))
+
+        if self.context.fid == min_fid:
+            dists = []
+            els = [self.context.el] + [self.context.neighbors[i].el for i in self.get_c()]
+            for el_i, el_j in combinations(els, 2):
+                dists.append(np.linalg.norm(el_i - el_j))
+            results = {
+                "5 weight": self.get_w()[0],
+                "0 clique members": self.get_w()[1:],
+                "6 dist between each pair": dists,
+                "7 coordinates": [list(el) for el in els],
+                "1 min dist": min(dists),
+                "2 avg dist": sum(dists)/self.context.k,
+                "3 max dist": max(dists),
+                "4 total dist": sum(dists)
+            }
+            write_json(self.context.fid, results, self.metrics.results_directory)
+
         # if len(self.get_c()):
         #     # self.context.set_pair(self.get_m().el)
         #     print(f"{self.context.fid} is paired with {self.get_c()} w={self.get_w()}")

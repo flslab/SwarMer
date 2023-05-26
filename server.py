@@ -45,6 +45,9 @@ if __name__ == '__main__':
         experiment_name = sys.argv[3]
 
     results_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE, experiment_name)
+    shape_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE)
+    if not os.path.exists(results_directory):
+        os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
 
     if Config.READ_FROM_NPY:
         with open(f'results/{Config.READ_FROM_NPY}.npy', 'rb') as f:
@@ -169,6 +172,9 @@ if __name__ == '__main__':
     # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
     #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
     #         np.save(f, point_cloud)
+
+    utils.create_csv_from_json(results_directory)
+    utils.combine_csvs(results_directory, shape_directory)
 
     for s in shared_memories:
         s.close()
