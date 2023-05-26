@@ -108,6 +108,7 @@ if __name__ == '__main__':
 
     gtl_point_cloud = local_gtl_point_cloud
 
+    start_time = time.time()
     print('waiting for processes ...')
 
     ser_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
@@ -141,6 +142,7 @@ if __name__ == '__main__':
         if count - sum(is_paired.values()) * Config.K <= count % Config.K:
             break
 
+    end_time = time.time()
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
     dumped_stop_msg = pickle.dumps(stop_message)
     ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
@@ -171,4 +173,7 @@ if __name__ == '__main__':
     for s in shared_memories:
         s.close()
         s.unlink()
+
+    with open(f'results/{Config.SHAPE}.txt', 'a+') as f:
+        f.write(f'{end_time-start_time}\n')
     # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)

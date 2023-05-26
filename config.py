@@ -25,9 +25,9 @@ class Config:
     CENTRALIZED_ROUND = True
     BUSY_WAITING = False
     MIN_ADJUSTMENT = 0
-    SAMPLE_SIZE = 32
+    SAMPLE_SIZE = 94
     DURATION = 600
     READ_FROM_NPY = 0
-    K = 4
+    K = 3
     SHAPE = 'butterfly'
     RESULTS_PATH = 'results'
