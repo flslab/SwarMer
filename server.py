@@ -154,7 +154,13 @@ if __name__ == '__main__':
 
     time.sleep(1)
     for p in processes:
-        p.join()
+        p.join(10)
+        if p.is_alive():
+            break
+
+    for p in processes:
+        if p.is_alive():
+            p.terminate()
 
     # visited = set()
     # for c in connections.values():
