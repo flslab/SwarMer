@@ -13,7 +13,7 @@ def write_json(fid, results, directory):
         json.dump(results, f)
 
 
-def create_csv_from_json(directory):
+def create_csv_from_json(directory, duration):
     if not os.path.exists(directory):
         return
 
@@ -37,6 +37,9 @@ def create_csv_from_json(directory):
     headers.sort()
     rows.append(['fid'] + headers)
 
+    weights = []
+    total_dists = []
+    avg_dists = []
     for filename in filenames:
         if filename.endswith('.json'):
             with open(os.path.join(json_dir, filename)) as f:
@@ -45,12 +48,30 @@ def create_csv_from_json(directory):
                     fid = filename.split('.')[0]
                     row = [fid] + [data[h] if h in data else 0 for h in headers]
                     rows.append(row)
+                    weights.append(data['5 weight'])
+                    avg_dists.append(data['2 avg dist'])
+                    total_dists.append(data['4 total dist'])
                 except json.decoder.JSONDecodeError:
                     print(filename)
 
-    with open(os.path.join(directory, 'metrics.csv'), 'w', newline='') as csvfile:
+    with open(os.path.join(directory, 'cliques.csv'), 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(rows)
+
+    metrics_rows = [["metric", "value"],
+                    ["duration", duration],
+                    ["min total_dists", min(total_dists)],
+                    ["avg total_dists", sum(total_dists)/len(total_dists)],
+                    ["max total_dists", max(total_dists)],
+                    ["min avg_dists", min(avg_dists)],
+                    ["avg avg_dists", sum(avg_dists)/len(avg_dists)],
+                    ["max avg_dists", max(avg_dists)],
+                    ["min weights", min(weights)],
+                    ["avg weights", sum(weights)/len(weights)],
+                    ["max weights", max(weights)]]
+    with open(os.path.join(directory, 'metrics.csv'), 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(metrics_rows)
 
 
 def write_hds_time(hds, directory, nid):

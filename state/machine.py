@@ -72,16 +72,18 @@ class StateMachine:
 
         if self.context.fid == min_fid:
             dists = []
+            count = 0
             els = [self.context.el] + [self.context.neighbors[i].el for i in self.get_c()]
             for el_i, el_j in combinations(els, 2):
                 dists.append(np.linalg.norm(el_i - el_j))
+                count += 1
             results = {
                 "5 weight": self.get_w()[0],
                 "0 clique members": self.get_w()[1:],
                 "6 dist between each pair": dists,
                 "7 coordinates": [list(el) for el in els],
                 "1 min dist": min(dists),
-                "2 avg dist": sum(dists)/self.context.k,
+                "2 avg dist": sum(dists)/count,
                 "3 max dist": max(dists),
                 "4 total dist": sum(dists)
             }

@@ -179,13 +179,12 @@ if __name__ == '__main__':
     #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
     #         np.save(f, point_cloud)
 
-    utils.create_csv_from_json(results_directory)
+    utils.create_csv_from_json(results_directory, end_time-start_time)
+    utils.write_configs(results_directory)
     utils.combine_csvs(results_directory, shape_directory)
 
     for s in shared_memories:
         s.close()
         s.unlink()
 
-    with open(f'results/{Config.SHAPE}_{Config.K}.txt', 'a+') as f:
-        f.write(f'{end_time-start_time}\n')
     # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)
