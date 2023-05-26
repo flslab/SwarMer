@@ -11,8 +11,8 @@ class Message:
         self.gtl = gtl
         self.args = args
         self.id = None
-        self.w = -1
-        self.m = None
+        self.w = (-1,)
+        self.c = ()
 
     def from_fls(self, ctx):
         self.fid = ctx.fid
@@ -22,7 +22,7 @@ class Message:
         if self.range is None:
             self.range = ctx.radio_range
         self.id = ctx.message_id
-        self.m = -1 if ctx.m is None else ctx.m.fid
+        self.c = ctx.c
         self.w = ctx.w
         return self
 
@@ -64,4 +64,4 @@ class Message:
                f"{self.fid} " \
                f"{self.dest_fid} " \
                f"{self.w} " \
-               f"{self.m}"
+               f"{self.c}"

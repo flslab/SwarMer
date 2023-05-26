@@ -65,7 +65,7 @@ if __name__ == '__main__':
     h = np.log2(total_count)
 
     gtl_point_cloud = np.random.uniform(0, 5, size=(total_count, 3))
-    sample = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])  # el, elf of m, state (single = 0, married = 1)
+    sample = np.zeros(Config.K, dtype=np.int32)
 
     node_point_idx = []
     for i in range(total_count):
@@ -93,7 +93,8 @@ if __name__ == '__main__':
             shared_arrays.append(shared_array)
             shared_memories.append(shm)
             local_gtl_point_cloud.append(gtl_point_cloud[i])
-            p = worker.WorkerProcess(count, i + 1, gtl_point_cloud[i], np.array([0, 0, 0]), shm.name, results_directory)
+            p = worker.WorkerProcess(
+                count, i + 1, gtl_point_cloud[i], np.array([0, 0, 0]), shm.name, results_directory, Config.K)
             p.start()
             processes.append(p)
     except OSError as e:
@@ -114,19 +115,32 @@ if __name__ == '__main__':
     ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     ser_sock.settimeout(.2)
 
-    last_num = 0
-    num_freeze = 0
+    # last_num = 0
+    # num_freeze = 0
+    connections = dict()
     while True:
         time.sleep(1)
-        num_married = sum([sha[6] for sha in shared_arrays])
-        print(num_married)
-        if num_married == last_num:
-            num_freeze += 1
-        if num_freeze == 10 or num_married == count or (count % 2 == 1 and num_married == count - 1):
-            break
-        last_num = num_married
+        visited = {0}
+        is_paired = dict()
+        for i in range(len(shared_arrays)):
+            connections[i+1] = shared_arrays[i]
+        for n, c in connections.items():
+            if n in visited:
+                continue
+            visited.add(n)
+            n_pairs = []
+            for ci in c:
+                if ci in visited:
+                    continue
+                visited.add(ci)
+                n_pairs.append(all(c == connections[ci]))
+            is_paired[n] = len(n_pairs) and all(n_pairs)
 
-    time.sleep(1)
+        if len(is_paired) and all(is_paired.values()):
+            break
+        if count - sum(is_paired.values()) * Config.K <= count % Config.K:
+            break
+
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
     dumped_stop_msg = pickle.dumps(stop_message)
     ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
@@ -137,22 +151,22 @@ if __name__ == '__main__':
     for p in processes:
         p.join()
 
-    point_connections = dict()
-    for sha in shared_arrays:
-        point_a = f"{sha[0],sha[1]}"
-        point_b = f"{sha[3],sha[4]}"
-        if point_b == point_a:
-            count_keys(point_connections, point_a)
-        else:
-            count_keys(point_connections, point_a)
-            count_keys(point_connections, point_b)
-        plt.plot([sha[0], sha[3]], [sha[1], sha[4]], '-o')
-    plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
-    # plt.show()
+    visited = set()
+    for c in connections.values():
+        key = str(c)
+        if key in visited:
+            continue
+        visited.add(key)
 
-    if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
-        with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
-            np.save(f, point_cloud)
+        xs = [gtl_point_cloud[ci - 1][0] for ci in c]
+        ys = [gtl_point_cloud[ci - 1][1] for ci in c]
+        plt.plot(xs + [xs[0]], ys + [ys[0]], '-o')
+    # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
+    plt.show()
+
+    # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
+    #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
+    #         np.save(f, point_cloud)
 
     for s in shared_memories:
         s.close()

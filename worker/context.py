@@ -4,13 +4,12 @@ from multiprocessing import shared_memory
 
 import velocity
 from config import Config
-from utils import logger
 from .metrics import MetricTypes
 from .history import History
 
 
 class WorkerContext:
-    def __init__(self, count, fid, gtl, el, shm_name, metrics):
+    def __init__(self, count, fid, gtl, el, shm_name, metrics, k):
         self.count = count
         self.fid = fid
         self.gtl = gtl
@@ -26,26 +25,17 @@ class WorkerContext:
         self.set_swarm_id(self.fid)
         self.message_id = 0
         self.alpha = Config.DEAD_RECKONING_ANGLE / 180 * np.pi
-        self.lease = dict()
         self.metrics = metrics
-        self.m = None
-        self.w = -1
+        self.w = (-1,)
+        self.c = ()
+        self.k = k
         self.history = History(2)
 
-    def set_pair(self, pair_el):
+    def set_pair(self):
         if self.shm_name:
             shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-            shared_array = np.ndarray((7,), dtype=np.float64, buffer=shared_mem.buf)
-            shared_array[:3] = self.el[:]
-            shared_array[3:6] = pair_el[:]
-            # print(shared_array)
-            shared_mem.close()
-
-    def set_paired(self):
-        if self.shm_name:
-            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-            shared_array = np.ndarray((7,), dtype=np.float64, buffer=shared_mem.buf)
-            shared_array[6] = 1
+            shared_array = np.ndarray((self.k,), dtype=np.int32, buffer=shared_mem.buf)
+            shared_array[:] = sorted([self.fid] + list(self.c))
             shared_mem.close()
 
     def set_single(self):
@@ -96,19 +86,12 @@ class WorkerContext:
         #     shared_mem.close()
 
     def fail(self):
-        # if self.shm_name:
-        #     shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-        #     shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
-        #     shared_array[4] = 2
-        #     shared_mem.close()
         self.reset_swarm()
         self.set_el(np.array([.0, .0, .0]))
         self.radio_range = Config.INITIAL_RANGE
         self.anchor = None
         self.query_id = None
         self.challenge_id = None
-        self.lease = dict()
-        # self.history.log(MetricTypes.FAILURES, 1)
         self.metrics.log_sum("A5_num_failures", 1)
 
     def move(self, vector):
@@ -156,7 +139,8 @@ class WorkerContext:
         return norm_v * erred_v / np.linalg.norm(erred_v)
 
     def update_neighbor(self, ctx):
-        self.neighbors[ctx.fid] = ctx
+        if ctx.fid:
+            self.neighbors[ctx.fid] = ctx
 
     def increment_range(self):
         if self.radio_range < Config.MAX_RANGE:
@@ -197,67 +181,9 @@ class WorkerContext:
         self.metrics.log_sent_msg(msg_type, length)
         self.message_id += 1
 
-    def log_expired_lease(self):
-        # self.history.log_sum(MetricTypes.EXPIRED_LEASE)
-        self.metrics.log_sum("A2_num_expired_leases", 1)
-
-    def log_canceled_lease(self):
-        # self.history.log_sum(MetricTypes.CANCELED_LEASE)
-        self.metrics.log_sum("A2_num_canceled_leases", 1)
-
-    def log_released_lease(self):
-        # self.history.log_sum(MetricTypes.RELEASED_LEASE)
-        self.metrics.log_sum("A2_num_released_leases", 1)
-
-    def log_granted_lease(self):
-        # self.history.log_sum(MetricTypes.GRANTED_LEASE)
-        self.metrics.log_sum("A2_num_granted_leases", 1)
-
     def log_wait_time(self, dur):
         # self.history.log(MetricTypes.WAITS, dur)
         self.metrics.log_sum("A1_num_moved", 1)
         self.metrics.log_sum("A1_total_wait(s)", dur)
         self.metrics.log_max("A1_max_wait(s)", dur)
         self.metrics.log_min("A1_min_wait(s)", dur)
-
-    def log_localize(self):
-        # self.history.log(MetricTypes.LOCALIZE, 1)
-        self.metrics.log_sum("A3_num_localize", 1)
-
-    def log_anchor(self):
-        # self.history.log(MetricTypes.ANCHOR, 1)
-        self.metrics.log_sum("A3_num_anchor", 1)
-
-    def refresh_lease_table(self):
-        expired_leases = []
-        t = time.time()
-        for fid, expiration_time in self.lease.items():
-            if t > expiration_time:
-                expired_leases.append(fid)
-
-        for expired_lease in expired_leases:
-            self.lease.pop(expired_lease)
-            self.log_expired_lease()
-            # print(f"anchor {self.fid} removed the lease for {expired_lease}")
-
-    def grant_lease(self, fid):
-        self.lease[fid] = time.time() + Config.CHALLENGE_LEASE_DURATION + 0.1
-        self.log_granted_lease()
-
-    def release_lease(self, fid):
-        if fid in self.lease:
-            self.lease.pop(fid)
-            self.log_released_lease()
-
-    def cancel_lease(self, fid):
-        if fid in self.lease:
-            self.lease.pop(fid)
-            self.log_canceled_lease()
-
-    def is_lease_empty(self):
-        return len(self.lease) == 0
-
-    def clear_lease_table(self):
-        keys = list(self.lease.keys())
-        for fid in keys:
-            self.release_lease(fid)

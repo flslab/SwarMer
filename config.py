@@ -1,7 +1,7 @@
 class Config:
     THAW_SWARMS = False
-    INITIAL_RANGE = 1.1
-    MAX_RANGE = 200
+    INITIAL_RANGE = 1
+    MAX_RANGE = 100
     DROP_PROB_SENDER = 0
     DROP_PROB_RECEIVER = 0
     STATE_TIMEOUT = 0
@@ -28,6 +28,6 @@ class Config:
     SAMPLE_SIZE = 32
     DURATION = 600
     READ_FROM_NPY = 0
-    ENABLE_BREAK_ACK = 1
+    K = 4
     SHAPE = 'butterfly'
     RESULTS_PATH = 'results'
