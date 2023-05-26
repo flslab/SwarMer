@@ -71,12 +71,17 @@ class StateMachine:
         min_fid = min(self.get_c() + (self.context.fid,))
 
         if self.context.fid == min_fid:
-            dists = []
-            count = 0
-            els = [self.context.el] + [self.context.neighbors[i].el for i in self.get_c()]
-            for el_i, el_j in combinations(els, 2):
-                dists.append(np.linalg.norm(el_i - el_j))
-                count += 1
+            if len(self.get_c()):
+                dists = []
+                count = 0
+                els = [self.context.el] + [self.context.neighbors[i].el for i in self.get_c()]
+                for el_i, el_j in combinations(els, 2):
+                    dists.append(np.linalg.norm(el_i - el_j))
+                    count += 1
+            else:
+                dists = [0]
+                count = 1
+                els = [self.context.el]
             results = {
                 "5 weight": self.get_w()[0],
                 "0 clique members": self.get_w()[1:],
