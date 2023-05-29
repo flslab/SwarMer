@@ -121,7 +121,11 @@ class StateMachine:
                     c = u
             self.set_pair(c)
         # if len(c) == 0:
-        self.context.increment_range()
+        if Config.MAX_NEIGHBORS:
+            if len(self.context.neighbors) < Config.MAX_NEIGHBORS:
+                self.context.increment_range()
+        else:
+            self.context.increment_range()
         # print(self.context.radio_range)
 
         discover_msg = Message(MessageTypes.DISCOVER).to_all()
