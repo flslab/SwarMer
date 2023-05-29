@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     time.sleep(1)
     for p in processes:
-        p.join(10)
+        p.join(20)
         if p.is_alive():
             break
 
