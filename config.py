@@ -29,5 +29,6 @@ class Config:
     DURATION = 600
     READ_FROM_NPY = 0
     K = 3
+    MAX_NEIGHBORS = 0
     SHAPE = 'butterfly'
     RESULTS_PATH = 'results'
