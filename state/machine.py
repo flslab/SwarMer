@@ -5,7 +5,7 @@ from config import Config
 from .types import StateTypes
 from worker.network import PrioritizedItem
 from itertools import combinations
-from utils import write_json
+from utils import write_json, dict_hash
 
 
 class StateMachine:
@@ -19,6 +19,8 @@ class StateMachine:
         self.req_accept = False
         self.event_queue = event_queue
         self.break_check = dict()
+        self.heard = False
+        self.last_neighbors_hash = None
 
     def get_w(self):
         return self.context.w
@@ -58,6 +60,7 @@ class StateMachine:
         self.start_timers()
 
     def handle_discover(self, msg):
+        self.heard = True
         pass
 
     def set_pair(self, c):
@@ -113,21 +116,24 @@ class StateMachine:
     def enter_single_state(self):
         # self.context.set_single()
         c = ()
-        if len(self.context.neighbors) >= self.context.k - 1:
-            for u in combinations(self.context.neighbors.keys(), self.context.k - 1):
-                attr_v_u = self.attr_v(u)
-                attr_v_c = self.attr_v(c)
-                # print(self.context.fid, u, attr_v_u, c, attr_v_c)
-                if attr_v_u > attr_v_c:
-                    c = u
-            self.set_pair(c)
-        # if len(c) == 0:
-        if Config.MAX_NEIGHBORS:
-            if len(self.context.neighbors) < Config.MAX_NEIGHBORS:
-                self.context.increment_range()
+        n_hash = dict_hash(self.context.fid_to_w)
+        if n_hash != self.last_neighbors_hash:
+            self.last_neighbors_hash = n_hash
+            if len(self.context.neighbors) >= self.context.k - 1:
+                for u in combinations(self.context.neighbors.keys(), self.context.k - 1):
+                    attr_v_u = self.attr_v(u)
+                    attr_v_c = self.attr_v(c)
+                    if attr_v_u > attr_v_c:
+                        c = u
+                self.set_pair(c)
         else:
-            self.context.increment_range()
-        # print(self.context.radio_range)
+            if Config.MAX_NEIGHBORS:
+                if len(self.context.neighbors) < Config.MAX_NEIGHBORS:
+                    self.context.increment_range()
+            else:
+                self.context.increment_range()
+            self.heard = False
+            # print(self.context.radio_range)
 
         discover_msg = Message(MessageTypes.DISCOVER).to_all()
         self.broadcast(discover_msg)

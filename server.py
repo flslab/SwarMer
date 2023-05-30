@@ -160,9 +160,9 @@ if __name__ == '__main__':
     #     if len(list(clique_sizes)) == count // Config.K and len(list(single_sizes)) == count % Config.K:
     #         break
 
-    connections = dict()
-    for i in range(len(shared_arrays)):
-        connections[i+1] = shared_arrays[i]
+    # connections = dict()
+    # for i in range(len(shared_arrays)):
+    #     connections[i+1] = shared_arrays[i]
 
     end_time = time.time()
     stop_message = Message(MessageTypes.STOP).from_server().to_all()

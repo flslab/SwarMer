@@ -16,6 +16,7 @@ class WorkerContext:
         self.el = el
         self.swarm_id = self.fid
         self.neighbors = dict()
+        self.fid_to_w = dict()
         self.radio_range = Config.INITIAL_RANGE
         self.size = 1
         self.anchor = None
@@ -141,6 +142,7 @@ class WorkerContext:
     def update_neighbor(self, ctx):
         if ctx.fid:
             self.neighbors[ctx.fid] = ctx
+            self.fid_to_w[ctx.fid] = ctx.w
 
     def increment_range(self):
         if self.radio_range < Config.MAX_RANGE:
