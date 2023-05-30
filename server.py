@@ -142,8 +142,27 @@ if __name__ == '__main__':
 
         if len(is_paired) and all(is_paired.values()):
             break
-        if count - sum(is_paired.values()) * Config.K <= count % Config.K:
+        if count - sum(is_paired.values()) * Config.K == count % Config.K:
             break
+
+    # while True:
+    #     time.sleep(1)
+    #     cliques = dict()
+    #     for i in range(len(shared_arrays)):
+    #         key = ".".join([str(c) for c in shared_arrays[i]])
+    #         if key in cliques:
+    #             cliques[key] += 1
+    #         else:
+    #             cliques[key] = 1
+    #     print(cliques)
+    #     clique_sizes = filter(lambda x: x == Config.K, cliques.values())
+    #     single_sizes = filter(lambda x: x == 1, cliques.values())
+    #     if len(list(clique_sizes)) == count // Config.K and len(list(single_sizes)) == count % Config.K:
+    #         break
+
+    connections = dict()
+    for i in range(len(shared_arrays)):
+        connections[i+1] = shared_arrays[i]
 
     end_time = time.time()
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
@@ -162,17 +181,18 @@ if __name__ == '__main__':
         if p.is_alive():
             p.terminate()
 
-    # visited = set()
-    # for c in connections.values():
-    #     key = str(c)
-    #     if key in visited:
-    #         continue
-    #     visited.add(key)
-    #
-    #     xs = [gtl_point_cloud[ci - 1][0] for ci in c]
-    #     ys = [gtl_point_cloud[ci - 1][1] for ci in c]
-    #     plt.plot(xs + [xs[0]], ys + [ys[0]], '-o')
-    # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
+    print(connections)
+    visited = set()
+    for c in connections.values():
+        key = str(c)
+        if key in visited:
+            continue
+        visited.add(key)
+
+        xs = [gtl_point_cloud[ci - 1][0] for ci in c]
+        ys = [gtl_point_cloud[ci - 1][1] for ci in c]
+        plt.plot(xs + [xs[0]], ys + [ys[0]], '-o')
+    plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
     # plt.show()
 
     # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
