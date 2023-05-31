@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import threading
 from message import Message, MessageTypes
@@ -37,6 +39,7 @@ class StateMachine:
     def get_w_v(self, c):
         if len(c):
             w = 0
+            # print(c)
             els = [self.context.el] + [self.context.neighbors[i].el for i in c]
             for el_i, el_j in combinations(els, 2):
                 w += round(1 / np.linalg.norm(el_i - el_j), 4)
@@ -70,6 +73,11 @@ class StateMachine:
         self.set_w(w)
         self.context.set_pair()
 
+    def heuristic(self, c):
+        if len(self.context.neighbors) >= self.context.k - 1:
+            return tuple(random.sample(list(self.context.neighbors.keys()), self.context.k - 1))
+        return ()
+
     def handle_stop(self, msg):
         self.cancel_timers()
         min_fid = min(self.get_c() + (self.context.fid,))
@@ -96,7 +104,7 @@ class StateMachine:
                 "3 max dist": max(dists),
                 "4 total dist": sum(dists)
             }
-            write_json(self.context.fid, results, self.metrics.results_directory)
+            # write_json(self.context.fid, results, self.metrics.results_directory)
 
         if len(self.get_c()):
             # self.context.set_pair(self.get_m().el)
@@ -116,24 +124,31 @@ class StateMachine:
     def enter_single_state(self):
         # self.context.set_single()
         c = ()
+        if self.is_proper_v(self.get_c()):
+            c = self.get_c()
+
         n_hash = dict_hash(self.context.fid_to_w)
         if n_hash != self.last_neighbors_hash:
             self.last_neighbors_hash = n_hash
-            if len(self.context.neighbors) >= self.context.k - 1:
-                for u in combinations(self.context.neighbors.keys(), self.context.k - 1):
-                    attr_v_u = self.attr_v(u)
-                    attr_v_c = self.attr_v(c)
-                    if attr_v_u > attr_v_c:
-                        c = u
-                self.set_pair(c)
+
+            for n in self.context.neighbors.values():
+                if self.context.fid in n.c:
+                    new_c = tuple(nc for nc in n.c if nc != self.context.fid) + (n.fid,)
+                    if all(nc in self.context.neighbors for nc in new_c):
+                        if self.attr_v(new_c) > self.attr_v(c):
+                            c = new_c
+            c_prime = self.heuristic(c)
+            if self.attr_v(c_prime) > self.attr_v(c):
+                c = c_prime
+
+            self.set_pair(c)
+
         else:
             if Config.MAX_NEIGHBORS:
                 if len(self.context.neighbors) < Config.MAX_NEIGHBORS:
                     self.context.increment_range()
             else:
                 self.context.increment_range()
-            self.heard = False
-            # print(self.context.radio_range)
 
         discover_msg = Message(MessageTypes.DISCOVER).to_all()
         self.broadcast(discover_msg)

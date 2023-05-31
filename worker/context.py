@@ -140,7 +140,7 @@ class WorkerContext:
         return norm_v * erred_v / np.linalg.norm(erred_v)
 
     def update_neighbor(self, ctx):
-        if ctx.fid:
+        if ctx.fid and ctx.fid != self.fid:
             self.neighbors[ctx.fid] = ctx
             self.fid_to_w[ctx.fid] = ctx.w
 

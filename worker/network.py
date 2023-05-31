@@ -4,6 +4,7 @@ import threading
 import numpy as np
 from config import Config
 import message
+import queue
 
 
 class NetworkThread(threading.Thread):
@@ -62,3 +63,23 @@ class PrioritizedItem:
     priority: int
     event: Any = field(compare=False)
     stale: bool = field(compare=False)
+
+
+if __name__ == '__main__':
+    event_queue = queue.PriorityQueue()
+    event_queue.put(PrioritizedItem(1, "event 1", False))
+    event_queue.put(PrioritizedItem(1, "event 2", False))
+    event_queue.put(PrioritizedItem(1, "event 3", False))
+    event_queue.put(PrioritizedItem(1, "event 4", False))
+    event_queue.put(PrioritizedItem(1, "event 5", False))
+    event_queue.put(PrioritizedItem(1, "event 6", False))
+    event_queue.put(PrioritizedItem(1, "event 7", False))
+    # event_queue.put(PrioritizedItem(1, "event 8", False))
+    print(event_queue.get())
+    print(event_queue.get())
+    print(event_queue.get())
+    print(event_queue.get())
+    print(event_queue.get())
+    print(event_queue.get())
+    print(event_queue.get())
+    # print(event_queue.get())
