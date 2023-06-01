@@ -93,7 +93,7 @@ if __name__ == '__main__':
     for i in range(total_count):
         if i % N == nid:
             node_point_idx.append(i)
-            gtl_point_cloud[i] = np.array([point_cloud[i][0], point_cloud[i][1], point_cloud[i][2]])
+        gtl_point_cloud[i] = np.array([point_cloud[i][0], point_cloud[i][1], point_cloud[i][2]])
 
     count = len(node_point_idx)
     print(count)
@@ -106,6 +106,9 @@ if __name__ == '__main__':
     # pidx = np.array(node_point_idx)
     # np.random.shuffle(pidx)
     # print(pidx)
+
+    knn_idx, knn_dists = utils.knn(gtl_point_cloud)
+
     try:
         for i in node_point_idx:
             shm = shared_memory.SharedMemory(create=True, size=sample.nbytes)
@@ -115,8 +118,13 @@ if __name__ == '__main__':
             shared_arrays.append(shared_array)
             shared_memories.append(shm)
             local_gtl_point_cloud.append(gtl_point_cloud[i])
+
+            sorted_neighbors = knn_idx[i][1:] + 1
+            fid_to_dist = dict(zip(sorted_neighbors, knn_dists[i][1:]))
+
             p = worker.WorkerProcess(
-                count, i + 1, gtl_point_cloud[i], np.array([0, 0, 0]), shm.name, results_directory, K)
+                count, i + 1, gtl_point_cloud[i], gtl_point_cloud[i], shm.name, results_directory,
+                K, sorted_neighbors.tolist(), fid_to_dist)
             p.start()
             processes.append(p)
     except OSError as e:
@@ -128,15 +136,10 @@ if __name__ == '__main__':
             s.unlink()
         exit()
 
-    gtl_point_cloud = local_gtl_point_cloud
+    # gtl_point_cloud = local_gtl_point_cloud
 
     start_time = time.time()
     print('waiting for processes ...')
-
-    ser_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    ser_sock.settimeout(.2)
 
     # last_num = 0
     # num_freeze = 0
@@ -187,13 +190,16 @@ if __name__ == '__main__':
     end_time = time.time()
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
     dumped_stop_msg = pickle.dumps(stop_message)
+    ser_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
     ser_sock.close()
     print("done")
 
     time.sleep(1)
     for p in processes:
-        p.join(10)
+        p.join(30)
         if p.is_alive():
             break
 

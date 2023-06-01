@@ -9,7 +9,7 @@ from .history import History
 
 
 class WorkerContext:
-    def __init__(self, count, fid, gtl, el, shm_name, metrics, k):
+    def __init__(self, count, fid, gtl, el, shm_name, metrics, k, sorted_neighbors, fid_to_dist):
         self.count = count
         self.fid = fid
         self.gtl = gtl
@@ -17,7 +17,10 @@ class WorkerContext:
         self.swarm_id = self.fid
         self.neighbors = dict()
         self.fid_to_w = dict()
+        self.fid_to_dist = fid_to_dist
+        self.sorted_neighbors = sorted_neighbors
         self.radio_range = Config.INITIAL_RANGE
+        self.max_range = Config.MAX_RANGE
         self.size = 1
         self.anchor = None
         self.query_id = None
@@ -145,7 +148,7 @@ class WorkerContext:
             self.fid_to_w[ctx.fid] = ctx.w
 
     def increment_range(self):
-        if self.radio_range < Config.MAX_RANGE:
+        if self.radio_range < self.max_range:
             self.set_radio_range(self.radio_range + 1)
             # logger.critical(f"{self.fid} range incremented to {self.radio_range}")
             return True

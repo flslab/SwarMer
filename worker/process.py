@@ -11,11 +11,12 @@ from .metrics import Metrics
 
 
 class WorkerProcess(multiprocessing.Process):
-    def __init__(self, count, process_id, gtl, el, shared_el, results_directory, k):
+    def __init__(self, count, process_id, gtl, el, shared_el, results_directory, k, sorted_neighbors, fid_to_dist):
         super(WorkerProcess, self).__init__()
         self.history = History(1)
         self.metrics = Metrics(self.history, results_directory)
-        self.context = WorkerContext(count, process_id, gtl, el, shared_el, self.metrics, k)
+        self.context = WorkerContext(
+            count, process_id, gtl, el, shared_el, self.metrics, k, sorted_neighbors, fid_to_dist)
         self.sock = WorkerSocket()
 
     def run(self):

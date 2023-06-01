@@ -21,6 +21,7 @@ class StateMachine:
         self.break_check = dict()
         self.heard = False
         self.last_neighbors_hash = None
+        self.eta = context.k - 1
 
     def get_w(self):
         return self.context.w
@@ -95,17 +96,18 @@ class StateMachine:
                 "1 min dist": min(dists),
                 "2 avg dist": sum(dists)/count,
                 "3 max dist": max(dists),
-                "4 total dist": sum(dists)
+                "4 total dist": sum(dists),
+                "8 eta": self.eta
             }
             write_json(self.context.fid, results, self.metrics.results_directory)
 
         if len(self.get_c()):
             # self.context.set_pair(self.get_m().el)
-            print(f"{self.context.fid} is paired with {self.get_c()} w={self.get_w()}")
+            print(f"{self.context.fid} is paired with {self.get_c()} w={self.get_w()} eta={self.eta}")
 
         else:
             # self.context.set_pair(self.context.el)
-            print(f"{self.context.fid} is single")
+            print(f"{self.context.fid} is single eta={self.eta}")
 
         # if self.context.fid in [2, 4, 8]:
         #     with open(f"results/{self.context.fid}.txt", "w") as f:
@@ -117,23 +119,32 @@ class StateMachine:
     def enter_single_state(self):
         # self.context.set_single()
         c = ()
-        n_hash = dict_hash(self.context.fid_to_w)
+        try:
+            n_hash = dict_hash(self.context.fid_to_w)
+        except:
+            print(self.context.fid_to_w)
+            return
+
         if n_hash != self.last_neighbors_hash:
             self.last_neighbors_hash = n_hash
-            if len(self.context.neighbors) >= self.context.k - 1:
-                for u in combinations(self.context.neighbors.keys(), self.context.k - 1):
+            knn = self.context.sorted_neighbors[:self.eta]
+            # if len(self.context.neighbors) >= self.context.k - 1:
+            if all(n in self.context.neighbors for n in knn):
+                for u in combinations(knn, self.context.k - 1):
                     attr_v_u = self.attr_v(u)
                     attr_v_c = self.attr_v(c)
                     if attr_v_u > attr_v_c:
                         c = u
                 self.set_pair(c)
-        else:
-            if Config.MAX_NEIGHBORS:
-                if len(self.context.neighbors) < Config.MAX_NEIGHBORS:
-                    self.context.increment_range()
-            else:
-                self.context.increment_range()
-            self.heard = False
+                if not len(c):
+                    self.eta += 1
+        # else:
+        #     if Config.MAX_NEIGHBORS:
+        #         if len(self.context.neighbors) < Config.MAX_NEIGHBORS:
+        #             self.context.increment_range()
+        #     else:
+        #         self.context.increment_range()
+        #     self.heard = False
             # print(self.context.radio_range)
 
         discover_msg = Message(MessageTypes.DISCOVER).to_all()
