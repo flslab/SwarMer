@@ -25,10 +25,11 @@ class Config:
     CENTRALIZED_ROUND = True
     BUSY_WAITING = False
     MIN_ADJUSTMENT = 0
-    SAMPLE_SIZE = 94
+    SAMPLE_SIZE = 32
     DURATION = 600
     READ_FROM_NPY = 0
     K = 3
     MAX_NEIGHBORS = 0
     SHAPE = 'butterfly'
     RESULTS_PATH = 'results'
+    DEBUG = True

@@ -16,6 +16,8 @@ import sys
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
+from utils import dict_hash
+
 # mpl.use('macosx')
 
 test = True
@@ -49,8 +51,9 @@ if __name__ == '__main__':
 
     results_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE, experiment_name)
     shape_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE)
-    if not os.path.exists(results_directory):
-        os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
+    if not Config.DEBUG:
+        if not os.path.exists(results_directory):
+            os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
 
     K = TestConfig.K if TestConfig.ENABLED else Config.K
 
@@ -167,6 +170,8 @@ if __name__ == '__main__':
     #     if count - sum(is_paired.values()) * K == count % K:
     #         break
 
+    freeze_counter = 0
+    last_hash = None
     while True:
         time.sleep(1)
         cliques = dict()
@@ -179,6 +184,15 @@ if __name__ == '__main__':
 
         clique_sizes = filter(lambda x: x == K, cliques.values())
         single_sizes = filter(lambda x: x == 1, cliques.values())
+        d_hash = dict_hash(cliques)
+        if d_hash == last_hash:
+            freeze_counter += 1
+        else:
+            freeze_counter = 0
+
+        if freeze_counter == 10:
+            break
+        last_hash = d_hash
         if len(list(clique_sizes)) == count // K and len(list(single_sizes)) == count % K:
             print(cliques)
             break
@@ -218,16 +232,20 @@ if __name__ == '__main__':
         xs = [gtl_point_cloud[ci - 1][0] for ci in c]
         ys = [gtl_point_cloud[ci - 1][1] for ci in c]
         plt.plot(xs + [xs[0]], ys + [ys[0]], '-o')
-    plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
-    # plt.show()
+    # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
+    if Config.DEBUG:
+        plt.show()
+    else:
+        plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
 
     # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
     #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
     #         np.save(f, point_cloud)
 
-    utils.create_csv_from_json(results_directory, end_time-start_time)
-    utils.write_configs(results_directory)
-    utils.combine_csvs(results_directory, shape_directory)
+    if not Config.DEBUG:
+        utils.create_csv_from_json(results_directory, end_time-start_time)
+        utils.write_configs(results_directory)
+        utils.combine_csvs(results_directory, shape_directory)
 
     for s in shared_memories:
         s.close()
