@@ -4,6 +4,7 @@ import csv
 import shutil
 
 from config import Config
+from test_config import TestConfig
 import pandas as pd
 import glob
 
@@ -142,7 +143,11 @@ def write_configs(directory):
     headers = ['config', 'value']
     rows = [headers]
 
-    for k, v in vars(Config).items():
+    kargs = vars(Config).items()
+    if TestConfig.ENABLED:
+        kargs = vars(TestConfig).items()
+
+    for k, v in kargs:
         if not k.startswith('__'):
             rows.append([k, v])
 
