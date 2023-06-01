@@ -70,6 +70,8 @@ class StateMachine:
         self.context.set_pair()
 
     def handle_stop(self, msg):
+        stop_msg = Message(MessageTypes.STOP).to_all()
+        self.broadcast(stop_msg)
         self.cancel_timers()
         min_fid = min(self.get_c() + (self.context.fid,))
 
