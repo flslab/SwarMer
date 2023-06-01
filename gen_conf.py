@@ -1,7 +1,7 @@
 import itertools
+import sys
 
-
-def_conf = {
+def_general_conf = {
     "THAW_SWARMS": "False",
     "INITIAL_RANGE": "1",
     "MAX_RANGE": "100",
@@ -36,7 +36,14 @@ def_conf = {
     "RESULTS_PATH": "'results'",
 }
 
-props = [
+def_test_conf = {
+    "ENABLED": "True",
+    "NUMBER_OF_FLSS": "12",
+    "K": "3",
+    "RATIO": "100",
+}
+
+general_props = [
     {
         "keys": ["K"],
         "values": ["3", "5", "10"]
@@ -49,8 +56,28 @@ props = [
     },
 ]
 
+test_props = [
+    {
+        "keys": ["K"],
+        "values": ["3", "5", "11"]
+    },
+    {
+        "keys": ["RATIO"],
+        "values": ["100", "1000"]
+    },
+]
 
 if __name__ == '__main__':
+    file_name = "config"
+    class_name = "Config"
+    props = general_props
+    def_conf = def_general_conf
+    if len(sys.argv) > 1:
+        file_name = "test_config"
+        class_name = "TestConfig"
+        props = test_props
+        def_conf = def_test_conf
+
     props_values = [p["values"] for p in props]
     print(props_values)
     combinations = list(itertools.product(*props_values))
@@ -65,8 +92,8 @@ if __name__ == '__main__':
                     conf[k] = c[i][k]
                 else:
                     conf[k] = c[i]
-        with open(f'experiments/config{j}.py', 'w') as f:
-            f.write('class Config:\n')
+        with open(f'experiments/{file_name}{j}.py', 'w') as f:
+            f.write(f'class {class_name}:\n')
             for key, val in conf.items():
                 f.write(f'    {key} = {val}\n')
 

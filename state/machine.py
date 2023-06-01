@@ -54,7 +54,6 @@ class StateMachine:
         return self.get_w_v(c) if self.is_proper_v(c) else (-1,)
 
     def start(self):
-        self.context.set_pair()
         self.context.deploy()
         self.enter(StateTypes.SINGLE)
         self.start_timers()

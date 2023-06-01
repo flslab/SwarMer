@@ -5,6 +5,8 @@ from multiprocessing import shared_memory
 import scipy.io
 import time
 import os
+
+from test_config import TestConfig
 from config import Config
 from constants import Constants
 from message import Message, MessageTypes
@@ -16,6 +18,7 @@ import matplotlib as mpl
 
 # mpl.use('macosx')
 
+test = True
 hd_timer = None
 hd_round = []
 hd_time = []
@@ -49,26 +52,42 @@ if __name__ == '__main__':
     if not os.path.exists(results_directory):
         os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
 
-    if Config.READ_FROM_NPY:
-        with open(f'results/{Config.READ_FROM_NPY}.npy', 'rb') as f:
-            point_cloud = np.load(f)
-    else:
-        mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
-        point_cloud = mat['p']
-    # point_cloud = np.array([[0, 0, 0], [1, 0, 0], [2, 0, 0], [3, 0, 0],
-    #                         [0, 1, 0], [1, 1, 0], [2, 1, 0], [3, 1, 0]])
-    #                         [0, 2, 0], [1, 2, 0], [2, 2, 0], [3, 2, 0],
-    #                         [0, 3, 0], [1, 3, 0], [2, 3, 0], [3, 3, 0]])
+    K = TestConfig.K if TestConfig.ENABLED else Config.K
 
-    if Config.SAMPLE_SIZE != 0:
-        np.random.shuffle(point_cloud)
-        point_cloud = point_cloud[:Config.SAMPLE_SIZE]
+    if TestConfig.ENABLED:
+        r2 = 1
+        r1 = r2 * TestConfig.RATIO
+        n1 = TestConfig.NUMBER_OF_FLSS // K
+        n2 = K
+
+        points = []
+        for i in range(n1):
+            theta = i * 2 * np.pi / n1
+            c1 = [r1 * np.cos(theta), r1 * np.sin(theta), 0]
+            for j in range(n2):
+                alpha = j * 2 * np.pi / n2
+                point = [c1[0] + r2 * np.cos(alpha), c1[1] + r2 * np.sin(alpha), 0]
+                points.append(point)
+
+        point_cloud = np.array(points)
+
+    else:
+        if Config.READ_FROM_NPY:
+            with open(f'results/{Config.READ_FROM_NPY}.npy', 'rb') as f:
+                point_cloud = np.load(f)
+        else:
+            mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
+            point_cloud = mat['p']
+
+        if Config.SAMPLE_SIZE != 0:
+            np.random.shuffle(point_cloud)
+            point_cloud = point_cloud[:Config.SAMPLE_SIZE]
 
     total_count = point_cloud.shape[0]
     h = np.log2(total_count)
 
     gtl_point_cloud = np.random.uniform(0, 5, size=(total_count, 3))
-    sample = np.zeros(Config.K, dtype=np.int32)
+    sample = np.zeros(K, dtype=np.int32)
 
     node_point_idx = []
     for i in range(total_count):
@@ -91,13 +110,13 @@ if __name__ == '__main__':
         for i in node_point_idx:
             shm = shared_memory.SharedMemory(create=True, size=sample.nbytes)
             shared_array = np.ndarray(sample.shape, dtype=sample.dtype, buffer=shm.buf)
-            shared_array[:] = sample[:]
+            shared_array[:] = i+1
 
             shared_arrays.append(shared_array)
             shared_memories.append(shm)
             local_gtl_point_cloud.append(gtl_point_cloud[i])
             p = worker.WorkerProcess(
-                count, i + 1, gtl_point_cloud[i], np.array([0, 0, 0]), shm.name, results_directory, Config.K)
+                count, i + 1, gtl_point_cloud[i], np.array([0, 0, 0]), shm.name, results_directory, K)
             p.start()
             processes.append(p)
     except OSError as e:
@@ -121,48 +140,49 @@ if __name__ == '__main__':
 
     # last_num = 0
     # num_freeze = 0
-    connections = dict()
-    while True:
-        time.sleep(1)
-        visited = {0}
-        is_paired = dict()
-        for i in range(len(shared_arrays)):
-            connections[i+1] = shared_arrays[i]
-        for n, c in connections.items():
-            if n in visited:
-                continue
-            visited.add(n)
-            n_pairs = []
-            for ci in c:
-                if ci in visited:
-                    continue
-                visited.add(ci)
-                n_pairs.append(all(c == connections[ci]))
-            is_paired[n] = len(n_pairs) and all(n_pairs)
-
-        if len(is_paired) and all(is_paired.values()):
-            break
-        if count - sum(is_paired.values()) * Config.K == count % Config.K:
-            break
-
+    # connections = dict()
     # while True:
     #     time.sleep(1)
-    #     cliques = dict()
+    #     visited = {0}
+    #     is_paired = dict()
     #     for i in range(len(shared_arrays)):
-    #         key = ".".join([str(c) for c in shared_arrays[i]])
-    #         if key in cliques:
-    #             cliques[key] += 1
-    #         else:
-    #             cliques[key] = 1
-    #     print(cliques)
-    #     clique_sizes = filter(lambda x: x == Config.K, cliques.values())
-    #     single_sizes = filter(lambda x: x == 1, cliques.values())
-    #     if len(list(clique_sizes)) == count // Config.K and len(list(single_sizes)) == count % Config.K:
+    #         connections[i+1] = shared_arrays[i]
+    #     for n, c in connections.items():
+    #         if n in visited:
+    #             continue
+    #         visited.add(n)
+    #         n_pairs = []
+    #         for ci in c:
+    #             if ci in visited:
+    #                 continue
+    #             visited.add(ci)
+    #             n_pairs.append(all(c == connections[ci]))
+    #         is_paired[n] = len(n_pairs) and all(n_pairs)
+    #
+    #     if len(is_paired) and all(is_paired.values()):
+    #         break
+    #     if count - sum(is_paired.values()) * K == count % K:
     #         break
 
-    # connections = dict()
-    # for i in range(len(shared_arrays)):
-    #     connections[i+1] = shared_arrays[i]
+    while True:
+        time.sleep(1)
+        cliques = dict()
+        for i in range(len(shared_arrays)):
+            key = ".".join([str(c) for c in shared_arrays[i]])
+            if key in cliques:
+                cliques[key] += 1
+            else:
+                cliques[key] = 1
+
+        clique_sizes = filter(lambda x: x == K, cliques.values())
+        single_sizes = filter(lambda x: x == 1, cliques.values())
+        if len(list(clique_sizes)) == count // K and len(list(single_sizes)) == count % K:
+            print(cliques)
+            break
+
+    connections = dict()
+    for i in range(len(shared_arrays)):
+        connections[i+1] = shared_arrays[i]
 
     end_time = time.time()
     stop_message = Message(MessageTypes.STOP).from_server().to_all()
@@ -173,7 +193,7 @@ if __name__ == '__main__':
 
     time.sleep(1)
     for p in processes:
-        p.join(900)
+        p.join(10)
         if p.is_alive():
             break
 
@@ -181,7 +201,7 @@ if __name__ == '__main__':
         if p.is_alive():
             p.terminate()
 
-    print(connections)
+    # print(connections)
     visited = set()
     for c in connections.values():
         key = str(c)
