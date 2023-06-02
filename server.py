@@ -64,21 +64,21 @@ if __name__ == '__main__':
         n2 = K
 
         points = []
-        # for i in range(n1):
-        #     theta = i * 2 * np.pi / n1
-        #     c1 = [r1 * np.cos(theta), r1 * np.sin(theta), 0]
-        #     for j in range(n2):
-        #         alpha = theta + j * 2 * np.pi / n2
-        #         point = [c1[0] + r2 * np.cos(alpha), c1[1] + r2 * np.sin(alpha), 0]
-        #         points.append(point)
-
-        for i in range(n2):
-            theta = i * 2 * np.pi / n2
-
-            for j in range(n1):
-                alpha = theta + j * (np.pi / 2) / n1
-                point = [(r2 + TestConfig.RATIO * j / n1) * np.cos(alpha), (r2 + TestConfig.RATIO * j / n1) * np.sin(alpha), 0]
+        for i in range(n1):
+            theta = i * 2 * np.pi / n1
+            c1 = [r1 * np.cos(theta), r1 * np.sin(theta), 0]
+            for j in range(n2):
+                alpha = theta + j * 2 * np.pi / n2
+                point = [c1[0] + r2 * np.cos(alpha), c1[1] + r2 * np.sin(alpha), 0]
                 points.append(point)
+
+        # for i in range(n2):
+        #     theta = i * 2 * np.pi / n2
+        #
+        #     for j in range(n1):
+        #         alpha = theta + j * (np.pi / 2) / n1
+        #         point = [(r2 + TestConfig.RATIO * j / n1) * np.cos(alpha), (r2 + TestConfig.RATIO * j / n1) * np.sin(alpha), 0]
+        #         points.append(point)
 
         point_cloud = np.array(points)
 
