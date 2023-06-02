@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import threading
 from message import Message, MessageTypes
@@ -22,6 +24,8 @@ class StateMachine:
         self.heard = False
         self.last_neighbors_hash = None
         self.eta = context.k - 1
+        self.knn = self.context.sorted_neighbors[:self.eta]
+        self.is_neighbors_processed = False
 
     def get_w(self):
         return self.context.w
@@ -69,6 +73,11 @@ class StateMachine:
         self.set_c(c)
         self.set_w(w)
         self.context.set_pair()
+
+    def heuristic(self, c):
+        if len(self.context.neighbors) >= self.context.k - 1:
+            return tuple(random.sample(list(self.context.neighbors.keys()), self.context.k - 1))
+        return ()
 
     def handle_stop(self, msg):
         stop_msg = Message(MessageTypes.STOP).to_all()
@@ -118,28 +127,58 @@ class StateMachine:
         #             f.write(f"{str(i)}\n")
             # print(self.context.history.merge_lists())
 
+    def enter_single_state_with_heuristic(self):
+        c = ()
+        if self.is_proper_v(self.get_c()):
+            c = self.get_c()
+
+        n_hash = dict_hash(self.context.fid_to_w)
+        if n_hash != self.last_neighbors_hash:
+            self.last_neighbors_hash = n_hash
+
+            for n in self.context.neighbors.values():
+                if self.context.fid in n.c:
+                    new_c = tuple(nc for nc in n.c if nc != self.context.fid) + (n.fid,)
+                    if all(nc in self.context.neighbors for nc in new_c):
+                        if self.attr_v(new_c) > self.attr_v(c):
+                            c = new_c
+            c_prime = self.heuristic(c)
+            if self.attr_v(c_prime) > self.attr_v(c):
+                c = c_prime
+
+            self.set_pair(c)
+
+        else:
+            if Config.MAX_NEIGHBORS:
+                if len(self.context.neighbors) < Config.MAX_NEIGHBORS:
+                    self.context.increment_range()
+            else:
+                self.context.increment_range()
+
+        discover_msg = Message(MessageTypes.DISCOVER).to_all()
+        self.broadcast(discover_msg)
+
     def enter_single_state(self):
         # self.context.set_single()
         c = ()
-        try:
-            n_hash = dict_hash(self.context.fid_to_w)
-        except:
-            print(self.context.fid_to_w)
-            return
+        # n_hash = hash(str([self.context.fid_to_w[n] for n in self.knn if n in self.context.fid_to_w]))
+        n_hash = dict_hash(self.context.fid_to_w)
 
         if n_hash != self.last_neighbors_hash:
             self.last_neighbors_hash = n_hash
-            knn = self.context.sorted_neighbors[:self.eta]
+            self.knn = self.context.sorted_neighbors[:self.eta]
             # if len(self.context.neighbors) >= self.context.k - 1:
-            if all(n in self.context.neighbors for n in knn):
-                for u in combinations(knn, self.context.k - 1):
+            if all(n in self.context.neighbors for n in self.knn):
+                for u in combinations(self.knn, self.context.k - 1):
                     attr_v_u = self.attr_v(u)
                     attr_v_c = self.attr_v(c)
                     if attr_v_u > attr_v_c:
                         c = u
                 self.set_pair(c)
-                if not len(c):
-                    self.eta += 1
+                self.is_neighbors_processed = True
+        elif self.is_neighbors_processed:
+            self.eta += 1
+            self.is_neighbors_processed = False
         # else:
         #     if Config.MAX_NEIGHBORS:
         #         if len(self.context.neighbors) < Config.MAX_NEIGHBORS:

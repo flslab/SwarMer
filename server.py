@@ -68,7 +68,7 @@ if __name__ == '__main__':
             theta = i * 2 * np.pi / n1
             c1 = [r1 * np.cos(theta), r1 * np.sin(theta), 0]
             for j in range(n2):
-                alpha = j * 2 * np.pi / n2
+                alpha = theta + j * 2 * np.pi / n2
                 point = [c1[0] + r2 * np.cos(alpha), c1[1] + r2 * np.sin(alpha), 0]
                 points.append(point)
 
@@ -190,7 +190,7 @@ if __name__ == '__main__':
         else:
             freeze_counter = 0
 
-        if freeze_counter == 10:
+        if freeze_counter == 120:
             break
         last_hash = d_hash
         if len(list(clique_sizes)) == count // K and len(list(single_sizes)) == count % K:
@@ -213,7 +213,7 @@ if __name__ == '__main__':
 
     time.sleep(1)
     for p in processes:
-        p.join(30)
+        p.join(120)
         if p.is_alive():
             break
 

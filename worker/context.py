@@ -172,7 +172,7 @@ class WorkerContext:
     def log_received_message(self, msg, length):
         meta = {"length": length}
         msg_type = msg.type
-        self.history.log(MetricTypes.RECEIVED_MASSAGES, msg, meta)
+        # self.history.log(MetricTypes.RECEIVED_MASSAGES, msg, meta)
         self.metrics.log_received_msg(msg_type, length)
 
     def log_dropped_messages(self):
@@ -182,7 +182,7 @@ class WorkerContext:
     def log_sent_message(self, msg, length):
         meta = {"length": length}
         msg_type = msg.type
-        self.history.log(MetricTypes.SENT_MESSAGES, msg, meta)
+        # self.history.log(MetricTypes.SENT_MESSAGES, msg, meta)
         self.metrics.log_sent_msg(msg_type, length)
         self.message_id += 1
 
