@@ -58,12 +58,12 @@ general_props = [
 
 test_props = [
     {
+        "keys": ["RATIO"],
+        "values": ["1000", "100", "10", "1"]
+    },
+{
         "keys": ["K"],
         "values": ["3", "5", "11"]
-    },
-    {
-        "keys": ["RATIO"],
-        "values": ["100", "1000"]
     },
 ]
 
