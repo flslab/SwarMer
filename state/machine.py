@@ -23,7 +23,7 @@ class StateMachine:
         self.break_check = dict()
         self.heard = False
         self.last_neighbors_hash = None
-        self.eta = context.k - 1
+        self.eta = context.k
         self.knn = self.context.sorted_neighbors[:self.eta]
         self.is_neighbors_processed = False
 
@@ -76,7 +76,8 @@ class StateMachine:
 
     def heuristic(self, c):
         if len(self.context.neighbors) >= self.context.k - 1:
-            return tuple(random.sample(list(self.context.neighbors.keys()), self.context.k - 1))
+            if all(n in self.context.neighbors for n in self.knn):
+                return tuple(random.sample(self.knn, self.context.k - 1))
         return ()
 
     def handle_stop(self, msg):
@@ -200,7 +201,7 @@ class StateMachine:
         self.state = state
 
         if self.state == StateTypes.SINGLE:
-            self.enter_single_state()
+            self.enter_single_state_with_heuristic()
 
         if self.state == StateTypes.SINGLE:
             self.timer_single = threading.Timer(
