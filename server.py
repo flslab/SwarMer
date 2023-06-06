@@ -243,7 +243,7 @@ if __name__ == '__main__':
     if Config.DEBUG:
         plt.show()
     else:
-        plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
+        plt.savefig(os.path.join(shape_directory, f'{experiment_name}.jpg'))
 
     # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
     #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:

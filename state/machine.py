@@ -23,7 +23,7 @@ class StateMachine:
         self.break_check = dict()
         self.heard = False
         self.last_neighbors_hash = None
-        self.eta = context.k
+        self.eta = context.k - 1
         self.knn = self.context.sorted_neighbors[:self.eta]
         self.is_neighbors_processed = False
 
@@ -126,8 +126,10 @@ class StateMachine:
         candidates = []
 
         # if len(self.context.neighbors) >= self.context.k - 1:
-        for fid in self.context.sorted_neighbors:
+        for i in range(len(self.context.sorted_neighbors)):
+            fid = self.context.sorted_neighbors[i]
             if len(candidates) == self.context.k - 1:
+                self.eta = i + 1
                 break
             if fid in self.context.neighbors:
                 c_n = self.context.neighbors[fid].c
