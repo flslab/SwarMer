@@ -261,7 +261,7 @@ if __name__ == '__main__':
 
     if not Config.DEBUG:
         utils.create_csv_from_json(results_directory, end_time-start_time)
-        utils.write_configs(results_directory)
+        utils.write_configs(results_directory, current_date_time)
         utils.combine_csvs(results_directory, shape_directory, file_name)
 
     for s in shared_memories:

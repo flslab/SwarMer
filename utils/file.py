@@ -139,7 +139,7 @@ def write_swarms(swarms, rounds, directory, nid):
         writer.writerows(rows)
 
 
-def write_configs(directory):
+def write_configs(directory, date_time):
     headers = ['config', 'value']
     rows = [headers]
 
@@ -150,6 +150,7 @@ def write_configs(directory):
     for k, v in kargs:
         if not k.startswith('__'):
             rows.append([k, v])
+    rows.append(["datetime", date_time])
 
     with open(os.path.join(directory, 'config.csv'), 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
