@@ -43,9 +43,11 @@ class StateMachine:
         if len(c):
             w = 0
             els = [self.context.el] + [self.context.neighbors[i].el for i in c]
+            count = 0
             for el_i, el_j in combinations(els, 2):
                 w += round(1 / np.linalg.norm(el_i - el_j), 4)
-            return (round(w, 4),) + tuple(sorted((self.context.fid,) + c))
+                count += 1
+            return (round(w/count, 4),) + tuple(sorted((self.context.fid,) + c))
         return -1,
 
     def is_proper_v(self, c):

@@ -39,8 +39,9 @@ def create_csv_from_json(directory, duration):
     rows.append(['fid'] + headers)
 
     weights = []
-    total_dists = []
     avg_dists = []
+    min_dists = []
+    max_dists = []
     for filename in filenames:
         if filename.endswith('.json'):
             with open(os.path.join(json_dir, filename)) as f:
@@ -50,8 +51,9 @@ def create_csv_from_json(directory, duration):
                     row = [fid] + [data[h] if h in data else 0 for h in headers]
                     rows.append(row)
                     weights.append(data['5 weight'])
+                    avg_dists.append(data['1 min dist'])
                     avg_dists.append(data['2 avg dist'])
-                    total_dists.append(data['4 total dist'])
+                    avg_dists.append(data['3 max dist'])
                 except json.decoder.JSONDecodeError:
                     print(filename)
 
@@ -60,19 +62,23 @@ def create_csv_from_json(directory, duration):
         writer.writerows(rows)
 
     pair_weights = list(filter(lambda x: x != -1, weights))
-    pair_total_dists = list(filter(lambda x: x != 0, total_dists))
+    pair_min_dists = list(filter(lambda x: x != 0, min_dists))
     pair_avg_dists = list(filter(lambda x: x != 0, avg_dists))
+    pair_max_dists = list(filter(lambda x: x != 0, max_dists))
 
     metrics_rows = [["metric", "value"],
                     ["duration", duration],
-                    ["min total_dists", min(pair_total_dists)],
-                    ["avg total_dists", sum(pair_total_dists)/len(pair_total_dists)],
-                    ["max total_dists", max(pair_total_dists)],
+                    ["min min_dists", min(pair_min_dists)],
+                    ["avg min_dists", sum(pair_min_dists) / len(pair_min_dists)],
+                    ["max min_dists", max(pair_min_dists)],
                     ["min avg_dists", min(pair_avg_dists)],
-                    ["avg avg_dists", sum(pair_avg_dists)/len(pair_avg_dists)],
+                    ["avg avg_dists", sum(pair_avg_dists) / len(pair_avg_dists)],
                     ["max avg_dists", max(pair_avg_dists)],
+                    ["min max_dists", min(pair_max_dists)],
+                    ["avg max_dists", sum(pair_max_dists) / len(pair_max_dists)],
+                    ["max max_dists", max(pair_max_dists)],
                     ["min weights", min(pair_weights)],
-                    ["avg weights", sum(pair_weights)/len(pair_weights)],
+                    ["avg weights", sum(pair_weights) / len(pair_weights)],
                     ["max weights", max(pair_weights)],
                     ["number of cliques", len(pair_weights)],
                     ["number of single nodes", len(list(filter(lambda x: x == -1, weights)))]
