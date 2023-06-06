@@ -122,7 +122,13 @@ class StateMachine:
         #             f.write(f"{str(i)}\n")
             # print(self.context.history.merge_lists())
 
-    def heuristic(self, c):
+    def heuristic_1(self, c):
+        if all(n in self.context.neighbors for n in self.knn):
+            return tuple(random.sample(self.knn, self.context.k - 1))
+
+        return ()
+
+    def heuristic_2(self, c):
         candidates = []
 
         # if len(self.context.neighbors) >= self.context.k - 1:
@@ -170,7 +176,7 @@ class StateMachine:
                     if all(nc in self.context.neighbors for nc in new_c):
                         if self.attr_v(new_c) > self.attr_v(c):
                             c = new_c
-            c_prime = self.heuristic(c)
+            c_prime = self.heuristic_1(c)
             if self.attr_v(c_prime) > self.attr_v(c):
                 c = c_prime
 
