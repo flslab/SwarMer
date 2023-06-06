@@ -39,8 +39,8 @@ def create_csv_from_json(directory, duration):
     rows.append(['fid'] + headers)
 
     weights = []
-    avg_dists = []
     min_dists = []
+    avg_dists = []
     max_dists = []
     for filename in filenames:
         if filename.endswith('.json'):
@@ -51,9 +51,9 @@ def create_csv_from_json(directory, duration):
                     row = [fid] + [data[h] if h in data else 0 for h in headers]
                     rows.append(row)
                     weights.append(data['5 weight'])
-                    avg_dists.append(data['1 min dist'])
+                    min_dists.append(data['1 min dist'])
                     avg_dists.append(data['2 avg dist'])
-                    avg_dists.append(data['3 max dist'])
+                    max_dists.append(data['3 max dist'])
                 except json.decoder.JSONDecodeError:
                     print(filename)
 
