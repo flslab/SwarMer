@@ -56,6 +56,7 @@ if __name__ == '__main__':
             os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
 
     K = TestConfig.K if TestConfig.ENABLED else Config.K
+    FILE_NAME_KEYS = TestConfig.FILE_NAME_KEYS if TestConfig.ENABLED else Config.FILE_NAME_KEYS
 
     if TestConfig.ENABLED:
         r2 = 1
@@ -225,7 +226,16 @@ if __name__ == '__main__':
         if p.is_alive():
             p.terminate()
 
-    # print(connections)
+    if not Config.DEBUG:
+        from datetime import datetime
+        current_date_time = datetime.now().strftime("%H:%M:%S_%m:%d:%Y")
+        if len(FILE_NAME_KEYS):
+            CONFIG = TestConfig if TestConfig.ENABLED else Config
+            keys = "_".join(f"{k}:{CONFIG.__getattribute__(CONFIG, k)}" for k in FILE_NAME_KEYS)
+        else:
+            keys = current_date_time
+        file_name = f"{Config.SHAPE}_{keys}"
+
     connections = dict()
     for i in range(len(shared_arrays)):
         connections[i + 1] = shared_arrays[i]
@@ -243,7 +253,7 @@ if __name__ == '__main__':
     if Config.DEBUG:
         plt.show()
     else:
-        plt.savefig(os.path.join(shape_directory, f'{experiment_name}.jpg'))
+        plt.savefig(os.path.join(shape_directory, 'figures', f'{file_name}.jpg'))
 
     # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
     #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
@@ -252,7 +262,7 @@ if __name__ == '__main__':
     if not Config.DEBUG:
         utils.create_csv_from_json(results_directory, end_time-start_time)
         utils.write_configs(results_directory)
-        utils.combine_csvs(results_directory, shape_directory)
+        utils.combine_csvs(results_directory, shape_directory, file_name)
 
     for s in shared_memories:
         s.close()

@@ -33,3 +33,4 @@ class Config:
     SHAPE = 'butterfly'
     RESULTS_PATH = 'results'
     DEBUG = True
+    FILE_NAME_KEYS = ['K']

@@ -34,6 +34,7 @@ def_general_conf = {
     "K": "3",
     "SHAPE": "'butterfly'",
     "RESULTS_PATH": "'results'",
+    "FILE_NAME_KEYS": "['K']",
 }
 
 def_test_conf = {
@@ -41,6 +42,7 @@ def_test_conf = {
     "NUMBER_OF_FLSS": "165",
     "K": "3",
     "RATIO": "100",
+    "FILE_NAME_KEYS": "['K', 'RATIO']"
 }
 
 general_props = [
