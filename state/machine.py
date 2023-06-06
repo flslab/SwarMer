@@ -74,12 +74,6 @@ class StateMachine:
         self.set_w(w)
         self.context.set_pair()
 
-    def heuristic(self, c):
-        if len(self.context.neighbors) >= self.context.k - 1:
-            if all(n in self.context.neighbors for n in self.knn):
-                return tuple(random.sample(self.knn, self.context.k - 1))
-        return ()
-
     def handle_stop(self, msg):
         stop_msg = Message(MessageTypes.STOP).to_all()
         self.broadcast(stop_msg)
@@ -128,6 +122,37 @@ class StateMachine:
         #             f.write(f"{str(i)}\n")
             # print(self.context.history.merge_lists())
 
+    def heuristic(self, c):
+        candidates = []
+
+        # if len(self.context.neighbors) >= self.context.k - 1:
+        for fid in self.context.sorted_neighbors:
+            if len(candidates) == self.context.k - 1:
+                break
+            if fid in self.context.neighbors:
+                c_n = self.context.neighbors[fid].c
+                if len(c_n):
+                    if self.context.fid in c_n:
+                        candidates.append(fid)
+                    else:
+                        for n in c_n:
+                            new_c = tuple(nc for nc in c_n if nc != n) + (fid,)
+                            if all(nc in self.context.neighbors for nc in new_c):
+                                if self.attr_v(new_c) > self.attr_v(c):
+                                    candidates.append(fid)
+                                    break
+                else:
+                    candidates.append(fid)
+
+        # if len(self.context.neighbors) >= self.context.k - 1:
+        #     if all(n in self.context.neighbors for n in self.knn):
+        #         return tuple(random.sample(self.knn, self.context.k - 1))
+        # if len(candidates) >= self.context.k - 1:
+        #     return tuple(random.sample(candidates, self.context.k - 1))
+        if len(candidates) == self.context.k - 1:
+            return tuple(candidates)
+        return ()
+
     def enter_single_state_with_heuristic(self):
         c = ()
         if self.is_proper_v(self.get_c()):
@@ -149,18 +174,10 @@ class StateMachine:
 
             self.set_pair(c)
 
-        else:
-            if Config.MAX_NEIGHBORS:
-                if len(self.context.neighbors) < Config.MAX_NEIGHBORS:
-                    self.context.increment_range()
-            else:
-                self.context.increment_range()
-
-        discover_msg = Message(MessageTypes.DISCOVER).to_all()
-        self.broadcast(discover_msg)
+            discover_msg = Message(MessageTypes.DISCOVER).to_all()
+            self.broadcast(discover_msg)
 
     def enter_single_state(self):
-        # self.context.set_single()
         c = ()
         # n_hash = hash(str([self.context.fid_to_w[n] for n in self.knn if n in self.context.fid_to_w]))
         n_hash = dict_hash(self.context.fid_to_w)
