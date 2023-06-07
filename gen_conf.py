@@ -39,10 +39,14 @@ def_general_conf = {
 
 def_test_conf = {
     "ENABLED": "True",
-    "NUMBER_OF_FLSS": "165",
+    "NUMBER_OF_FLSS": "1729",
     "K": "3",
-    "RATIO": "100",
-    "FILE_NAME_KEYS": "['K', 'RATIO']"
+    "R": "100",
+    "H": "1",
+    "ETA": "2",
+    "ETA_STR": "K-1",
+    "FILE_NAME_KEYS": "['H', 'ETA_STR', 'K', 'R']",
+    "DIR_KEYS": "['H', 'ETA_STR']"
 }
 
 general_props = [
@@ -60,12 +64,21 @@ general_props = [
 
 test_props = [
     {
-        "keys": ["RATIO"],
-        "values": ["1000", "100", "10", "1"]
+        "keys": ["H", "ETA", "ETA_STR"],
+        "values": [
+            {"H": "2", "ETA": "K-1", "ETA_STR": "'K-1'"},
+            {"H": "1", "ETA": "K-1", "ETA_STR": "'K-1'"},
+            {"H": "1", "ETA": "K", "ETA_STR": "'K'"},
+            {"H": "1", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
+                   ]
     },
     {
         "keys": ["K"],
         "values": ["7", "13", "19"]
+    },
+    {
+        "keys": ["R"],
+        "values": ["1000", "100", "10", "1"]
     },
 ]
 

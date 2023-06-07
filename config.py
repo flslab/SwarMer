@@ -1,7 +1,7 @@
 class Config:
     THAW_SWARMS = False
-    INITIAL_RANGE = 1000
-    MAX_RANGE = 1000
+    INITIAL_RANGE = 2000
+    MAX_RANGE = 2000
     DROP_PROB_SENDER = 0
     DROP_PROB_RECEIVER = 0
     STATE_TIMEOUT = 0
@@ -30,7 +30,7 @@ class Config:
     READ_FROM_NPY = 0
     K = 3
     MAX_NEIGHBORS = 0
-    SHAPE = 'butterfly'
+    SHAPE = 'test'
     RESULTS_PATH = 'results'
-    DEBUG = True
+    DEBUG = False
     FILE_NAME_KEYS = ['K']

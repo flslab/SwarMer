@@ -4,6 +4,7 @@ import numpy as np
 import threading
 from message import Message, MessageTypes
 from config import Config
+from test_config import TestConfig
 from .types import StateTypes
 from worker.network import PrioritizedItem
 from itertools import combinations
@@ -23,9 +24,11 @@ class StateMachine:
         self.break_check = dict()
         self.heard = False
         self.last_neighbors_hash = None
-        self.eta = context.k - 1
+        self.eta = TestConfig.ETA
         self.knn = self.context.sorted_neighbors[:self.eta]
         self.is_neighbors_processed = False
+        self.solution_eta_idx = -1
+        self.max_eta_idx = -1
 
     def get_w(self):
         return self.context.w
@@ -82,30 +85,32 @@ class StateMachine:
         if not Config.DEBUG:
             min_fid = min(self.get_c() + (self.context.fid,))
 
-            if self.context.fid == min_fid:
-                if len(self.get_c()):
-                    dists = []
-                    count = 0
-                    els = [self.context.el] + [self.context.neighbors[i].el for i in self.get_c()]
-                    for el_i, el_j in combinations(els, 2):
-                        dists.append(np.linalg.norm(el_i - el_j))
-                        count += 1
-                else:
-                    dists = [0]
-                    count = 1
-                    els = [self.context.el]
-                results = {
-                    "5 weight": self.get_w()[0],
-                    "0 clique members": self.get_w()[1:],
-                    "6 dist between each pair": dists,
-                    "7 coordinates": [list(el) for el in els],
-                    "1 min dist": min(dists),
-                    "2 avg dist": sum(dists) / count,
-                    "3 max dist": max(dists),
-                    "4 total dist": sum(dists),
-                    "8 eta": self.eta
-                }
-                write_json(self.context.fid, results, self.metrics.results_directory)
+            if len(self.get_c()):
+                dists = []
+                count = 0
+                els = [self.context.el] + [self.context.neighbors[i].el for i in self.get_c()]
+                for el_i, el_j in combinations(els, 2):
+                    dists.append(np.linalg.norm(el_i - el_j))
+                    count += 1
+            else:
+                dists = [0]
+                count = 1
+                els = [self.context.el]
+            results = {
+                "5 weight": self.get_w()[0],
+                "0 clique members": self.get_w()[1:],
+                "6 dist between each pair": dists,
+                "7 coordinates": [list(el) for el in els],
+                "1 min dist": min(dists),
+                "2 avg dist": sum(dists) / count,
+                "3 max dist": max(dists),
+                "4 total dist": sum(dists),
+                "8 max eta": self.max_eta_idx + 1,
+                "8 solution eta": self.solution_eta_idx + 1,
+                "9 max range": self.context.sorted_dist[self.max_eta_idx] if self.max_eta_idx != -1 else 0,
+                "9 solution range": self.context.sorted_dist[self.solution_eta_idx] if self.solution_eta_idx != -1 else 0,
+            }
+            write_json(self.context.fid, results, self.metrics.results_directory, self.context.fid == min_fid)
 
         if len(self.get_c()):
             # self.context.set_pair(self.get_m().el)
@@ -124,19 +129,17 @@ class StateMachine:
 
     def heuristic_1(self, c):
         if all(n in self.context.neighbors for n in self.knn):
-            return tuple(random.sample(self.knn, self.context.k - 1))
+            return tuple(random.sample(self.knn, self.context.k - 1)), self.eta - 1
 
-        return ()
+        return (), self.eta - 1
 
     def heuristic_2(self, c):
         candidates = []
+        last_idx = 0
 
         # if len(self.context.neighbors) >= self.context.k - 1:
         for i in range(len(self.context.sorted_neighbors)):
             fid = self.context.sorted_neighbors[i]
-            if len(candidates) == self.context.k - 1:
-                self.eta = i + 1
-                break
             if fid in self.context.neighbors:
                 c_n = self.context.neighbors[fid].c
                 if len(c_n):
@@ -152,14 +155,18 @@ class StateMachine:
                 else:
                     candidates.append(fid)
 
+            if len(candidates) == self.context.k - 1:
+                last_idx = i
+                break
+
         # if len(self.context.neighbors) >= self.context.k - 1:
         #     if all(n in self.context.neighbors for n in self.knn):
         #         return tuple(random.sample(self.knn, self.context.k - 1))
         # if len(candidates) >= self.context.k - 1:
         #     return tuple(random.sample(candidates, self.context.k - 1))
         if len(candidates) == self.context.k - 1:
-            return tuple(candidates)
-        return ()
+            return tuple(candidates), last_idx
+        return (), last_idx
 
     def enter_single_state_with_heuristic(self):
         c = ()
@@ -176,9 +183,14 @@ class StateMachine:
                     if all(nc in self.context.neighbors for nc in new_c):
                         if self.attr_v(new_c) > self.attr_v(c):
                             c = new_c
-            c_prime = self.heuristic_2(c)
+            if TestConfig.H == 1:
+                c_prime, last_idx = self.heuristic_1(c)
+            else:
+                c_prime, last_idx = self.heuristic_2(c)
+            self.max_eta_idx = max(self.max_eta_idx, last_idx)
             if self.attr_v(c_prime) > self.attr_v(c):
                 c = c_prime
+                self.solution_eta_idx = last_idx
 
             self.set_pair(c)
 

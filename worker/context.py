@@ -9,7 +9,7 @@ from .history import History
 
 
 class WorkerContext:
-    def __init__(self, count, fid, gtl, el, shm_name, metrics, k, sorted_neighbors, fid_to_dist):
+    def __init__(self, count, fid, gtl, el, shm_name, metrics, k, sorted_neighbors, sorted_dist):
         self.count = count
         self.fid = fid
         self.gtl = gtl
@@ -17,7 +17,7 @@ class WorkerContext:
         self.swarm_id = self.fid
         self.neighbors = dict()
         self.fid_to_w = dict()
-        self.fid_to_dist = fid_to_dist
+        self.sorted_dist = sorted_dist
         self.sorted_neighbors = sorted_neighbors
         self.radio_range = Config.INITIAL_RANGE
         self.max_range = Config.MAX_RANGE

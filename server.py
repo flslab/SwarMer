@@ -49,18 +49,37 @@ if __name__ == '__main__':
         nid = int(sys.argv[2])
         experiment_name = sys.argv[3]
 
-    results_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE, experiment_name)
-    shape_directory = os.path.join(Config.RESULTS_PATH, Config.SHAPE)
-    if not Config.DEBUG:
-        if not os.path.exists(results_directory):
-            os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
-
     K = TestConfig.K if TestConfig.ENABLED else Config.K
     FILE_NAME_KEYS = TestConfig.FILE_NAME_KEYS if TestConfig.ENABLED else Config.FILE_NAME_KEYS
 
+    dir_name = None
+    if not Config.DEBUG:
+        from datetime import datetime
+
+        current_date_time = datetime.now().strftime("%H:%M:%S_%m:%d:%Y")
+        if len(FILE_NAME_KEYS):
+            CONFIG = TestConfig if TestConfig.ENABLED else Config
+            keys = "_".join(f"{k}:{CONFIG.__getattribute__(CONFIG, k)}" for k in FILE_NAME_KEYS)
+        else:
+            keys = current_date_time
+        file_name = f"{Config.SHAPE}_{keys}"
+
+        if len(TestConfig.DIR_KEYS):
+            dir_name = "_".join(f"{k}:{TestConfig.__getattribute__(TestConfig, k)}" for k in TestConfig.DIR_KEYS)
+
+    main_dir = Config.RESULTS_PATH if dir_name is None else os.path.join(Config.RESULTS_PATH, Config.SHAPE, dir_name)
+    results_directory = os.path.join(main_dir, experiment_name)
+    shape_directory = main_dir
+    figure_directory = os.path.join(shape_directory, 'figures')
+    if not Config.DEBUG:
+        if not os.path.exists(results_directory):
+            os.makedirs(os.path.join(results_directory, 'json'), exist_ok=True)
+        if not os.path.exists(figure_directory):
+            os.makedirs(figure_directory, exist_ok=True)
+
     if TestConfig.ENABLED:
         r2 = 1
-        r1 = r2 * TestConfig.RATIO
+        r1 = r2 * TestConfig.R
         n1 = TestConfig.NUMBER_OF_FLSS // K
         n2 = K
 
@@ -132,11 +151,11 @@ if __name__ == '__main__':
             local_gtl_point_cloud.append(gtl_point_cloud[i])
 
             sorted_neighbors = knn_idx[i][1:] + 1
-            fid_to_dist = dict(zip(sorted_neighbors, knn_dists[i][1:]))
+            # fid_to_dist = dict(zip(sorted_neighbors, knn_dists[i][1:]))
 
             p = worker.WorkerProcess(
                 count, i + 1, gtl_point_cloud[i], gtl_point_cloud[i], shm.name, results_directory,
-                K, sorted_neighbors.tolist(), fid_to_dist)
+                K, sorted_neighbors.tolist(), knn_dists[i][1:])
             p.start()
             processes.append(p)
     except OSError as e:
@@ -226,16 +245,6 @@ if __name__ == '__main__':
         if p.is_alive():
             p.terminate()
 
-    if not Config.DEBUG:
-        from datetime import datetime
-        current_date_time = datetime.now().strftime("%H:%M:%S_%m:%d:%Y")
-        if len(FILE_NAME_KEYS):
-            CONFIG = TestConfig if TestConfig.ENABLED else Config
-            keys = "_".join(f"{k}:{CONFIG.__getattribute__(CONFIG, k)}" for k in FILE_NAME_KEYS)
-        else:
-            keys = current_date_time
-        file_name = f"{Config.SHAPE}_{keys}"
-
     connections = dict()
     for i in range(len(shared_arrays)):
         connections[i + 1] = shared_arrays[i]
@@ -253,7 +262,7 @@ if __name__ == '__main__':
     if Config.DEBUG:
         plt.show()
     else:
-        plt.savefig(os.path.join(shape_directory, 'figures', f'{file_name}.jpg'))
+        plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
 
     # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
     #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:

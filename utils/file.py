@@ -9,8 +9,9 @@ import pandas as pd
 import glob
 
 
-def write_json(fid, results, directory):
-    with open(os.path.join(directory, 'json', f"{fid:05}.json"), "w") as f:
+def write_json(fid, results, directory, is_clique):
+    file_name = f"{fid:05}.c.json" if is_clique else f"{fid:05}.json"
+    with open(os.path.join(directory, 'json', file_name), "w") as f:
         json.dump(results, f)
 
 
@@ -20,13 +21,14 @@ def create_csv_from_json(directory, duration):
 
     headers_set = set()
     rows = []
+    node_rows = []
 
     json_dir = os.path.join(directory, 'json')
     filenames = os.listdir(json_dir)
     filenames.sort()
 
     for filename in filenames:
-        if filename.endswith('.json'):
+        if filename.endswith('.c.json'):
             with open(os.path.join(json_dir, filename)) as f:
                 try:
                     data = json.load(f)
@@ -37,6 +39,7 @@ def create_csv_from_json(directory, duration):
     headers = list(headers_set)
     headers.sort()
     rows.append(['fid'] + headers)
+    node_rows.append(['fid'] + headers)
 
     weights = []
     min_dists = []
@@ -49,17 +52,23 @@ def create_csv_from_json(directory, duration):
                     data = json.load(f)
                     fid = filename.split('.')[0]
                     row = [fid] + [data[h] if h in data else 0 for h in headers]
-                    rows.append(row)
-                    weights.append(data['5 weight'])
-                    min_dists.append(data['1 min dist'])
-                    avg_dists.append(data['2 avg dist'])
-                    max_dists.append(data['3 max dist'])
+                    node_rows.append(row)
+                    if filename.endswith('.c.json'):
+                        rows.append(row)
+                        weights.append(data['5 weight'])
+                        min_dists.append(data['1 min dist'])
+                        avg_dists.append(data['2 avg dist'])
+                        max_dists.append(data['3 max dist'])
                 except json.decoder.JSONDecodeError:
                     print(filename)
 
     with open(os.path.join(directory, 'cliques.csv'), 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(rows)
+
+    with open(os.path.join(directory, 'nodes.csv'), 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(node_rows)
 
     pair_weights = list(filter(lambda x: x != -1, weights))
     pair_min_dists = list(filter(lambda x: x != 0, min_dists))
@@ -172,3 +181,23 @@ def combine_csvs(directory, xslx_dir, file_name):
             sheet_name = csv_file.split('/')[-1][:-4]
             df.to_excel(writer, sheet_name=sheet_name, index=False)
     # shutil.rmtree(os.path.join(directory))
+
+
+def combine_xlsx(directory):
+    xlsx_files = glob.glob(f"{directory}/*.xlsx")
+
+    with pd.ExcelWriter(os.path.join(directory, 'combined.xlsx')) as writer:
+        dfs = []
+        for file in sorted(xlsx_files):
+            df = pd.read_excel(file, sheet_name='metrics')
+            k = file.split('_')[1].split(':')[1]
+            r = file.split('_')[2].split(':')[1].split('.')[0]
+
+            df2 = pd.DataFrame([k, r])
+            df3 = pd.concat([df2, df.value])
+            dfs.append(df3)
+        pd.concat([pd.concat([pd.DataFrame(['k', 'r']), df.metric])] + dfs, axis=1).to_excel(writer, index=False)
+
+
+if __name__ == "__main__":
+    combine_xlsx("path")
