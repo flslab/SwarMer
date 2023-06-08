@@ -7,6 +7,7 @@ from config import Config
 from test_config import TestConfig
 import pandas as pd
 import glob
+import re
 
 
 def write_json(fid, results, directory, is_clique):
@@ -186,12 +187,14 @@ def combine_csvs(directory, xslx_dir, file_name):
 def combine_xlsx(directory):
     xlsx_files = glob.glob(f"{directory}/*.xlsx")
 
-    with pd.ExcelWriter(os.path.join(directory, 'combined.xlsx')) as writer:
+    with pd.ExcelWriter(os.path.join(directory, 'summary.xlsx')) as writer:
         dfs = []
         for file in sorted(xlsx_files):
+            print(file)
             df = pd.read_excel(file, sheet_name='metrics')
-            k = file.split('_')[1].split(':')[1]
-            r = file.split('_')[2].split(':')[1].split('.')[0]
+            m = re.search(r'K:(\d+)_R:(\d+)', file)
+            k = m.group(1)
+            r = m.group(2)
 
             df2 = pd.DataFrame([k, r])
             df3 = pd.concat([df2, df.value])
@@ -200,4 +203,7 @@ def combine_xlsx(directory):
 
 
 if __name__ == "__main__":
-    combine_xlsx("path")
+    combine_xlsx("/Users/hamed/Desktop/64-core/H:2_ETA_STR:K-1")
+    combine_xlsx("/Users/hamed/Desktop/64-core/H:1_ETA_STR:K-1")
+    combine_xlsx("/Users/hamed/Desktop/64-core/H:1_ETA_STR:K")
+    combine_xlsx("/Users/hamed/Desktop/64-core/H:1_ETA_STR:1.5K")
