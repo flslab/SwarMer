@@ -1,4 +1,5 @@
 import random
+import time
 
 import numpy as np
 import threading
@@ -127,6 +128,43 @@ class StateMachine:
         #             f.write(f"{str(i)}\n")
             # print(self.context.history.merge_lists())
 
+    def vns_shake(self, c, d):
+        u = set(random.sample(c, d))
+        n = list(set(self.context.neighbors.keys()) - set(c))
+        if len(n) >= len(u):
+            u_star = set(random.sample(n, len(u)))
+            return tuple(set(c) | u_star - u)
+        return c
+
+    def vns_local_search(self, c):
+        for u in c:
+            for u_star in list(set(self.context.neighbors.keys()) - set(c)):
+                c_prime = tuple(set(c) | {u_star} - {u})
+                if self.attr_v(c_prime) > self.attr_v(c):
+                    return c_prime
+        return c
+
+    def heuristic_vns(self, c_opt):
+        if len(self.context.neighbors.keys()) < self.context.k - 1:
+            return (), -1
+
+        start_time = time.time()
+
+        if not len(c_opt):
+            c_opt = tuple(random.sample(self.context.neighbors.keys(), self.context.k - 1))
+
+        while time.time() - start_time < 5:
+            d = 1
+            while d < self.context.k:
+                c = self.vns_shake(c_opt, d)
+                c_prime = self.vns_local_search(c)
+                if self.attr_v(c_prime) > self.attr_v(c_opt):
+                    c_opt = c_prime
+                    d = 1
+                else:
+                    d += 1
+        return c_opt, -1
+
     def heuristic_1(self, c):
         if all(n in self.context.neighbors for n in self.knn):
             return tuple(random.sample(self.knn, self.context.k - 1)), self.eta - 1
@@ -185,8 +223,10 @@ class StateMachine:
                             c = new_c
             if TestConfig.H == 1:
                 c_prime, last_idx = self.heuristic_1(c)
-            else:
+            elif TestConfig.H == 2:
                 c_prime, last_idx = self.heuristic_2(c)
+            elif TestConfig.H == 'vns':
+                c_prime, last_idx = self.heuristic_vns(c)
             self.max_eta_idx = max(self.max_eta_idx, last_idx)
             if self.attr_v(c_prime) > self.attr_v(c):
                 c = c_prime
