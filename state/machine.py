@@ -133,13 +133,13 @@ class StateMachine:
         n = list(set(self.context.neighbors.keys()) - set(c))
         if len(n) >= len(u):
             u_star = set(random.sample(n, len(u)))
-            return tuple(set(c) | u_star - u)
+            return tuple((set(c) - u) | u_star)
         return c
 
     def vns_local_search(self, c):
         for u in c:
             for u_star in list(set(self.context.neighbors.keys()) - set(c)):
-                c_prime = tuple(set(c) | {u_star} - {u})
+                c_prime = tuple((set(c) - {u}) | {u_star})
                 if self.attr_v(c_prime) > self.attr_v(c):
                     return c_prime
         return c
@@ -164,6 +164,16 @@ class StateMachine:
                 else:
                     d += 1
         return c_opt, -1
+
+    def heuristic_rs(self, c_cur):
+        if len(self.context.neighbors.keys()) < self.eta:
+            return (), -1
+        c = c_cur
+        subset = set(c_cur) | set(random.sample(self.context.neighbors.keys(), self.eta))
+        for u in combinations(subset, self.context.k - 1):
+            if self.attr_v(u) > self.attr_v(c):
+                c = u
+        return c, -1
 
     def heuristic_1(self, c):
         if all(n in self.context.neighbors for n in self.knn):
@@ -227,6 +237,8 @@ class StateMachine:
                 c_prime, last_idx = self.heuristic_2(c)
             elif TestConfig.H == 'vns':
                 c_prime, last_idx = self.heuristic_vns(c)
+            elif TestConfig.H == 'rs':
+                c_prime, last_idx = self.heuristic_rs(c)
             self.max_eta_idx = max(self.max_eta_idx, last_idx)
             if self.attr_v(c_prime) > self.attr_v(c):
                 c = c_prime
