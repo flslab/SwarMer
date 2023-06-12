@@ -38,6 +38,7 @@ def query_cliques_client(connection):
     connection.send(pickle.dumps(query_msg))
     data = connection.recv(2048)
     message = pickle.loads(data)
+    print(message.args[0], message.args[1])
     return message.args[0], message.args[1]  # cliques, connections
 
 
@@ -49,12 +50,12 @@ def stop_client(connection):
     # return message.args[0]
 
 
-def aggregate_cliques(node_point_idx, shared_arrays):
+def aggregate_cliques(idsx, sharrs):
     cliques = dict()
     connections = dict()
-    for i in node_point_idx:
-        connections[i + 1] = shared_arrays[i]
-        key = ".".join([str(c) for c in shared_arrays[i]])
+    for i in idsx:
+        connections[i + 1] = sharrs[i]
+        key = ".".join([str(c) for c in sharrs[i]])
         if key in cliques:
             cliques[key] += 1
         else:
