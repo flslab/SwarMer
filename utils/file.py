@@ -1,7 +1,6 @@
 import os
 import json
 import csv
-import shutil
 
 from config import Config
 from test_config import TestConfig
