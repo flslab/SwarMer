@@ -263,9 +263,9 @@ if __name__ == '__main__':
             if IS_CLUSTER_SERVER:
                 for i in range(N-1):
                     client_clique, client_connection = query_cliques_client(clients[i])
-                    for key, con in client_connection.itmes():
+                    for key, con in client_connection.items():
                         connections[key] = con
-                    for key, size in client_clique.itmes():
+                    for key, size in client_clique.items():
                         if key in cliques:
                             cliques[key] += size
                         else:
