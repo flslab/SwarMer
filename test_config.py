@@ -1,7 +1,7 @@
 class TestConfig:
     ENABLED = True
-    NUMBER_OF_FLSS = 165
-    K = 3
+    NUMBER_OF_FLSS = 525
+    K = 7
     R = 10  # ratio of r2 to r1
     H = 2  # heuristic 1, 2, vns, rs
     ETA = K - 1  # initial eta
