@@ -66,10 +66,10 @@ test_props = [
     {
         "keys": ["H", "ETA", "ETA_STR"],
         "values": [
-            {"H": "vns", "ETA": "K-1", "ETA_STR": "'K-1'"},
-            {"H": "rs", "ETA": "K-1", "ETA_STR": "'K-1'"},
-            {"H": "rs", "ETA": "K", "ETA_STR": "'K'"},
-            {"H": "rs", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
+            {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'K-1'"},
+            {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'K-1'"},
+            {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
+            {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
                    ]
     },
     {
