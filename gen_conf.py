@@ -39,7 +39,7 @@ def_general_conf = {
 
 def_test_conf = {
     "ENABLED": "True",
-    "NUMBER_OF_FLSS": "1729",
+    "NUMBER_OF_FLSS": "165",
     "K": "3",
     "R": "100",
     "H": "1",
