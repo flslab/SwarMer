@@ -50,18 +50,18 @@ def stop_client(connection):
     # return message.args[0]
 
 
-def aggregate_cliques(idsx, sharrs):
-    cliques = dict()
-    connections = dict()
-    for i in idsx:
-        connections[i + 1] = sharrs[i]
-        key = ".".join([str(c) for c in sharrs[i]])
-        if key in cliques:
-            cliques[key] += 1
+def aggregate_cliques(indexes, sh_arrays):
+    all_cliques = dict()
+    all_connections = dict()
+    for k in indexes:
+        all_connections[k + 1] = sh_arrays[k]
+        clique_key = ".".join([str(clique) for clique in sh_arrays[k]])
+        if key in all_cliques:
+            cliques[clique_key] += 1
         else:
-            cliques[key] = 1
+            cliques[clique_key] = 1
 
-    return cliques, connections
+    return all_cliques, all_connections
 
 
 if __name__ == '__main__':

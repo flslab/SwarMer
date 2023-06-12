@@ -2,6 +2,8 @@ import os
 import json
 import csv
 
+import numpy as np
+
 from config import Config
 from test_config import TestConfig
 import pandas as pd
@@ -199,6 +201,11 @@ def combine_xlsx(directory):
             df3 = pd.concat([df2, df.value])
             dfs.append(df3)
         pd.concat([pd.concat([pd.DataFrame(['k', 'r']), df.metric])] + dfs, axis=1).to_excel(writer, index=False)
+
+
+def read_cliques_xlsx(path):
+    df = pd.read_excel(path, sheet_name='nodes')
+    return np.stack([np.array(eval(c)) for c in df["7 coordinates"]])
 
 
 if __name__ == "__main__":
