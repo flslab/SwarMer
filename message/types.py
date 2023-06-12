@@ -9,6 +9,8 @@ class MessageTypes(Enum):
     BREAK_ACK = 4
     REENTER_SINGLE_STATE = 5
     SEND_BREAK = 6
+    QUERY_CLIQUES = 7
+    REPLY_CLIQUES = 8
 
     def get_cat(self):
         pass

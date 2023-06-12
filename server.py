@@ -33,6 +33,36 @@ def set_stop():
     print('will stop next round')
 
 
+def query_cliques_client(connection):
+    query_msg = Message(MessageTypes.QUERY_CLIQUES)
+    connection.send(pickle.dumps(query_msg))
+    data = connection.recv(2048)
+    message = pickle.loads(data)
+    return message.args[0], message.args[1]  # cliques, connections
+
+
+def stop_client(connection):
+    stop_msg = Message(MessageTypes.STOP)
+    connection.send(pickle.dumps(stop_msg))
+    # data = connection.recv(2048)
+    # message = pickle.loads(data)
+    # return message.args[0]
+
+
+def aggregate_cliques(node_point_idx, shared_arrays):
+    cliques = dict()
+    connections = dict()
+    for i in node_point_idx:
+        connections[i + 1] = shared_arrays[i]
+        key = ".".join([str(c) for c in shared_arrays[i]])
+        if key in cliques:
+            cliques[key] += 1
+        else:
+            cliques[key] = 1
+
+    return cliques, connections
+
+
 if __name__ == '__main__':
     N = 1
     nid = 0
@@ -41,6 +71,24 @@ if __name__ == '__main__':
         N = int(sys.argv[1])
         nid = int(sys.argv[2])
         experiment_name = sys.argv[3]
+
+    IS_CLUSTER_SERVER = N != 1 and nid == 0
+    IS_CLUSTER_CLIENT = N != 1 and nid != 0
+
+    if IS_CLUSTER_SERVER:
+        ServerSocket = socket.socket()
+        ServerSocket.bind(Constants.SERVER_ADDRESS)
+        ServerSocket.listen(N-1)
+
+        clients = []
+        for i in range(N-1):
+            client, address = ServerSocket.accept()
+            print(address)
+            clients.append(client)
+
+    if IS_CLUSTER_CLIENT:
+        client_socket = socket.socket()
+        client_socket.connect(Constants.SERVER_ADDRESS)
 
     K = TestConfig.K if TestConfig.ENABLED else Config.K
     FILE_NAME_KEYS = TestConfig.FILE_NAME_KEYS if TestConfig.ENABLED else Config.FILE_NAME_KEYS
@@ -108,7 +156,7 @@ if __name__ == '__main__':
             point_cloud = point_cloud[:Config.SAMPLE_SIZE]
 
     total_count = point_cloud.shape[0]
-    h = np.log2(total_count)
+    # h = np.log2(total_count)
 
     gtl_point_cloud = np.random.uniform(0, 5, size=(total_count, 3))
     sample = np.zeros(K, dtype=np.int32)
@@ -123,8 +171,8 @@ if __name__ == '__main__':
     print(count)
 
     processes = []
-    shared_arrays = []
-    shared_memories = []
+    shared_arrays = dict()
+    shared_memories = dict()
 
     local_gtl_point_cloud = []
     # pidx = np.array(node_point_idx)
@@ -139,8 +187,8 @@ if __name__ == '__main__':
             shared_array = np.ndarray(sample.shape, dtype=sample.dtype, buffer=shm.buf)
             shared_array[:] = i+1
 
-            shared_arrays.append(shared_array)
-            shared_memories.append(shm)
+            shared_arrays[i] = shared_array
+            shared_memories[i] = shm
             local_gtl_point_cloud.append(gtl_point_cloud[i])
 
             sorted_neighbors = knn_idx[i][1:] + 1
@@ -193,39 +241,65 @@ if __name__ == '__main__':
 
     freeze_counter = 0
     last_hash = None
-    while True:
-        time.sleep(1)
-        cliques = dict()
-        for i in range(len(shared_arrays)):
-            key = ".".join([str(c) for c in shared_arrays[i]])
-            if key in cliques:
-                cliques[key] += 1
+
+    if IS_CLUSTER_CLIENT:
+        while True:
+            server_msg = client_socket.recv(2048)
+            server_msg = pickle.loads(server_msg)
+
+            if server_msg.type == MessageTypes.QUERY_CLIQUES:
+                client_cliques, client_connections = aggregate_cliques(node_point_idx, shared_arrays)
+                response = Message(MessageTypes.REPLY_CLIQUES, args=(client_cliques, client_connections))
+                client_socket.send(pickle.dumps(response))
+            elif server_msg.type == MessageTypes.STOP:
+                client_socket.close()
+                break
+    else:
+        while True:
+            time.sleep(1)
+            cliques, connections = aggregate_cliques(node_point_idx, shared_arrays)
+
+            if IS_CLUSTER_SERVER:
+                for i in range(N-1):
+                    client_clique, client_connection = query_cliques_client(clients[i])
+                    for key, con in client_connection:
+                        connections[key] = con
+                    for key, size in client_clique:
+                        if key in cliques:
+                            cliques[key] += size
+                        else:
+                            cliques[key] = size
+
+            clique_sizes = filter(lambda x: x == K, cliques.values())
+            single_sizes = filter(lambda x: x == 1, cliques.values())
+            d_hash = dict_hash(cliques)
+            if d_hash == last_hash:
+                freeze_counter += 1
             else:
-                cliques[key] = 1
+                freeze_counter = 0
 
-        clique_sizes = filter(lambda x: x == K, cliques.values())
-        single_sizes = filter(lambda x: x == 1, cliques.values())
-        d_hash = dict_hash(cliques)
-        if d_hash == last_hash:
-            freeze_counter += 1
-        else:
-            freeze_counter = 0
-
-        if freeze_counter == 120:
-            break
-        last_hash = d_hash
-        if len(list(clique_sizes)) == count // K and len(list(single_sizes)) == count % K:
-            print(cliques)
-            break
+            if freeze_counter == 120:
+                break
+            last_hash = d_hash
+            if len(list(clique_sizes)) == total_count // K and len(list(single_sizes)) == total_count % K:
+                print(cliques)
+                break
 
     end_time = time.time()
-    stop_message = Message(MessageTypes.STOP).from_server().to_all()
-    dumped_stop_msg = pickle.dumps(stop_message)
-    ser_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
-    ser_sock.close()
+
+    if IS_CLUSTER_SERVER:
+        for i in range(N - 1):
+            stop_client(clients[i])
+            clients[i].close()
+
+    if nid == 0:
+        stop_message = Message(MessageTypes.STOP).from_server().to_all()
+        dumped_stop_msg = pickle.dumps(stop_message)
+        ser_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
+        ser_sock.close()
     print("done")
 
     time.sleep(1)
@@ -238,35 +312,33 @@ if __name__ == '__main__':
         if p.is_alive():
             p.terminate()
 
-    connections = dict()
-    for i in range(len(shared_arrays)):
-        connections[i + 1] = shared_arrays[i]
-    visited = set()
-    for c in connections.values():
-        key = str(c)
-        if key in visited:
-            continue
-        visited.add(key)
+    if nid == 0:
+        visited = set()
+        for c in connections.values():
+            key = str(c)
+            if key in visited:
+                continue
+            visited.add(key)
 
-        xs = [gtl_point_cloud[ci - 1][0] for ci in c]
-        ys = [gtl_point_cloud[ci - 1][1] for ci in c]
-        plt.plot(xs + [xs[0]], ys + [ys[0]], '-o')
-    # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
-    if Config.DEBUG:
-        plt.show()
-    else:
-        plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
+            xs = [gtl_point_cloud[ci - 1][0] for ci in c]
+            ys = [gtl_point_cloud[ci - 1][1] for ci in c]
+            plt.plot(xs + [xs[0]], ys + [ys[0]], '-o')
+        # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
+        if Config.DEBUG:
+            plt.show()
+        else:
+            plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
 
     # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
     #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
     #         np.save(f, point_cloud)
 
-    if not Config.DEBUG:
+    if not Config.DEBUG and nid == 0:
         utils.create_csv_from_json(results_directory, end_time-start_time)
         utils.write_configs(results_directory, current_date_time)
         utils.combine_csvs(results_directory, shape_directory, file_name)
 
-    for s in shared_memories:
+    for s in shared_memories.values():
         s.close()
         s.unlink()
 
