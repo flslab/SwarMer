@@ -38,7 +38,7 @@ def query_cliques_client(connection):
     connection.send(pickle.dumps(query_msg))
     data = connection.recv(2048)
     message = pickle.loads(data)
-    print(message.args[0], message.args[1])
+    # print(message.args[0], message.args[1])
     return message.args[0], message.args[1]  # cliques, connections
 
 
@@ -263,9 +263,9 @@ if __name__ == '__main__':
             if IS_CLUSTER_SERVER:
                 for i in range(N-1):
                     client_clique, client_connection = query_cliques_client(clients[i])
-                    for key, con in client_connection:
+                    for key, con in client_connection.itmes():
                         connections[key] = con
-                    for key, size in client_clique:
+                    for key, size in client_clique.itmes():
                         if key in cliques:
                             cliques[key] += size
                         else:
