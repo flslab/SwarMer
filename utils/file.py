@@ -77,6 +77,15 @@ def create_csv_from_json(directory, duration):
     pair_avg_dists = list(filter(lambda x: x != 0, avg_dists))
     pair_max_dists = list(filter(lambda x: x != 0, max_dists))
 
+    if len(pair_weights) == 0:
+        pair_weights = [-1]
+    if len(pair_min_dists) == 0:
+        pair_min_dists = [-1]
+    if len(pair_avg_dists) == 0:
+        pair_avg_dists = [-1]
+    if len(pair_max_dists) == 0:
+        pair_max_dists = [-1]
+
     metrics_rows = [["metric", "value"],
                     ["duration", duration],
                     ["min min_dists", min(pair_min_dists)],
@@ -209,7 +218,7 @@ def read_cliques_xlsx(path):
 
 
 if __name__ == "__main__":
-    combine_xlsx("/Users/hamed/Desktop/64-core/H:2_ETA_STR:K-1")
-    combine_xlsx("/Users/hamed/Desktop/64-core/H:1_ETA_STR:K-1")
-    combine_xlsx("/Users/hamed/Desktop/64-core/H:1_ETA_STR:K")
-    combine_xlsx("/Users/hamed/Desktop/64-core/H:1_ETA_STR:1.5K")
+    combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:vns_ETA_STR:K-1")
+    combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K-1")
+    combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K")
+    combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:1.5K")
