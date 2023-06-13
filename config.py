@@ -31,6 +31,6 @@ class Config:
     K = 3
     MAX_NEIGHBORS = 0
     SHAPE = 'test'
-    RESULTS_PATH = '/proj/nova-PG0/hamed/results'
+    RESULTS_PATH = 'results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
