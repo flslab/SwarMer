@@ -34,3 +34,5 @@ class Config:
     RESULTS_PATH = 'results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
+    SERVER_TIMEOUT = 1200
+    PROCESS_JOIN_TIMEOUT = 1200

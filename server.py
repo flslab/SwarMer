@@ -279,7 +279,7 @@ if __name__ == '__main__':
             else:
                 freeze_counter = 0
 
-            if freeze_counter == 120:
+            if freeze_counter == Config.SERVER_TIMEOUT:
                 break
             last_hash = d_hash
             if len(list(clique_sizes)) == total_count // K and len(list(single_sizes)) == total_count % K:
@@ -305,7 +305,7 @@ if __name__ == '__main__':
 
     time.sleep(1)
     for p in processes:
-        p.join(120)
+        p.join(Config.PROCESS_JOIN_TIMEOUT)
         if p.is_alive():
             break
 
