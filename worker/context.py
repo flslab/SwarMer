@@ -14,6 +14,7 @@ class WorkerContext:
         self.fid = fid
         self.gtl = gtl
         self.el = el
+        self.dispatcher = el
         self.swarm_id = self.fid
         self.neighbors = dict()
         self.fid_to_w = dict()
@@ -91,7 +92,7 @@ class WorkerContext:
 
     def fail(self):
         self.reset_swarm()
-        self.set_el(np.array([.0, .0, .0]))
+        self.set_el(self.dispatcher)
         self.radio_range = Config.INITIAL_RANGE
         self.anchor = None
         self.query_id = None

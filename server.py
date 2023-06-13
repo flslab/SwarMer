@@ -56,12 +56,42 @@ def aggregate_cliques(indexes, sh_arrays):
     for k in indexes:
         all_connections[k + 1] = sh_arrays[k]
         clique_key = ".".join([str(clique) for clique in sh_arrays[k]])
-        if key in all_cliques:
-            cliques[clique_key] += 1
+        if clique_key in all_cliques:
+            all_cliques[clique_key] += 1
         else:
-            cliques[clique_key] = 1
+            all_cliques[clique_key] = 1
 
     return all_cliques, all_connections
+
+
+def get_shape_floor_center(arr):
+    length = arr.shape[0]
+    sum_x = np.sum(arr[:, 0])
+    sum_y = np.sum(arr[:, 1])
+    return np.array([sum_x / length, sum_y / length, 0])
+
+
+def get_shape_floor_radius(arr, center):
+    arr_projected_floor = np.copy(arr)
+    arr_projected_floor[:, 2] = 0
+    return np.max(np.linalg.norm(arr_projected_floor - center, axis=1))
+
+
+def get_dispatchers_for_shape(shape, num_dispatchers=Config.NUM_DISPATCHERS):
+    if num_dispatchers == 1:
+        return [np.array([0.0, 0.0, 0.0])]
+
+    center = get_shape_floor_center(shape)
+    r = get_shape_floor_radius(shape, center)
+    dispatcher_coordinates = []
+    for k in range(num_dispatchers):
+        phi = 2 * np.pi * k / num_dispatchers
+        dispatcher_coordinates.append(center + np.array([r * np.cos(phi), r * np.sin(phi), 0]))
+    return dispatcher_coordinates
+
+
+def assign_dispatcher(fid, dispatchers):
+    return dispatchers[fid % len(dispatchers)]
 
 
 if __name__ == '__main__':
@@ -171,6 +201,7 @@ if __name__ == '__main__':
     count = len(node_point_idx)
     print(count)
 
+    dispatchers = get_dispatchers_for_shape(gtl_point_cloud)
     processes = []
     shared_arrays = dict()
     shared_memories = dict()
@@ -195,8 +226,10 @@ if __name__ == '__main__':
             sorted_neighbors = knn_idx[i][1:] + 1
             # fid_to_dist = dict(zip(sorted_neighbors, knn_dists[i][1:]))
 
+            # dispatcher = assign_dispatcher(i+1, dispatchers)
+            dispatcher = gtl_point_cloud[i]
             p = worker.WorkerProcess(
-                count, i + 1, gtl_point_cloud[i], gtl_point_cloud[i], shm.name, results_directory,
+                count, i + 1, gtl_point_cloud[i], dispatcher, shm.name, results_directory,
                 K, sorted_neighbors.tolist(), knn_dists[i][1:])
             p.start()
             processes.append(p)
