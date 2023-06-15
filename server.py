@@ -5,7 +5,7 @@ from multiprocessing import shared_memory
 import scipy.io
 import time
 import os
-
+import struct
 from test_config import TestConfig
 from config import Config
 from constants import Constants
@@ -36,7 +36,7 @@ def set_stop():
 def query_cliques_client(connection):
     query_msg = Message(MessageTypes.QUERY_CLIQUES)
     connection.send(pickle.dumps(query_msg))
-    data = connection.recv(4096)
+    data = recv_msg(connection)
     message = pickle.loads(data)
     # print(message.args[0], message.args[1])
     return message.args[0], message.args[1]  # cliques, connections
@@ -92,6 +92,33 @@ def get_dispatchers_for_shape(shape, num_dispatchers=Config.NUM_DISPATCHERS):
 
 def assign_dispatcher(fid, dispatchers):
     return dispatchers[fid % len(dispatchers)]
+
+
+def send_msg(sock, msg):
+    # Prefix each message with a 4-byte length (network byte order)
+    msg = struct.pack('>I', len(msg)) + msg
+    sock.sendall(msg)
+
+
+def recv_msg(sock):
+    # Read message length and unpack it into an integer
+    raw_msglen = recvall(sock, 4)
+    if not raw_msglen:
+        return None
+    msglen = struct.unpack('>I', raw_msglen)[0]
+    # Read the message data
+    return recvall(sock, msglen)
+
+
+def recvall(sock, n):
+    # Helper function to recv n bytes or return None if EOF is hit
+    data = bytearray()
+    while len(data) < n:
+        packet = sock.recv(n - len(data))
+        if not packet:
+            return None
+        data.extend(packet)
+    return data
 
 
 if __name__ == '__main__':
@@ -284,7 +311,8 @@ if __name__ == '__main__':
             if server_msg.type == MessageTypes.QUERY_CLIQUES:
                 client_cliques, client_connections = aggregate_cliques(node_point_idx, shared_arrays)
                 response = Message(MessageTypes.REPLY_CLIQUES, args=(client_cliques, client_connections))
-                client_socket.send(pickle.dumps(response))
+                # client_socket.sendall(pickle.dumps(response))
+                send_msg(client_socket, pickle.dumps(response))
             elif server_msg.type == MessageTypes.STOP:
                 client_socket.close()
                 break
