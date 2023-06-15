@@ -19,6 +19,7 @@ class StateMachine:
         self.metrics = metrics
         self.sock = sock
         self.timer_single = None
+        self.timer_failure = None
         self.timer_break_check = None
         self.req_accept = False
         self.event_queue = event_queue
@@ -281,6 +282,25 @@ class StateMachine:
         discover_msg = Message(MessageTypes.DISCOVER).to_all()
         self.broadcast(discover_msg)
 
+    def fail(self, msg):
+        self.send_failure_notification()
+        self.context.fail()
+        self.set_timer_to_fail()
+
+    def replace_failed_fls(self, msg):
+        pass
+
+    def send_failure_notification(self):
+        msg_to_standby = Message(MessageTypes.FAILURE_NOTIFICATION,).to_fls_id(self.context.standby_id, "*")
+        msg_to_server = Message(MessageTypes.FAILURE_NOTIFICATION,)
+        self.broadcast(msg_to_standby)
+        self.send_to_server(msg_to_server)
+
+    def set_timer_to_fail(self):
+        self.timer_failure = threading.Timer(
+            random.random() * Config.FAILURE_TIMEOUT, self.put_state_in_q, (MessageTypes.SHOULD_FAIL,))
+        self.timer_failure.start()
+
     def enter(self, state):
         if self.timer_single is not None:
             self.timer_single.cancel()
@@ -319,6 +339,10 @@ class StateMachine:
         elif event == MessageTypes.REENTER_SINGLE_STATE:
             if self.state == StateTypes.SINGLE:
                 self.reenter(StateTypes.SINGLE)
+        elif event == MessageTypes.SHOULD_FAIL:
+            self.fail(msg)
+        elif event == MessageTypes.FAILURE_NOTIFICATION:
+            self.replace_failed_fls(msg)
 
     def broadcast(self, msg):
         msg.from_fls(self.context)
@@ -336,3 +360,6 @@ class StateMachine:
         if self.timer_single is not None:
             self.timer_single.cancel()
             self.timer_single = None
+        if self.timer_failure is not None:
+            self.timer_failure.cancel()
+            self.timer_failure = None

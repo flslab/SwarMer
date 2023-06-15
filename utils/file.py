@@ -214,7 +214,7 @@ def combine_xlsx(directory):
 
 def read_cliques_xlsx(path):
     df = pd.read_excel(path, sheet_name='nodes')
-    return np.stack([np.array(eval(c)) for c in df["7 coordinates"]])
+    return [np.array(eval(c)) for c in df["7 coordinates"]]
 
 
 if __name__ == "__main__":

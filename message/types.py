@@ -11,6 +11,8 @@ class MessageTypes(Enum):
     SEND_BREAK = 6
     QUERY_CLIQUES = 7
     REPLY_CLIQUES = 8
+    SHOULD_FAIL = 9
+    FAILURE_NOTIFICATION = 10
 
     def get_cat(self):
         pass
