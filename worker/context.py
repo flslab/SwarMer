@@ -90,15 +90,6 @@ class WorkerContext:
         #     shared_array[4] = 0
         #     shared_mem.close()
 
-    def fail(self):
-        self.reset_swarm()
-        self.set_el(self.dispatcher)
-        self.radio_range = Config.INITIAL_RANGE
-        self.anchor = None
-        self.query_id = None
-        self.challenge_id = None
-        self.metrics.log_sum("A5_num_failures", 1)
-
     def move(self, vector):
         erred_v = self.add_dead_reckoning_error(vector)
         dest = self.el + erred_v
@@ -158,17 +149,6 @@ class WorkerContext:
 
     def reset_range(self):
         self.set_radio_range(Config.INITIAL_RANGE)
-
-    def reset_swarm(self):
-        self.set_swarm_id(self.fid)
-
-    def thaw_swarm(self):
-        self.reset_swarm()
-        self.reset_range()
-        self.size = 1
-        self.anchor = None
-        self.query_id = None
-        self.challenge_id = None
 
     def log_received_message(self, msg, length):
         meta = {"length": length}

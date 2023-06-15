@@ -21,10 +21,7 @@ class StateMachine:
         self.timer_single = None
         self.timer_failure = None
         self.timer_break_check = None
-        self.req_accept = False
         self.event_queue = event_queue
-        self.break_check = dict()
-        self.heard = False
         self.last_neighbors_hash = None
         self.eta = TestConfig.ETA
         self.knn = self.context.sorted_neighbors[:self.eta]
@@ -69,7 +66,6 @@ class StateMachine:
         self.start_timers()
 
     def handle_discover(self, msg):
-        self.heard = True
         pass
 
     def set_pair(self, c):
