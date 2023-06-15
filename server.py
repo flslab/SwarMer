@@ -95,7 +95,7 @@ def assign_dispatcher(fid, dispatchers):
 
 
 def send_msg(sock, msg):
-    # Prefix each message with a 4-byte length (network byte order)
+    # Prefix each message with a 4-byte big-endian unsigned integer (network byte order)
     msg = struct.pack('>I', len(msg)) + msg
     sock.sendall(msg)
 
@@ -318,7 +318,7 @@ if __name__ == '__main__':
                 break
     else:
         while True:
-            time.sleep(1)
+            time.sleep(10)
             cliques, connections = aggregate_cliques(node_point_idx, shared_arrays)
 
             if IS_CLUSTER_SERVER:
