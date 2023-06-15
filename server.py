@@ -36,7 +36,7 @@ def set_stop():
 def query_cliques_client(connection):
     query_msg = Message(MessageTypes.QUERY_CLIQUES)
     connection.send(pickle.dumps(query_msg))
-    data = connection.recv(2048)
+    data = connection.recv(4096)
     message = pickle.loads(data)
     # print(message.args[0], message.args[1])
     return message.args[0], message.args[1]  # cliques, connections
