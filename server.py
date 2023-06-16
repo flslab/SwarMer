@@ -318,7 +318,7 @@ if __name__ == '__main__':
                 break
     else:
         while True:
-            time.sleep(10)
+            time.sleep(1)
             cliques, connections = aggregate_cliques(node_point_idx, shared_arrays)
 
             if IS_CLUSTER_SERVER:

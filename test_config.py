@@ -1,12 +1,12 @@
 class TestConfig:
-    ENABLED = True
-    NUMBER_OF_FLSS = 50 * 8 * 4
-    K = 10
+    ENABLED = False
+    NUMBER_OF_FLSS = 176
+    K = 11
     R = 10  # ratio of r2 to r1
     H = 2  # heuristic 1, 2, vns, rs
     ETA = K - 1  # initial eta only effective for h:1 and h:rs
     ETA_STR = "k-1"
-    FILE_NAME_KEYS = ['K', 'R']
+    FILE_NAME_KEYS = ['K']
     DIR_KEYS = ['H']
 
 
