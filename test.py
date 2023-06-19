@@ -1,10 +1,12 @@
+import struct
+import sys
+import socket
+import pickle
+
+
 class Constants:
     BROADCAST_ADDRESS = ("<broadcast>", 5000)
     WORKER_ADDRESS = ("", 5000)
-
-
-import socket
-import pickle
 
 
 class WorkerSocket:
@@ -47,7 +49,65 @@ class WorkerSocket:
 
         self.close()
 
+    def send_multicast(self):
+        message = 'very important data'
+        multicast_group = ('224.3.29.71', 10000)
+
+        # Create the datagram socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        # Set a timeout so the socket does not block indefinitely when trying
+        # to receive data.
+        sock.settimeout(0.2)
+
+        # Set the time-to-live for messages to 1 so they do not go past the
+        # local network segment.
+        ttl = struct.pack('b', 1)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
+
+        try:
+            # Send data to the multicast group
+            sent = sock.sendto(pickle.dumps(message), multicast_group)
+
+            # Look for responses from all recipients
+            while True:
+                try:
+                    data, server = sock.recvfrom(1024)
+                except socket.timeout:
+                    break
+                else:
+                    print(pickle.loads(data), server)
+
+        finally:
+            sock.close()
+
+    def receive_multicast(self):
+        multicast_group = '224.3.29.71'
+        server_address = ('', 10000)
+
+        # Create the socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+        # Bind to the server address
+        sock.bind(server_address)
+
+        # Tell the operating system to add the socket to the multicast group
+        # on all interfaces.
+        group = socket.inet_aton(multicast_group)
+        mreq = struct.pack('4sL', group, socket.INADDR_ANY)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+        # Receive/respond loop
+        while True:
+            data, address = sock.recvfrom(1024)
+            print(len(data), address)
+            sock.sendto(pickle.dumps('ack'), address)
+
 
 if __name__ == '__main__':
     ws = WorkerSocket()
-    ws.send_test_msgs()
+
+    if len(sys.argv) > 1:
+        ws.receive_multicast()
+    else:
+        ws.send_multicast()
