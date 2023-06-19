@@ -6,6 +6,7 @@ import scipy.io
 import time
 import os
 import struct
+import stop
 from test_config import TestConfig
 from config import Config
 from constants import Constants
@@ -353,15 +354,10 @@ if __name__ == '__main__':
         for i in range(N - 1):
             stop_client(clients[i])
             clients[i].close()
+        ServerSocket.close()
 
     if nid == 0:
-        stop_message = Message(MessageTypes.STOP).from_server().to_all()
-        dumped_stop_msg = pickle.dumps(stop_message)
-        ser_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-        ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        ser_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        ser_sock.sendto(dumped_stop_msg, Constants.BROADCAST_ADDRESS)
-        ser_sock.close()
+        stop.stop_all()
     print("done")
 
     time.sleep(1)
