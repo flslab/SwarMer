@@ -25,12 +25,12 @@ class Config:
     CENTRALIZED_ROUND = True
     BUSY_WAITING = False
     MIN_ADJUSTMENT = 0
-    SAMPLE_SIZE = 0
+    SAMPLE_SIZE = 100
     DURATION = 600
     READ_FROM_NPY = 0
     K = 5
     MAX_NEIGHBORS = 0
-    SHAPE = 'butterfly'
+    SHAPE = 'chess'
     RESULTS_PATH = 'results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
