@@ -25,7 +25,7 @@ class Config:
     CENTRALIZED_ROUND = True
     BUSY_WAITING = False
     MIN_ADJUSTMENT = 0
-    SAMPLE_SIZE = 50
+    SAMPLE_SIZE = 60
     DURATION = 600
     READ_FROM_NPY = 0
     K = 5

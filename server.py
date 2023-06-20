@@ -372,6 +372,8 @@ if __name__ == '__main__':
 
     if nid == 0:
         visited = set()
+        fig = plt.figure()
+        ax = fig.add_subplot(projection='3d')
         for c in connections.values():
             key = str(c)
             if key in visited:
@@ -380,7 +382,8 @@ if __name__ == '__main__':
 
             xs = [gtl_point_cloud[ci - 1][0] for ci in c]
             ys = [gtl_point_cloud[ci - 1][1] for ci in c]
-            plt.plot(xs + [xs[0]], ys + [ys[0]], '-o')
+            zs = [gtl_point_cloud[ci - 1][2] for ci in c]
+            ax.plot3D(xs + [xs[0]], ys + [ys[0]], zs + [zs[0]], '-o')
         # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
         if Config.DEBUG:
             plt.show()
