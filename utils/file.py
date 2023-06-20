@@ -1,6 +1,7 @@
 import os
 import json
 import csv
+import sys
 
 import numpy as np
 
@@ -218,7 +219,16 @@ def read_cliques_xlsx(path):
 
 
 if __name__ == "__main__":
-    combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:vns_ETA_STR:K-1")
-    combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K-1")
-    combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K")
-    combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:1.5K")
+    if len(sys.argv) == 4:
+        dir_in = sys.argv[1]
+        dir_out = sys.argv[2]
+        name = sys.argv[3]
+    else:
+        dir_in, dir_out, name = "../results/20-Jun-09_37_32/results/racecar/H:2/20-Jun-08_52_06", "../results/20-Jun-09_37_32/results/racecar/H:2", "agg"
+    create_csv_from_json(dir_in, 0)
+    combine_csvs(dir_in, dir_out, name)
+        # print(f"usage: {sys.argv[0]} <input_dir> <output_dir> <xlsx_file_name>")
+    # combine_xlsx("results/1/results/racecar/H:2/20-Jun-08_52_06")
+    # combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K-1")
+    # combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K")
+    # combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:1.5K")
