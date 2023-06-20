@@ -25,10 +25,10 @@ class Config:
     CENTRALIZED_ROUND = True
     BUSY_WAITING = False
     MIN_ADJUSTMENT = 0
-    SAMPLE_SIZE = 176
+    SAMPLE_SIZE = 50
     DURATION = 600
     READ_FROM_NPY = 0
-    K = 11
+    K = 5
     MAX_NEIGHBORS = 0
     SHAPE = 'racecar'
     RESULTS_PATH = 'results'
