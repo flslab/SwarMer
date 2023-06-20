@@ -189,7 +189,7 @@ if __name__ == '__main__':
             c1 = [r1 * np.cos(theta), r1 * np.sin(theta), 0]
             for j in range(n2):
                 alpha = theta + j * 2 * np.pi / n2
-                point = [c1[0] + r2 * np.cos(alpha), c1[1] + r2 * np.sin(alpha), 0]
+                point = [c1[0] + r2 * np.cos(alpha), c1[1] + r2 * np.sin(alpha), j]
                 points.append(point)
 
         # for i in range(n2):

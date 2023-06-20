@@ -30,7 +30,7 @@ class Config:
     READ_FROM_NPY = 0
     K = 5
     MAX_NEIGHBORS = 0
-    SHAPE = 'chess'
+    SHAPE = 'test'
     RESULTS_PATH = 'results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
