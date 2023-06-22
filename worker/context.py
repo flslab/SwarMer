@@ -9,13 +9,14 @@ from .history import History
 
 
 class WorkerContext:
-    def __init__(self, count, fid, gtl, el, shm_name, metrics, k, sorted_neighbors, sorted_dist):
+    def __init__(self, count, fid, gtl, el, shm_name, metrics, k,
+                 sorted_neighbors, sorted_dist, is_standby=False, group_ids=None, standby_id=0, sid=0, group_id=None):
         self.count = count
         self.fid = fid
         self.gtl = gtl
         self.el = el
         self.dispatcher = el
-        self.swarm_id = self.fid
+        self.swarm_id = self.fid if group_id is None else group_id
         self.neighbors = dict()
         self.fid_to_w = dict()
         self.sorted_dist = sorted_dist
@@ -27,7 +28,6 @@ class WorkerContext:
         self.query_id = None
         self.challenge_id = None
         self.shm_name = shm_name
-        self.set_swarm_id(self.fid)
         self.message_id = 0
         self.alpha = Config.DEAD_RECKONING_ANGLE / 180 * np.pi
         self.metrics = metrics
@@ -35,6 +35,10 @@ class WorkerContext:
         self.c = ()
         self.k = k
         self.history = History(2)
+        self.is_standby = is_standby
+        self.group_ids = group_ids
+        self.standby_id = standby_id
+        self.sid = sid
 
     def set_pair(self):
         if self.shm_name:
@@ -168,8 +172,9 @@ class WorkerContext:
         self.message_id += 1
 
     def log_wait_time(self, dur):
+        pass
         # self.history.log(MetricTypes.WAITS, dur)
-        self.metrics.log_sum("A1_num_moved", 1)
-        self.metrics.log_sum("A1_total_wait(s)", dur)
-        self.metrics.log_max("A1_max_wait(s)", dur)
-        self.metrics.log_min("A1_min_wait(s)", dur)
+        # self.metrics.log_sum("A1_num_moved", 1)
+        # self.metrics.log_sum("A1_total_wait(s)", dur)
+        # self.metrics.log_max("A1_max_wait(s)", dur)
+        # self.metrics.log_min("A1_min_wait(s)", dur)

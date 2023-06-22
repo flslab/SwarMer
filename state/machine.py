@@ -28,6 +28,7 @@ class StateMachine:
         self.is_neighbors_processed = False
         self.solution_eta_idx = -1
         self.max_eta_idx = -1
+        self.last_standby_id = None
 
     def get_w(self):
         return self.context.w
@@ -76,9 +77,11 @@ class StateMachine:
         self.context.set_pair()
 
     def handle_stop(self, msg):
-        stop_msg = Message(MessageTypes.STOP).to_all()
-        self.broadcast(stop_msg)
+        # stop_msg = Message(MessageTypes.STOP).to_all()
+        # self.broadcast(stop_msg)
         self.cancel_timers()
+
+        print(self.metrics.get_final_report_())
 
         if not Config.DEBUG:
             min_fid = min(self.get_c() + (self.context.fid,))
@@ -280,16 +283,34 @@ class StateMachine:
 
     def fail(self, msg):
         self.send_failure_notification()
-        self.context.fail()
-        self.set_timer_to_fail()
+        self.put_state_in_q(MessageTypes.STOP)
+
+    def assign_new_standby(self, msg):
+        if not self.context.is_standby:
+            self.context.standby_id = msg.args[0]
 
     def replace_failed_fls(self, msg):
-        pass
+        self.context.is_standby = False
+        c = self.context.group_ids
+        self.context.group_ids = (c - {msg.fid}) | {self.context.fid}
+        v = msg.el - self.context.el
+        self.context.move(v)
+        print(f"_ {self.context.fid} replaced {msg.fid} in group {msg.swarm_id} new group is {self.context.group_ids}")
+
+    def handle_failure_notification(self, msg):
+        if self.context.is_standby:
+            self.replace_failed_fls(msg)
+        else:
+            # self.last_standby_id = self.context.standby_id
+            if msg.fid != self.context.standby_id and self.context.standby_id is not None:
+                c = self.context.group_ids
+                self.context.group_ids = (c - {msg.fid}) | {self.context.standby_id}
+            self.context.standby_id = None
 
     def send_failure_notification(self):
-        msg_to_standby = Message(MessageTypes.FAILURE_NOTIFICATION,).to_fls_id(self.context.standby_id, "*")
-        msg_to_server = Message(MessageTypes.FAILURE_NOTIFICATION,)
-        self.broadcast(msg_to_standby)
+        msg_to_group = Message(MessageTypes.FAILURE_NOTIFICATION).to_swarm(self.context)
+        msg_to_server = Message(MessageTypes.FAILURE_NOTIFICATION)
+        self.broadcast(msg_to_group)
         self.send_to_server(msg_to_server)
 
     def set_timer_to_fail(self):
@@ -306,12 +327,7 @@ class StateMachine:
         self.state = state
 
         if self.state == StateTypes.SINGLE:
-            self.enter_single_state_with_heuristic()
-
-        if self.state == StateTypes.SINGLE:
-            self.timer_single = threading.Timer(
-                Config.STATE_TIMEOUT, self.put_state_in_q, (MessageTypes.REENTER_SINGLE_STATE,))
-            self.timer_single.start()
+            self.set_timer_to_fail()
 
     def reenter(self, state):
         self.enter(state)
@@ -324,21 +340,34 @@ class StateMachine:
     def leave(self, state):
         pass
 
-    def drive(self, msg):
+    def drive_failure_handling(self, msg):
         event = msg.type
-        self.context.update_neighbor(msg)
 
-        if event == MessageTypes.DISCOVER:
-            self.handle_discover(msg)
-        elif event == MessageTypes.STOP:
+        if event == MessageTypes.STOP:
             self.handle_stop(msg)
-        elif event == MessageTypes.REENTER_SINGLE_STATE:
-            if self.state == StateTypes.SINGLE:
-                self.reenter(StateTypes.SINGLE)
         elif event == MessageTypes.SHOULD_FAIL:
             self.fail(msg)
         elif event == MessageTypes.FAILURE_NOTIFICATION:
-            self.replace_failed_fls(msg)
+            self.handle_failure_notification(msg)
+        elif event == MessageTypes.ASSIGN_STANDBY:
+            self.assign_new_standby(msg)
+
+    def drive(self, msg):
+        self.drive_failure_handling(msg)
+        # event = msg.type
+        # self.context.update_neighbor(msg)
+        #
+        # if event == MessageTypes.DISCOVER:
+        #     self.handle_discover(msg)
+        # elif event == MessageTypes.STOP:
+        #     self.handle_stop(msg)
+        # elif event == MessageTypes.REENTER_SINGLE_STATE:
+        #     if self.state == StateTypes.SINGLE:
+        #         self.reenter(StateTypes.SINGLE)
+        # elif event == MessageTypes.SHOULD_FAIL:
+        #     self.fail(msg)
+        # elif event == MessageTypes.FAILURE_NOTIFICATION:
+        #     self.replace_failed_fls(msg)
 
     def broadcast(self, msg):
         msg.from_fls(self.context)
@@ -346,8 +375,9 @@ class StateMachine:
         self.context.log_sent_message(msg, length)
 
     def send_to_server(self, msg):
-        msg.from_fls(self.context).to_server()
-        self.sock.send_to_server(msg)
+        msg.from_fls(self.context).to_server(self.context.sid)
+        length = self.sock.broadcast(msg)
+        self.context.log_sent_message(msg, length)
 
     def start_timers(self):
         pass

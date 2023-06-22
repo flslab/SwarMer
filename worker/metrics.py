@@ -7,18 +7,8 @@ from config import Config
 class MetricTypes:
     RECEIVED_MASSAGES = 0
     SENT_MESSAGES = 1
-    LOCATION = 2
-    SWARM_ID = 3
-    LEASES = 4
-    WAITS = 5
-    ANCHOR = 6
-    LOCALIZE = 7
-    DROPPED_MESSAGES = 8
-    FAILURES = 9
-    GRANTED_LEASE = 10
-    EXPIRED_LEASE = 11
-    CANCELED_LEASE = 12
-    RELEASED_LEASE = 13
+    DROPPED_MESSAGES = 2
+    FAILURES = 3
 
 
 def update_dict_sum(obj, key):
@@ -30,10 +20,10 @@ def update_dict_sum(obj, key):
 
 def log_msg_hist(hist, msg_type, label, cat):
     key_number = f'{cat}0_num_{label}_{msg_type.name}'
-    key_num_cat = f'{cat}1_cat_num_{label}_{msg_type.get_cat()}'
+    # key_num_cat = f'{cat}1_cat_num_{label}_{msg_type.get_cat()}'
 
     update_dict_sum(hist, key_number)
-    update_dict_sum(hist, key_num_cat)
+    # update_dict_sum(hist, key_num_cat)
 
 
 def get_messages_histogram(msgs, label, cat):
@@ -52,22 +42,11 @@ class Metrics:
         self.history = history
         self.general_metrics = {
             "A0_total_distance": 0,
-            "A1_num_moved": 0,
-            "A1_min_wait(s)": math.inf,
-            "A1_max_wait(s)": 0,
-            "A1_total_wait(s)": 0,
-            "A2_num_granted_leases": 0,
-            "A2_num_expired_leases": 0,
-            "A2_num_canceled_leases": 0,
-            "A2_num_released_leases": 0,
-            "A3_num_anchor": 0,
-            "A3_num_localize": 0,
             "A4_bytes_sent": 0,
             "A4_bytes_received": 0,
             "A4_num_messages_sent": 0,
             "A4_num_messages_received": 0,
             "A4_num_dropped_messages": 0,
-            "A5_num_failures": 0
         }
         self.sent_msg_hist = {}
         self.received_msg_hist = {}
@@ -121,21 +100,6 @@ class Metrics:
     def get_sent_messages(self):
         return self.history[MetricTypes.SENT_MESSAGES]
 
-    def get_granted_leases(self):
-        return sum(self.history[MetricTypes.GRANTED_LEASE])
-
-    def get_expired_leases(self):
-        return sum(self.history[MetricTypes.EXPIRED_LEASE])
-
-    def get_canceled_leases(self):
-        return sum(self.history[MetricTypes.CANCELED_LEASE])
-
-    def get_released_leases(self):
-        return sum(self.history[MetricTypes.RELEASED_LEASE])
-
-    def get_waits(self):
-        return self.history[MetricTypes.WAITS]
-
     def get_dropped_messages(self):
         return sum(self.history[MetricTypes.DROPPED_MESSAGES])
 
@@ -150,32 +114,14 @@ class Metrics:
         return report
 
     def get_final_report(self):
-        waits = [d.value for d in self.get_waits()]
-        if Config.DURATION < 660:
-            report = {
-                "A0_total_distance": self.get_total_distance(),
-                "A1_num_moved": len(waits),
-                "A1_min_wait(s)": min(waits),
-                "A1_max_wait(s)": max(waits),
-                "A1_total_wait(s)": sum(waits),
-                "A2_num_granted_leases": self.get_granted_leases(),
-                "A2_num_expired_leases": self.get_expired_leases(),
-                "A2_num_canceled_leases": self.get_canceled_leases(),
-                "A2_num_released_leases": self.get_released_leases(),
-                "A3_num_anchor": len(self.history[MetricTypes.ANCHOR]),
-                "A3_num_localize": len(self.history[MetricTypes.LOCALIZE]),
-                "A4_bytes_sent": sum([s.meta["length"] for s in self.get_sent_messages()]),
-                "A4_bytes_received": sum([r.meta["length"] for r in self.get_received_messages()]),
-                "A4_num_messages_sent": len(self.get_sent_messages()),
-                "A4_num_messages_received": len(self.get_received_messages()),
-                "A4_num_dropped_messages": self.get_dropped_messages(),
-                "A5_num_failures": len(self.get_failures())
-            }
-            report.update(self.get_sent_messages_histogram())
-            report.update(self.get_received_messages_histogram())
-        else:
-            report = {
-                "A5_num_failures": len(self.get_failures())
-            }
+        report = {
+            "A4_bytes_sent": sum([s.meta["length"] for s in self.get_sent_messages()]),
+            "A4_bytes_received": sum([r.meta["length"] for r in self.get_received_messages()]),
+            "A4_num_messages_sent": len(self.get_sent_messages()),
+            "A4_num_messages_received": len(self.get_received_messages()),
+            "A4_num_dropped_messages": self.get_dropped_messages(),
+        }
+        report.update(self.get_sent_messages_histogram())
+        report.update(self.get_received_messages_histogram())
 
         return report

@@ -1,5 +1,8 @@
+import queue
 import socket
 import pickle
+from threading import Thread
+
 import numpy as np
 from multiprocessing import shared_memory
 import scipy.io
@@ -18,6 +21,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 from utils import dict_hash
+from utils.file import read_cliques_xlsx
 
 # mpl.use('macosx')
 
@@ -122,6 +126,8 @@ def recvall(sock, n):
     return data
 
 
+error_handling = True
+
 if __name__ == '__main__':
     N = 1
     nid = 0
@@ -134,20 +140,21 @@ if __name__ == '__main__':
     IS_CLUSTER_SERVER = N != 1 and nid == 0
     IS_CLUSTER_CLIENT = N != 1 and nid != 0
 
-    if IS_CLUSTER_SERVER:
-        ServerSocket = socket.socket()
-        ServerSocket.bind(Constants.SERVER_ADDRESS)
-        ServerSocket.listen(N-1)
-
-        clients = []
-        for i in range(N-1):
-            client, address = ServerSocket.accept()
-            print(address)
-            clients.append(client)
-
-    if IS_CLUSTER_CLIENT:
-        client_socket = socket.socket()
-        client_socket.connect(Constants.SERVER_ADDRESS)
+    # if IS_CLUSTER_SERVER:
+    #     # Experimental artifact to gather theoretical stats for scientific publications.
+    #     ServerSocket = socket.socket()
+    #     ServerSocket.bind(Constants.SERVER_ADDRESS)
+    #     ServerSocket.listen(N-1)
+    #
+    #     clients = []
+    #     for i in range(N-1):
+    #         client, address = ServerSocket.accept()
+    #         print(address)
+    #         clients.append(client)
+    #
+    # if IS_CLUSTER_CLIENT:
+    #     client_socket = socket.socket()
+    #     client_socket.connect(Constants.SERVER_ADDRESS)
 
     K = TestConfig.K if TestConfig.ENABLED else Config.K
     FILE_NAME_KEYS = TestConfig.FILE_NAME_KEYS if TestConfig.ENABLED else Config.FILE_NAME_KEYS
@@ -227,7 +234,7 @@ if __name__ == '__main__':
         gtl_point_cloud[i] = np.array([point_cloud[i][0], point_cloud[i][1], point_cloud[i][2]])
 
     count = len(node_point_idx)
-    print(count)
+    # print(count)
 
     dispatchers = get_dispatchers_for_shape(gtl_point_cloud)
     processes = []
@@ -239,28 +246,55 @@ if __name__ == '__main__':
     # np.random.shuffle(pidx)
     # print(pidx)
 
-    knn_idx, knn_dists = utils.knn(gtl_point_cloud)
+    # knn_idx, knn_dists = utils.knn(gtl_point_cloud)
 
     try:
-        for i in node_point_idx:
-            shm = shared_memory.SharedMemory(create=True, size=sample.nbytes)
-            shared_array = np.ndarray(sample.shape, dtype=sample.dtype, buffer=shm.buf)
-            shared_array[:] = i+1
+        # failure handling
+        group_map = {}
+        group_standby_id = {}
+        group_standby_coord = {}
+        i = 0
+        if error_handling:
+            groups = read_cliques_xlsx("/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
+            for j in range(len(groups)):
+                if j == 2:
+                    break
+                group = groups[j]
+                group_id = i + 1
+                group_ids = list(range(group_id, group_id + len(group)))
+                standby_id = group_ids[-1] + 1
+                group_map[group_id] = set(group_ids)
+                group_standby_id[group_id] = standby_id
+                length = group.shape[0]
+                sum_x = np.sum(group[:, 0])
+                sum_y = np.sum(group[:, 1])
+                sum_z = np.sum(group[:, 2])
+                stand_by_coord = np.array([sum_x / length, sum_y / length, sum_z / length])
+                group_standby_coord[group_id] = stand_by_coord
 
-            shared_arrays[i] = shared_array
-            shared_memories[i] = shm
-            local_gtl_point_cloud.append(gtl_point_cloud[i])
+                for member_coord in group:
+                    i += 1
+                    dispatcher = assign_dispatcher(i, dispatchers)
+                    p = worker.WorkerProcess(
+                        count, i, member_coord, dispatcher, None, results_directory,
+                        K, [], [], standby_id=standby_id, group_ids=set(group_ids), sid=-nid, group_id=group_id)
+                    p.start()
+                    # print(i, member_coord)
+                    processes.append(p)
 
-            sorted_neighbors = knn_idx[i][1:] + 1
-            # fid_to_dist = dict(zip(sorted_neighbors, knn_dists[i][1:]))
-
-            # dispatcher = assign_dispatcher(i+1, dispatchers)
-            dispatcher = gtl_point_cloud[i]
-            p = worker.WorkerProcess(
-                count, i + 1, gtl_point_cloud[i], dispatcher, shm.name, results_directory,
-                K, sorted_neighbors.tolist(), knn_dists[i][1:])
-            p.start()
-            processes.append(p)
+                i += 1
+                dispatcher = assign_dispatcher(i, dispatchers)
+                p = worker.WorkerProcess(
+                    count, i, stand_by_coord, dispatcher, None, results_directory,
+                    K, [], [], is_standby=True, group_ids=set(group_ids), sid=-nid, group_id=group_id)
+                p.start()
+                # print(i, stand_by_coord)
+                processes.append(p)
+            print(group_map)
+            print(group_standby_id)
+            # print(group_standby_coord)
+            print(i)
+            # exit()
     except OSError as e:
         print(e)
         for p in processes:
@@ -275,86 +309,47 @@ if __name__ == '__main__':
     start_time = time.time()
     print('waiting for processes ...')
 
-    # last_num = 0
-    # num_freeze = 0
-    # connections = dict()
-    # while True:
-    #     time.sleep(1)
-    #     visited = {0}
-    #     is_paired = dict()
-    #     for i in range(len(shared_arrays)):
-    #         connections[i+1] = shared_arrays[i]
-    #     for n, c in connections.items():
-    #         if n in visited:
-    #             continue
-    #         visited.add(n)
-    #         n_pairs = []
-    #         for ci in c:
-    #             if ci in visited:
-    #                 continue
-    #             visited.add(ci)
-    #             n_pairs.append(all(c == connections[ci]))
-    #         is_paired[n] = len(n_pairs) and all(n_pairs)
-    #
-    #     if len(is_paired) and all(is_paired.values()):
-    #         break
-    #     if count - sum(is_paired.values()) * K == count % K:
-    #         break
-
     freeze_counter = 0
     last_hash = None
 
-    if IS_CLUSTER_CLIENT:
+    if error_handling:
+        error_handling_socket = worker.WorkerSocket()
         while True:
-            server_msg = client_socket.recv(2048)
-            server_msg = pickle.loads(server_msg)
-
-            if server_msg.type == MessageTypes.QUERY_CLIQUES:
-                client_cliques, client_connections = aggregate_cliques(node_point_idx, shared_arrays)
-                response = Message(MessageTypes.REPLY_CLIQUES, args=(client_cliques, client_connections))
-                # client_socket.sendall(pickle.dumps(response))
-                send_msg(client_socket, pickle.dumps(response))
-            elif server_msg.type == MessageTypes.STOP:
-                client_socket.close()
+            if time.time() - start_time > 10:
                 break
-    else:
-        while True:
-            time.sleep(1)
-            cliques, connections = aggregate_cliques(node_point_idx, shared_arrays)
+            msg, _ = error_handling_socket.receive()
+            if msg.dest_fid == -nid:
+                if msg.type == MessageTypes.FAILURE_NOTIFICATION:
+                    i += 1
+                    group_id = msg.swarm_id
+                    fid = msg.fid
 
-            if IS_CLUSTER_SERVER:
-                for i in range(N-1):
-                    client_clique, client_connection = query_cliques_client(clients[i])
-                    for key, con in client_connection.items():
-                        connections[key] = con
-                    for key, size in client_clique.items():
-                        if key in cliques:
-                            cliques[key] += size
-                        else:
-                            cliques[key] = size
-
-            clique_sizes = filter(lambda x: x == K, cliques.values())
-            single_sizes = filter(lambda x: x == 1, cliques.values())
-            d_hash = dict_hash(cliques)
-            if d_hash == last_hash:
-                freeze_counter += 1
-            else:
-                freeze_counter = 0
-
-            if freeze_counter == Config.SERVER_TIMEOUT:
-                break
-            last_hash = d_hash
-            if len(list(clique_sizes)) == total_count // K and len(list(single_sizes)) == total_count % K:
-                print(cliques)
-                break
+                    c = group_map[group_id]
+                    if fid in c:
+                        # replace the failed fls with the standby fls
+                        group_map[group_id] = (c - {fid}) | {group_standby_id[group_id]}
+                    # update the standby fls of the group
+                    group_standby_id[group_id] = i
+                    print(f"{fid} failed in group {group_id}. new standby is {i}. new group is {group_map[group_id]}")
+                    # dispatch the new standby fls
+                    dispatcher = assign_dispatcher(i, dispatchers)
+                    p = worker.WorkerProcess(
+                        count, i, group_standby_coord[group_id], dispatcher, None, results_directory,
+                        K, [], [], is_standby=True, group_ids=group_map[group_id], group_id=group_id)
+                    processes.append(p)
+                    p.start()
+                    # send the id of the new standby to group members
+                    new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(i,))\
+                        .from_server(-nid).to_fls_id("*", group_id)
+                    error_handling_socket.broadcast(new_standby_msg)
 
     end_time = time.time()
 
-    if IS_CLUSTER_SERVER:
-        for i in range(N - 1):
-            stop_client(clients[i])
-            clients[i].close()
-        ServerSocket.close()
+    # if IS_CLUSTER_SERVER:
+    #     for i in range(N - 1):
+    #         stop_client(clients[i])
+    #         clients[i].close()
+    #     ServerSocket.close()
 
     if nid == 0:
         stop.stop_all()
@@ -370,25 +365,25 @@ if __name__ == '__main__':
         if p.is_alive():
             p.terminate()
 
-    if nid == 0:
-        visited = set()
-        fig = plt.figure()
-        ax = fig.add_subplot(projection='3d')
-        for c in connections.values():
-            key = str(c)
-            if key in visited:
-                continue
-            visited.add(key)
-
-            xs = [gtl_point_cloud[ci - 1][0] for ci in c]
-            ys = [gtl_point_cloud[ci - 1][1] for ci in c]
-            zs = [gtl_point_cloud[ci - 1][2] for ci in c]
-            ax.plot3D(xs + [xs[0]], ys + [ys[0]], zs + [zs[0]], '-o')
-        # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
-        if Config.DEBUG:
-            plt.show()
-        else:
-            plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
+    # if nid == 0:
+    #     visited = set()
+    #     fig = plt.figure()
+    #     ax = fig.add_subplot(projection='3d')
+    #     for c in connections.values():
+    #         key = str(c)
+    #         if key in visited:
+    #             continue
+    #         visited.add(key)
+    #
+    #         xs = [gtl_point_cloud[ci - 1][0] for ci in c]
+    #         ys = [gtl_point_cloud[ci - 1][1] for ci in c]
+    #         zs = [gtl_point_cloud[ci - 1][2] for ci in c]
+    #         ax.plot3D(xs + [xs[0]], ys + [ys[0]], zs + [zs[0]], '-o')
+    #     # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
+    #     if Config.DEBUG:
+    #         plt.show()
+    #     else:
+    #         plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
 
     # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
     #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:

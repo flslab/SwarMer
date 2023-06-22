@@ -10,7 +10,7 @@ class Config:
     CHALLENGE_PROB_DECAY = 5
     INITIAL_CHALLENGE_PROB = 1
     CHALLENGE_LEASE_DURATION = 1
-    FAILURE_TIMEOUT = 0
+    FAILURE_TIMEOUT = 20
     FAILURE_PROB = 0
     NUMBER_ROUND = 5
     ACCELERATION = 6
@@ -30,9 +30,9 @@ class Config:
     READ_FROM_NPY = 0
     K = 10
     MAX_NEIGHBORS = 0
-    SHAPE = 'racecar'
+    SHAPE = 'butterfly'
     RESULTS_PATH = 'results'
-    DEBUG = False
+    DEBUG = True
     FILE_NAME_KEYS = ['K']
     DIR_KEYS = ['H']
     SERVER_TIMEOUT = 120

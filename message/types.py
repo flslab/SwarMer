@@ -13,6 +13,7 @@ class MessageTypes(Enum):
     REPLY_CLIQUES = 8
     SHOULD_FAIL = 9
     FAILURE_NOTIFICATION = 10
+    ASSIGN_STANDBY = 11
 
     def get_cat(self):
         pass

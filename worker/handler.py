@@ -19,7 +19,7 @@ class HandlerThread(threading.Thread):
                 continue
 
             event = item.event
-            self.context.log_received_message(event, 0)
+            # self.context.log_received_message(event, 0)
             self.state_machine.drive(event)
             if event.type == MessageTypes.STOP:
                 break

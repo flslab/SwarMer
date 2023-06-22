@@ -26,8 +26,8 @@ class Message:
         self.w = ctx.w
         return self
 
-    def from_server(self):
-        self.fid = 0
+    def from_server(self, server_id=0):
+        self.fid = server_id
         self.swarm_id = 0
         self.id = 0
         return self
@@ -54,8 +54,8 @@ class Message:
         self.dest_swarm_id = swarm_id
         return self
 
-    def to_server(self):
-        self.dest_fid = 0
+    def to_server(self, server_id=0):
+        self.dest_fid = server_id
         self.dest_swarm_id = 0
         return self
 
