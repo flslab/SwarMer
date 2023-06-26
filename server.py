@@ -374,6 +374,7 @@ if __name__ == '__main__':
         visited = set()
         fig = plt.figure()
         ax = fig.add_subplot(projection='3d')
+        ax.set_aspect('equal')
         for c in connections.values():
             key = str(c)
             if key in visited:
