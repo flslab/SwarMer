@@ -347,7 +347,7 @@ if __name__ == '__main__':
                     dispatcher = assign_dispatcher(pid, dispatchers)
                     p = worker.WorkerProcess(
                         count, pid, group_standby_coord[group_id], dispatcher, None, results_directory,
-                        K, [], [], start_time, is_standby=True, group_ids=group_map[group_id], group_id=group_id)
+                        K, [], [], start_time, is_standby=True, group_ids=group_map[group_id], sid=-nid, group_id=group_id)
                     # processes.append(p)
                     processes_id[pid] = p
                     p.start()
