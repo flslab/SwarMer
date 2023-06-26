@@ -140,21 +140,27 @@ if __name__ == '__main__':
     IS_CLUSTER_SERVER = N != 1 and nid == 0
     IS_CLUSTER_CLIENT = N != 1 and nid != 0
 
-    # if IS_CLUSTER_SERVER:
-    #     # Experimental artifact to gather theoretical stats for scientific publications.
-    #     ServerSocket = socket.socket()
-    #     ServerSocket.bind(Constants.SERVER_ADDRESS)
-    #     ServerSocket.listen(N-1)
-    #
-    #     clients = []
-    #     for i in range(N-1):
-    #         client, address = ServerSocket.accept()
-    #         print(address)
-    #         clients.append(client)
-    #
-    # if IS_CLUSTER_CLIENT:
-    #     client_socket = socket.socket()
-    #     client_socket.connect(Constants.SERVER_ADDRESS)
+    if IS_CLUSTER_SERVER:
+        # Experimental artifact to gather theoretical stats for scientific publications.
+        ServerSocket = socket.socket()
+        ServerSocket.bind(Constants.SERVER_ADDRESS)
+        ServerSocket.listen(N-1)
+
+        clients = []
+        for i in range(N-1):
+            client, address = ServerSocket.accept()
+            print(address)
+            clients.append(client)
+
+        start_time = time.time()
+        for client in clients:
+            client.send(pickle.dumps(start_time))
+
+    if IS_CLUSTER_CLIENT:
+        client_socket = socket.socket()
+        client_socket.connect(Constants.SERVER_ADDRESS)
+        server_msg = client_socket.recv(1024)
+        start_time = pickle.loads(server_msg)
 
     K = TestConfig.K if TestConfig.ENABLED else Config.K
     FILE_NAME_KEYS = TestConfig.FILE_NAME_KEYS if TestConfig.ENABLED else Config.FILE_NAME_KEYS
@@ -240,17 +246,17 @@ if __name__ == '__main__':
 
     dispatchers = get_dispatchers_for_shape(None)
     # processes = []
-    shared_arrays = dict()
-    shared_memories = dict()
+    # shared_arrays = dict()
+    # shared_memories = dict()
 
-    local_gtl_point_cloud = []
+    # local_gtl_point_cloud = []
     # pidx = np.array(node_point_idx)
     # np.random.shuffle(pidx)
     # print(pidx)
 
     # knn_idx, knn_dists = utils.knn(gtl_point_cloud)
 
-    start_time = time.time()
+    # start_time = time.time()
     processes_id = dict()
     try:
         # failure handling
@@ -307,9 +313,9 @@ if __name__ == '__main__':
         print(e)
         for p in processes_id.values():
             p.terminate()
-        for s in shared_memories:
-            s.close()
-            s.unlink()
+        # for s in shared_memories:
+        #     s.close()
+        #     s.unlink()
         exit()
 
     # gtl_point_cloud = local_gtl_point_cloud
@@ -406,8 +412,8 @@ if __name__ == '__main__':
         utils.write_configs(results_directory, current_date_time)
         utils.combine_csvs(results_directory, shape_directory, "reli_" + file_name)
 
-    for s in shared_memories.values():
-        s.close()
-        s.unlink()
+    # for s in shared_memories.values():
+    #     s.close()
+    #     s.unlink()
 
     # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)
