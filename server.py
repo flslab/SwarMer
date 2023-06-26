@@ -184,59 +184,61 @@ if __name__ == '__main__':
         if not os.path.exists(figure_directory):
             os.makedirs(figure_directory, exist_ok=True)
 
-    if TestConfig.ENABLED:
-        r2 = 1
-        r1 = r2 * TestConfig.R
-        n1 = TestConfig.NUMBER_OF_FLSS // K
-        n2 = K
+    # if TestConfig.ENABLED:
+    #     r2 = 1
+    #     r1 = r2 * TestConfig.R
+    #     n1 = TestConfig.NUMBER_OF_FLSS // K
+    #     n2 = K
+    #
+    #     points = []
+    #     for i in range(n1):
+    #         theta = i * 2 * np.pi / n1
+    #         c1 = [r1 * np.cos(theta), r1 * np.sin(theta), 0]
+    #         for j in range(n2):
+    #             alpha = theta + j * 2 * np.pi / n2
+    #             point = [c1[0] + r2 * np.cos(alpha), c1[1] + r2 * np.sin(alpha), j]
+    #             points.append(point)
+    #
+    #     # for i in range(n2):
+    #     #     theta = i * 2 * np.pi / n2
+    #     #
+    #     #     for j in range(n1):
+    #     #         alpha = theta + j * (np.pi / 2) / n1
+    #     #         point = [(r2 + TestConfig.RATIO * j / n1) * np.cos(alpha), (r2 + TestConfig.RATIO * j / n1) * np.sin(alpha), 0]
+    #     #         points.append(point)
+    #
+    #     point_cloud = np.array(points)
+    #
+    # else:
+    #     if Config.READ_FROM_NPY:
+    #         with open(f'results/{Config.READ_FROM_NPY}.npy', 'rb') as f:
+    #             point_cloud = np.load(f)
+    #     else:
+    #         mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
+    #         point_cloud = mat['p']
+    #
+    #     if Config.SAMPLE_SIZE != 0:
+    #         np.random.shuffle(point_cloud)
+    #         point_cloud = point_cloud[:Config.SAMPLE_SIZE]
+    #
+    # total_count = point_cloud.shape[0]
+    # # h = np.log2(total_count)
+    #
+    # gtl_point_cloud = np.random.uniform(0, 5, size=(total_count, 3))
+    # sample = np.zeros(K, dtype=np.int32)
+    #
+    # node_point_idx = []
+    # for i in range(total_count):
+    #     if i % N == nid:
+    #         node_point_idx.append(i)
+    #     gtl_point_cloud[i] = np.array([point_cloud[i][0], point_cloud[i][1], point_cloud[i][2]])
+    #
+    # count = len(node_point_idx)
+    # # print(count)
 
-        points = []
-        for i in range(n1):
-            theta = i * 2 * np.pi / n1
-            c1 = [r1 * np.cos(theta), r1 * np.sin(theta), 0]
-            for j in range(n2):
-                alpha = theta + j * 2 * np.pi / n2
-                point = [c1[0] + r2 * np.cos(alpha), c1[1] + r2 * np.sin(alpha), j]
-                points.append(point)
+    count = 0
 
-        # for i in range(n2):
-        #     theta = i * 2 * np.pi / n2
-        #
-        #     for j in range(n1):
-        #         alpha = theta + j * (np.pi / 2) / n1
-        #         point = [(r2 + TestConfig.RATIO * j / n1) * np.cos(alpha), (r2 + TestConfig.RATIO * j / n1) * np.sin(alpha), 0]
-        #         points.append(point)
-
-        point_cloud = np.array(points)
-
-    else:
-        if Config.READ_FROM_NPY:
-            with open(f'results/{Config.READ_FROM_NPY}.npy', 'rb') as f:
-                point_cloud = np.load(f)
-        else:
-            mat = scipy.io.loadmat(f'assets/{Config.SHAPE}.mat')
-            point_cloud = mat['p']
-
-        if Config.SAMPLE_SIZE != 0:
-            np.random.shuffle(point_cloud)
-            point_cloud = point_cloud[:Config.SAMPLE_SIZE]
-
-    total_count = point_cloud.shape[0]
-    # h = np.log2(total_count)
-
-    gtl_point_cloud = np.random.uniform(0, 5, size=(total_count, 3))
-    sample = np.zeros(K, dtype=np.int32)
-
-    node_point_idx = []
-    for i in range(total_count):
-        if i % N == nid:
-            node_point_idx.append(i)
-        gtl_point_cloud[i] = np.array([point_cloud[i][0], point_cloud[i][1], point_cloud[i][2]])
-
-    count = len(node_point_idx)
-    # print(count)
-
-    dispatchers = get_dispatchers_for_shape(gtl_point_cloud)
+    dispatchers = get_dispatchers_for_shape(None)
     # processes = []
     shared_arrays = dict()
     shared_memories = dict()
@@ -257,43 +259,45 @@ if __name__ == '__main__':
         group_standby_coord = {}
         i = 0
         if error_handling:
-            groups = read_cliques_xlsx("/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
+            groups = read_cliques_xlsx(os.path.join(shape_directory, f'{file_name}.xlsx'))
+            # groups = read_cliques_xlsx("/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
             for j in range(len(groups)):
-                if j == 2:
-                    break
-                group = groups[j]
-                group_id = i + 1
-                group_ids = list(range(group_id, group_id + len(group)))
-                standby_id = group_ids[-1] + 1
-                group_map[group_id] = set(group_ids)
-                group_standby_id[group_id] = standby_id
-                length = group.shape[0]
-                sum_x = np.sum(group[:, 0])
-                sum_y = np.sum(group[:, 1])
-                sum_z = np.sum(group[:, 2])
-                stand_by_coord = np.array([sum_x / length, sum_y / length, sum_z / length])
-                group_standby_coord[group_id] = stand_by_coord
+                if j % N == nid:
+                    group = groups[j]
+                    group_id = N * (i + 1) + nid
+                    group_ids = list(range(group_id, group_id + N * len(group), N))
+                    standby_id = group_ids[-1] + N
+                    group_map[group_id] = set(group_ids)
+                    group_standby_id[group_id] = standby_id
+                    length = group.shape[0]
+                    sum_x = np.sum(group[:, 0])
+                    sum_y = np.sum(group[:, 1])
+                    sum_z = np.sum(group[:, 2])
+                    stand_by_coord = np.array([sum_x / length, sum_y / length, sum_z / length])
+                    group_standby_coord[group_id] = stand_by_coord
 
-                for member_coord in group:
+                    for member_coord in group:
+                        i += 1
+                        pid = N * i + nid
+                        dispatcher = assign_dispatcher(pid, dispatchers)
+                        p = worker.WorkerProcess(
+                            count, pid, member_coord, dispatcher, None, results_directory,
+                            K, [], [], start_time, standby_id=standby_id, group_ids=set(group_ids), sid=-nid, group_id=group_id)
+                        p.start()
+                        # print(i, member_coord)
+                        # processes.append(p)
+                        processes_id[pid] = p
+
                     i += 1
-                    dispatcher = assign_dispatcher(i, dispatchers)
+                    pid = N * i + nid
+                    dispatcher = assign_dispatcher(pid, dispatchers)
                     p = worker.WorkerProcess(
-                        count, i, member_coord, dispatcher, None, results_directory,
-                        K, [], [], start_time, standby_id=standby_id, group_ids=set(group_ids), sid=-nid, group_id=group_id)
+                        count, pid, stand_by_coord, dispatcher, None, results_directory,
+                        K, [], [], start_time, is_standby=True, group_ids=set(group_ids), sid=-nid, group_id=group_id)
                     p.start()
-                    # print(i, member_coord)
+                    # print(i, stand_by_coord)
                     # processes.append(p)
-                    processes_id[i] = p
-
-                i += 1
-                dispatcher = assign_dispatcher(i, dispatchers)
-                p = worker.WorkerProcess(
-                    count, i, stand_by_coord, dispatcher, None, results_directory,
-                    K, [], [], start_time, is_standby=True, group_ids=set(group_ids), sid=-nid, group_id=group_id)
-                p.start()
-                # print(i, stand_by_coord)
-                # processes.append(p)
-                processes_id[i] = p
+                    processes_id[pid] = p
             print(group_map)
             print(group_standby_id)
             # print(group_standby_coord)
@@ -322,6 +326,7 @@ if __name__ == '__main__':
             if msg.dest_fid == -nid:
                 if msg.type == MessageTypes.FAILURE_NOTIFICATION:
                     i += 1
+                    pid = i * N + nid
                     group_id = msg.swarm_id
                     fid = msg.fid
 
@@ -330,18 +335,18 @@ if __name__ == '__main__':
                         # replace the failed fls with the standby fls
                         group_map[group_id] = (c - {fid}) | {group_standby_id[group_id]}
                     # update the standby fls of the group
-                    group_standby_id[group_id] = i
-                    print(f"{fid} failed in group {group_id}. new standby is {i}. new group is {group_map[group_id]}")
+                    group_standby_id[group_id] = pid
+                    # print(f"{fid} failed in group {group_id}. new standby is {i}. new group is {group_map[group_id]}")
                     # dispatch the new standby fls
-                    dispatcher = assign_dispatcher(i, dispatchers)
+                    dispatcher = assign_dispatcher(pid, dispatchers)
                     p = worker.WorkerProcess(
-                        count, i, group_standby_coord[group_id], dispatcher, None, results_directory,
+                        count, pid, group_standby_coord[group_id], dispatcher, None, results_directory,
                         K, [], [], start_time, is_standby=True, group_ids=group_map[group_id], group_id=group_id)
                     # processes.append(p)
-                    processes_id[i] = p
+                    processes_id[pid] = p
                     p.start()
                     # send the id of the new standby to group members
-                    new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(i,))\
+                    new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(pid,))\
                         .from_server(-nid).to_fls_id("*", group_id)
                     error_handling_socket.broadcast(new_standby_msg)
                     processes_id.pop(fid).join()
@@ -399,7 +404,7 @@ if __name__ == '__main__':
             time.sleep(120)
         utils.create_csv_from_json(results_directory, end_time-start_time)
         utils.write_configs(results_directory, current_date_time)
-        utils.combine_csvs(results_directory, shape_directory, file_name)
+        utils.combine_csvs(results_directory, shape_directory, "reli_" + file_name)
 
     for s in shared_memories.values():
         s.close()

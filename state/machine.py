@@ -86,13 +86,13 @@ class StateMachine:
             write_json(self.context.fid, self.context.metrics.get_final_report_(), self.metrics.results_directory,
                        False)
 
-        if len(self.get_c()):
-            # self.context.set_pair(self.get_m().el)
-            print(f"{self.context.fid} is paired with {self.get_c()} w={self.get_w()} eta={self.eta}")
-
-        else:
-            # self.context.set_pair(self.context.el)
-            print(f"{self.context.fid} is single eta={self.eta}")
+        # if len(self.get_c()):
+        #     # self.context.set_pair(self.get_m().el)
+        #     print(f"{self.context.fid} is paired with {self.get_c()} w={self.get_w()} eta={self.eta}")
+        #
+        # else:
+        #     # self.context.set_pair(self.context.el)
+        #     print(f"{self.context.fid} is single eta={self.eta}")
 
         # if self.context.fid in [2, 4, 8]:
         #     with open(f"results/{self.context.fid}.txt", "w") as f:
@@ -271,7 +271,7 @@ class StateMachine:
         v = msg.el - self.context.el
         timestamp, dur = self.context.move(v)
         self.context.log_replacement(timestamp, dur, msg.fid, False, self.context.group_ids)
-        print(f"_ {self.context.fid} replaced {msg.fid} in group {msg.swarm_id} new group is {self.context.group_ids}")
+        # print(f"_ {self.context.fid} replaced {msg.fid} in group {msg.swarm_id} new group is {self.context.group_ids}")
 
     def handle_failure_notification(self, msg):
         if self.context.is_standby:

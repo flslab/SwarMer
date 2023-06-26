@@ -30,8 +30,8 @@ class Config:
     READ_FROM_NPY = 0
     K = 10
     MAX_NEIGHBORS = 0
-    SHAPE = 'butterfly'
-    RESULTS_PATH = 'results'
+    SHAPE = 'dragon'
+    RESULTS_PATH = '/proj/nova-PG0/hamed/results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
     DIR_KEYS = ['FAILURE_TIMEOUT']
