@@ -263,10 +263,13 @@ if __name__ == '__main__':
         group_map = {}
         group_standby_id = {}
         group_standby_coord = {}
+        group_radio_range = {}
         i = 0
         if error_handling:
-            groups = read_cliques_xlsx(os.path.join(shape_directory, f'{file_name}.xlsx'))
-            # groups = read_cliques_xlsx("/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
+            groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{file_name}.xlsx'))
+            # groups,radio_ranges = read_cliques_xlsx("/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
+            # print(radio_ranges)
+            # exit()
             for j in range(len(groups)):
                 if j % N == nid:
                     group = groups[j]
@@ -275,6 +278,7 @@ if __name__ == '__main__':
                     standby_id = group_ids[-1] + N
                     group_map[group_id] = set(group_ids)
                     group_standby_id[group_id] = standby_id
+                    group_radio_range[group_id] = radio_ranges[j]
                     length = group.shape[0]
                     sum_x = np.sum(group[:, 0])
                     sum_y = np.sum(group[:, 1])
@@ -288,7 +292,8 @@ if __name__ == '__main__':
                         dispatcher = assign_dispatcher(pid, dispatchers)
                         p = worker.WorkerProcess(
                             count, pid, member_coord, dispatcher, None, results_directory,
-                            K, [], [], start_time, standby_id=standby_id, group_ids=set(group_ids), sid=-nid, group_id=group_id)
+                            K, [], [], start_time, standby_id=standby_id, group_ids=set(group_ids), sid=-nid,
+                            group_id=group_id, radio_range=group_radio_range[group_id])
                         p.start()
                         # print(i, member_coord)
                         # processes.append(p)
@@ -299,7 +304,8 @@ if __name__ == '__main__':
                     dispatcher = assign_dispatcher(pid, dispatchers)
                     p = worker.WorkerProcess(
                         count, pid, stand_by_coord, dispatcher, None, results_directory,
-                        K, [], [], start_time, is_standby=True, group_ids=set(group_ids), sid=-nid, group_id=group_id)
+                        K, [], [], start_time, is_standby=True, group_ids=set(group_ids), sid=-nid,
+                        group_id=group_id, radio_range=group_radio_range[group_id])
                     p.start()
                     # print(i, stand_by_coord)
                     # processes.append(p)
@@ -347,7 +353,8 @@ if __name__ == '__main__':
                     dispatcher = assign_dispatcher(pid, dispatchers)
                     p = worker.WorkerProcess(
                         count, pid, group_standby_coord[group_id], dispatcher, None, results_directory,
-                        K, [], [], start_time, is_standby=True, group_ids=group_map[group_id], sid=-nid, group_id=group_id)
+                        K, [], [], start_time, is_standby=True, group_ids=group_map[group_id], sid=-nid,
+                        group_id=group_id, radio_range=group_radio_range[group_id])
                     # processes.append(p)
                     processes_id[pid] = p
                     p.start()

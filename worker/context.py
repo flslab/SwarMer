@@ -10,7 +10,8 @@ from .history import History
 
 class WorkerContext:
     def __init__(self, count, fid, gtl, el, shm_name, metrics, k,
-                 sorted_neighbors, sorted_dist, is_standby=False, group_ids=None, standby_id=None, sid=0, group_id=None):
+                 sorted_neighbors, sorted_dist, is_standby=False, group_ids=None, standby_id=None, sid=0, group_id=None,
+                 radio_range=2000):
         self.count = count
         self.fid = fid
         self.gtl = gtl
@@ -21,7 +22,7 @@ class WorkerContext:
         self.fid_to_w = dict()
         self.sorted_dist = sorted_dist
         self.sorted_neighbors = sorted_neighbors
-        self.radio_range = Config.INITIAL_RANGE
+        self.radio_range = radio_range
         self.max_range = Config.MAX_RANGE
         self.size = 1
         self.anchor = None
