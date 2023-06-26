@@ -402,7 +402,7 @@ if __name__ == '__main__':
     if not Config.DEBUG and nid == 0:
         if IS_CLUSTER_SERVER:
             time.sleep(120)
-        utils.create_csv_from_json(results_directory, end_time-start_time)
+        utils.create_csv_from_json(results_directory, os.path.join(figure_directory, f'{file_name}.jpg'))
         utils.write_configs(results_directory, current_date_time)
         utils.combine_csvs(results_directory, shape_directory, "reli_" + file_name)
 

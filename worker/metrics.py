@@ -60,11 +60,10 @@ def merge_timelines(timelines):
         if elem_idx + 1 < len(lists[lst_idx]):
             next_elem = lists[lst_idx][elem_idx + 1][0]
             heapq.heappush(heap, (next_elem, lst_idx, elem_idx + 1))
-    gen_charts(merged)
     return merged
 
 
-def gen_charts(events):
+def gen_charts(events, fig_dir):
     dispatched = {"t": [0], "y": [0]}
     standby = {"t": [0], "y": [0]}
     illuminating = {"t": [0], "y": [0]}
@@ -120,8 +119,16 @@ def gen_charts(events):
     plt.legend()
     if Config.DEBUG:
         plt.show()
-    # else:
-    #     plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
+    else:
+        plt.savefig(fig_dir)
+
+    return {
+        "dispatched": dispatched,
+        "standby": standby,
+        "illuminating": illuminating,
+        "failed": failed,
+        "mid_flight": mid_flight,
+    }
 
 
 class Metrics:
