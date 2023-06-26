@@ -11,8 +11,6 @@ class Message:
         self.gtl = gtl
         self.args = args
         self.id = None
-        self.w = (-1,)
-        self.c = ()
 
     def from_fls(self, ctx):
         self.fid = ctx.fid
@@ -22,8 +20,6 @@ class Message:
         if self.range is None:
             self.range = ctx.radio_range
         self.id = ctx.message_id
-        self.c = ctx.c
-        self.w = ctx.w
         return self
 
     def from_server(self, server_id=0):
@@ -62,6 +58,4 @@ class Message:
     def __repr__(self):
         return f"{self.type.name} " \
                f"{self.fid} " \
-               f"{self.dest_fid} " \
-               f"{self.w} " \
-               f"{self.c}"
+               f"{self.dest_fid} "

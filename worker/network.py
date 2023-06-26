@@ -13,9 +13,16 @@ class NetworkThread(threading.Thread):
         self.context = context
         self.sock = sock
         self.latest_message_id = dict()
+        self._stop_event = threading.Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
 
     def run(self):
-        while True:
+        while not self.stopped():
             # if self.sock.is_ready():
             msg, length = self.sock.receive()
             # self.context.log_received_message(msg.type, length)

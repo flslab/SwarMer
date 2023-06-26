@@ -22,23 +22,6 @@ class History:
     def log_sum(self, category):
         self.lists[category][0] += 1
 
-    def merge_lists(self):
-        lists = list(self.lists.values())
-        heap = []
-        for i, lst in enumerate(lists):
-            if lst:
-                heap.append((lst[0], i, 0))
-        heapq.heapify(heap)
-
-        merged = []
-        while heap:
-            val, lst_idx, elem_idx = heapq.heappop(heap)
-            merged.append(lists[lst_idx][elem_idx])
-            if elem_idx + 1 < len(lists[lst_idx]):
-                next_elem = lists[lst_idx][elem_idx + 1]
-                heapq.heappush(heap, (next_elem, lst_idx, elem_idx + 1))
-        return merged
-
     def slice(self, start, end):
         filtered_lists = dict()
         for i in range(len(self.lists)):

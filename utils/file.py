@@ -11,6 +11,8 @@ import pandas as pd
 import glob
 import re
 
+from worker.metrics import merge_timelines
+
 
 def write_json(fid, results, directory, is_clique):
     file_name = f"{fid:05}.c.json" if is_clique else f"{fid:05}.json"
@@ -31,7 +33,7 @@ def create_csv_from_json(directory, duration):
     filenames.sort()
 
     for filename in filenames:
-        if filename.endswith('.c.json'):
+        if filename.endswith('.json'):
             with open(os.path.join(json_dir, filename)) as f:
                 try:
                     data = json.load(f)
@@ -48,6 +50,7 @@ def create_csv_from_json(directory, duration):
     min_dists = []
     avg_dists = []
     max_dists = []
+    timelines = []
     for filename in filenames:
         if filename.endswith('.json'):
             with open(os.path.join(json_dir, filename)) as f:
@@ -56,57 +59,54 @@ def create_csv_from_json(directory, duration):
                     fid = filename.split('.')[0]
                     row = [fid] + [data[h] if h in data else 0 for h in headers]
                     node_rows.append(row)
-                    if filename.endswith('.c.json'):
-                        rows.append(row)
-                        weights.append(data['5 weight'])
-                        min_dists.append(data['1 min dist'])
-                        avg_dists.append(data['2 avg dist'])
-                        max_dists.append(data['3 max dist'])
+                    timelines.append(data['timeline'])
                 except json.decoder.JSONDecodeError:
                     print(filename)
 
-    with open(os.path.join(directory, 'cliques.csv'), 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerows(rows)
+    # with open(os.path.join(directory, 'cliques.csv'), 'w', newline='') as csvfile:
+    #     writer = csv.writer(csvfile)
+    #     writer.writerows(rows)
 
-    with open(os.path.join(directory, 'nodes.csv'), 'w', newline='') as csvfile:
+    with open(os.path.join(directory, 'flss.csv'), 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerows(node_rows)
 
-    pair_weights = list(filter(lambda x: x != -1, weights))
-    pair_min_dists = list(filter(lambda x: x != 0, min_dists))
-    pair_avg_dists = list(filter(lambda x: x != 0, avg_dists))
-    pair_max_dists = list(filter(lambda x: x != 0, max_dists))
+    merge_timelines(timelines)
+    #
+    # pair_weights = list(filter(lambda x: x != -1, weights))
+    # pair_min_dists = list(filter(lambda x: x != 0, min_dists))
+    # pair_avg_dists = list(filter(lambda x: x != 0, avg_dists))
+    # pair_max_dists = list(filter(lambda x: x != 0, max_dists))
 
-    if len(pair_weights) == 0:
-        pair_weights = [-1]
-    if len(pair_min_dists) == 0:
-        pair_min_dists = [-1]
-    if len(pair_avg_dists) == 0:
-        pair_avg_dists = [-1]
-    if len(pair_max_dists) == 0:
-        pair_max_dists = [-1]
+    # if len(pair_weights) == 0:
+    #     pair_weights = [-1]
+    # if len(pair_min_dists) == 0:
+    #     pair_min_dists = [-1]
+    # if len(pair_avg_dists) == 0:
+    #     pair_avg_dists = [-1]
+    # if len(pair_max_dists) == 0:
+    #     pair_max_dists = [-1]
 
-    metrics_rows = [["metric", "value"],
-                    ["duration", duration],
-                    ["min min_dists", min(pair_min_dists)],
-                    ["avg min_dists", sum(pair_min_dists) / len(pair_min_dists)],
-                    ["max min_dists", max(pair_min_dists)],
-                    ["min avg_dists", min(pair_avg_dists)],
-                    ["avg avg_dists", sum(pair_avg_dists) / len(pair_avg_dists)],
-                    ["max avg_dists", max(pair_avg_dists)],
-                    ["min max_dists", min(pair_max_dists)],
-                    ["avg max_dists", sum(pair_max_dists) / len(pair_max_dists)],
-                    ["max max_dists", max(pair_max_dists)],
-                    ["min weights", min(pair_weights)],
-                    ["avg weights", sum(pair_weights) / len(pair_weights)],
-                    ["max weights", max(pair_weights)],
-                    ["number of cliques", len(pair_weights)],
-                    ["number of single nodes", len(list(filter(lambda x: x == -1, weights)))]
-                    ]
-    with open(os.path.join(directory, 'metrics.csv'), 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerows(metrics_rows)
+    # metrics_rows = [["metric", "value"],
+    #                 ["duration", duration],
+    #                 ["min min_dists", min(pair_min_dists)],
+    #                 ["avg min_dists", sum(pair_min_dists) / len(pair_min_dists)],
+    #                 ["max min_dists", max(pair_min_dists)],
+    #                 ["min avg_dists", min(pair_avg_dists)],
+    #                 ["avg avg_dists", sum(pair_avg_dists) / len(pair_avg_dists)],
+    #                 ["max avg_dists", max(pair_avg_dists)],
+    #                 ["min max_dists", min(pair_max_dists)],
+    #                 ["avg max_dists", sum(pair_max_dists) / len(pair_max_dists)],
+    #                 ["max max_dists", max(pair_max_dists)],
+    #                 ["min weights", min(pair_weights)],
+    #                 ["avg weights", sum(pair_weights) / len(pair_weights)],
+    #                 ["max weights", max(pair_weights)],
+    #                 ["number of cliques", len(pair_weights)],
+    #                 ["number of single nodes", len(list(filter(lambda x: x == -1, weights)))]
+    #                 ]
+    # with open(os.path.join(directory, 'metrics.csv'), 'w', newline='') as csvfile:
+    #     writer = csv.writer(csvfile)
+    #     writer.writerows(metrics_rows)
 
 
 def write_hds_time(hds, directory, nid):
@@ -214,7 +214,7 @@ def combine_xlsx(directory):
 
 
 def read_cliques_xlsx(path):
-    df = pd.read_excel(path, sheet_name='nodes')
+    df = pd.read_excel(path, sheet_name='cliques')
     return [np.array(eval(c)) for c in df["7 coordinates"]]
 
 
@@ -224,10 +224,10 @@ if __name__ == "__main__":
         dir_out = sys.argv[2]
         name = sys.argv[3]
     else:
-        dir_in, dir_out, name = "../results/20-Jun-09_37_32/results/racecar/H:2/20-Jun-08_52_06", "../results/20-Jun-09_37_32/results/racecar/H:2", "agg"
+        dir_in, dir_out, name = "../results/butterfly/H:2/1687746648", "../results/butterfly/H:2", "agg"
     create_csv_from_json(dir_in, 0)
-    combine_csvs(dir_in, dir_out, name)
-        # print(f"usage: {sys.argv[0]} <input_dir> <output_dir> <xlsx_file_name>")
+    # combine_csvs(dir_in, dir_out, name)
+    # print(f"usage: {sys.argv[0]} <input_dir> <output_dir> <xlsx_file_name>")
     # combine_xlsx("results/1/results/racecar/H:2/20-Jun-08_52_06")
     # combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K-1")
     # combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K")

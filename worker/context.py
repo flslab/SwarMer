@@ -10,7 +10,7 @@ from .history import History
 
 class WorkerContext:
     def __init__(self, count, fid, gtl, el, shm_name, metrics, k,
-                 sorted_neighbors, sorted_dist, is_standby=False, group_ids=None, standby_id=0, sid=0, group_id=None):
+                 sorted_neighbors, sorted_dist, is_standby=False, group_ids=None, standby_id=None, sid=0, group_id=None):
         self.count = count
         self.fid = fid
         self.gtl = gtl
@@ -77,17 +77,13 @@ class WorkerContext:
     def set_query_id(self, query_id):
         self.query_id = query_id
 
-    def set_challenge_id(self, challenge_id):
-        self.challenge_id = challenge_id
-
-    def set_anchor(self, anchor):
-        self.anchor = anchor
-
     def set_radio_range(self, radio_range):
         self.radio_range = radio_range
 
     def deploy(self):
-        self.move(self.gtl - self.el)
+        timestamp, dur = self.move(self.gtl - self.el)
+        self.metrics.log_initial_metrics(self.gtl, self.is_standby, self.swarm_id, self.radio_range, self.group_ids,
+                                         self.standby_id, timestamp, dur)
         # if self.shm_name:
         #     shared_mem = shared_memory.SharedMemory(name=self.shm_name)
         #     shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
@@ -98,11 +94,11 @@ class WorkerContext:
         erred_v = self.add_dead_reckoning_error(vector)
         dest = self.el + erred_v
         # self.history.log(MetricTypes.LOCATION, self.el)
-        self.metrics.log_sum("A0_total_distance", np.linalg.norm(vector))
+        self.metrics.log_sum("20_total_distance_traveled", np.linalg.norm(vector))
         vm = velocity.VelocityModel(self.el, dest)
         vm.solve()
         dur = vm.total_time
-        self.log_wait_time(dur)
+        timestamp = vm.start_t
 
         if Config.BUSY_WAITING:
             fin_time = time.time() + dur
@@ -113,6 +109,7 @@ class WorkerContext:
             time.sleep(dur)
 
         self.set_el(dest)
+        return timestamp, dur
 
     def add_dead_reckoning_error(self, vector):
         if vector[0] or vector[1]:
@@ -161,8 +158,9 @@ class WorkerContext:
         self.metrics.log_received_msg(msg_type, length)
 
     def log_dropped_messages(self):
+        pass
         # self.history.log_sum(MetricTypes.DROPPED_MESSAGES)
-        self.metrics.log_sum("A4_num_dropped_messages", 1)
+        # self.metrics.log_sum("A4_num_dropped_messages", 1)
 
     def log_sent_message(self, msg, length):
         meta = {"length": length}
@@ -171,10 +169,7 @@ class WorkerContext:
         self.metrics.log_sent_msg(msg_type, length)
         self.message_id += 1
 
-    def log_wait_time(self, dur):
-        pass
-        # self.history.log(MetricTypes.WAITS, dur)
-        # self.metrics.log_sum("A1_num_moved", 1)
-        # self.metrics.log_sum("A1_total_wait(s)", dur)
-        # self.metrics.log_max("A1_max_wait(s)", dur)
-        # self.metrics.log_min("A1_min_wait(s)", dur)
+    def log_replacement(self, timestamp, dur, failed_fls_id, is_stand_by, new_group):
+        self.metrics.log_replacement(timestamp, dur, failed_fls_id)
+        self.metrics.log_is_standby(timestamp, is_stand_by)
+        self.metrics.log_group_members(timestamp, new_group)

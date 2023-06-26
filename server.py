@@ -237,7 +237,7 @@ if __name__ == '__main__':
     # print(count)
 
     dispatchers = get_dispatchers_for_shape(gtl_point_cloud)
-    processes = []
+    # processes = []
     shared_arrays = dict()
     shared_memories = dict()
 
@@ -248,6 +248,8 @@ if __name__ == '__main__':
 
     # knn_idx, knn_dists = utils.knn(gtl_point_cloud)
 
+    start_time = time.time()
+    processes_id = dict()
     try:
         # failure handling
         group_map = {}
@@ -277,19 +279,21 @@ if __name__ == '__main__':
                     dispatcher = assign_dispatcher(i, dispatchers)
                     p = worker.WorkerProcess(
                         count, i, member_coord, dispatcher, None, results_directory,
-                        K, [], [], standby_id=standby_id, group_ids=set(group_ids), sid=-nid, group_id=group_id)
+                        K, [], [], start_time, standby_id=standby_id, group_ids=set(group_ids), sid=-nid, group_id=group_id)
                     p.start()
                     # print(i, member_coord)
-                    processes.append(p)
+                    # processes.append(p)
+                    processes_id[i] = p
 
                 i += 1
                 dispatcher = assign_dispatcher(i, dispatchers)
                 p = worker.WorkerProcess(
                     count, i, stand_by_coord, dispatcher, None, results_directory,
-                    K, [], [], is_standby=True, group_ids=set(group_ids), sid=-nid, group_id=group_id)
+                    K, [], [], start_time, is_standby=True, group_ids=set(group_ids), sid=-nid, group_id=group_id)
                 p.start()
                 # print(i, stand_by_coord)
-                processes.append(p)
+                # processes.append(p)
+                processes_id[i] = p
             print(group_map)
             print(group_standby_id)
             # print(group_standby_coord)
@@ -297,7 +301,7 @@ if __name__ == '__main__':
             # exit()
     except OSError as e:
         print(e)
-        for p in processes:
+        for p in processes_id.values():
             p.terminate()
         for s in shared_memories:
             s.close()
@@ -306,7 +310,6 @@ if __name__ == '__main__':
 
     # gtl_point_cloud = local_gtl_point_cloud
 
-    start_time = time.time()
     print('waiting for processes ...')
 
     freeze_counter = 0
@@ -315,8 +318,6 @@ if __name__ == '__main__':
     if error_handling:
         error_handling_socket = worker.WorkerSocket()
         while True:
-            if time.time() - start_time > 10:
-                break
             msg, _ = error_handling_socket.receive()
             if msg.dest_fid == -nid:
                 if msg.type == MessageTypes.FAILURE_NOTIFICATION:
@@ -335,13 +336,17 @@ if __name__ == '__main__':
                     dispatcher = assign_dispatcher(i, dispatchers)
                     p = worker.WorkerProcess(
                         count, i, group_standby_coord[group_id], dispatcher, None, results_directory,
-                        K, [], [], is_standby=True, group_ids=group_map[group_id], group_id=group_id)
-                    processes.append(p)
+                        K, [], [], start_time, is_standby=True, group_ids=group_map[group_id], group_id=group_id)
+                    # processes.append(p)
+                    processes_id[i] = p
                     p.start()
                     # send the id of the new standby to group members
                     new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(i,))\
                         .from_server(-nid).to_fls_id("*", group_id)
                     error_handling_socket.broadcast(new_standby_msg)
+                    processes_id.pop(fid).join()
+            if time.time() - start_time > Config.DURATION:
+                break
 
     end_time = time.time()
 
@@ -356,12 +361,12 @@ if __name__ == '__main__':
     print("done")
 
     time.sleep(1)
-    for p in processes:
+    for p in processes_id.values():
         p.join(Config.PROCESS_JOIN_TIMEOUT)
         if p.is_alive():
             break
 
-    for p in processes:
+    for p in processes_id.values():
         if p.is_alive():
             p.terminate()
 

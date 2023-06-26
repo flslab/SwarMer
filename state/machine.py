@@ -28,7 +28,6 @@ class StateMachine:
         self.is_neighbors_processed = False
         self.solution_eta_idx = -1
         self.max_eta_idx = -1
-        self.last_standby_id = None
 
     def get_w(self):
         return self.context.w
@@ -81,37 +80,11 @@ class StateMachine:
         # self.broadcast(stop_msg)
         self.cancel_timers()
 
-        print(self.metrics.get_final_report_())
+        # print(self.metrics.get_final_report_())
 
         if not Config.DEBUG:
-            min_fid = min(self.get_c() + (self.context.fid,))
-
-            if len(self.get_c()):
-                dists = []
-                count = 0
-                els = [self.context.el] + [self.context.neighbors[i].el for i in self.get_c()]
-                for el_i, el_j in combinations(els, 2):
-                    dists.append(np.linalg.norm(el_i - el_j))
-                    count += 1
-            else:
-                dists = [0]
-                count = 1
-                els = [self.context.el]
-            results = {
-                "5 weight": self.get_w()[0],
-                "0 clique members": self.get_w()[1:],
-                "6 dist between each pair": dists,
-                "7 coordinates": [list(el) for el in els],
-                "1 min dist": min(dists),
-                "2 avg dist": sum(dists) / count,
-                "3 max dist": max(dists),
-                "4 total dist": sum(dists),
-                "8 max eta": self.max_eta_idx + 1,
-                "8 solution eta": self.solution_eta_idx + 1,
-                "9 max range": self.context.sorted_dist[self.max_eta_idx] if self.max_eta_idx != -1 else 0,
-                "9 solution range": self.context.sorted_dist[self.solution_eta_idx] if self.solution_eta_idx != -1 else 0,
-            }
-            write_json(self.context.fid, results, self.metrics.results_directory, self.context.fid == min_fid)
+            write_json(self.context.fid, self.context.metrics.get_final_report_(), self.metrics.results_directory,
+                       False)
 
         if len(self.get_c()):
             # self.context.set_pair(self.get_m().el)
@@ -282,30 +255,35 @@ class StateMachine:
         self.broadcast(discover_msg)
 
     def fail(self, msg):
+        self.context.metrics.log_failure_time(time.time())
         self.send_failure_notification()
         self.put_state_in_q(MessageTypes.STOP)
 
     def assign_new_standby(self, msg):
         if not self.context.is_standby:
             self.context.standby_id = msg.args[0]
+            self.context.metrics.log_standby_id(time.time(), self.context.standby_id)
 
     def replace_failed_fls(self, msg):
         self.context.is_standby = False
         c = self.context.group_ids
         self.context.group_ids = (c - {msg.fid}) | {self.context.fid}
         v = msg.el - self.context.el
-        self.context.move(v)
+        timestamp, dur = self.context.move(v)
+        self.context.log_replacement(timestamp, dur, msg.fid, False, self.context.group_ids)
         print(f"_ {self.context.fid} replaced {msg.fid} in group {msg.swarm_id} new group is {self.context.group_ids}")
 
     def handle_failure_notification(self, msg):
         if self.context.is_standby:
             self.replace_failed_fls(msg)
         else:
-            # self.last_standby_id = self.context.standby_id
+            timestamp = time.time()
             if msg.fid != self.context.standby_id and self.context.standby_id is not None:
                 c = self.context.group_ids
                 self.context.group_ids = (c - {msg.fid}) | {self.context.standby_id}
+                self.context.metrics.log_group_members(timestamp, self.context.group_ids)
             self.context.standby_id = None
+            self.context.metrics.log_standby_id(timestamp, None)
 
     def send_failure_notification(self):
         msg_to_group = Message(MessageTypes.FAILURE_NOTIFICATION).to_swarm(self.context)

@@ -12,10 +12,10 @@ from .metrics import Metrics
 
 class WorkerProcess(multiprocessing.Process):
     def __init__(self, count, process_id, gtl, el, shared_el, results_directory, k, sorted_neighbors, fid_to_dist,
-                 is_standby=False, group_ids=None, standby_id=0, sid=0, group_id=None):
+                 start_time, is_standby=False, group_ids=None, standby_id=0, sid=0, group_id=None):
         super(WorkerProcess, self).__init__()
         self.history = History(4)
-        self.metrics = Metrics(self.history, results_directory)
+        self.metrics = Metrics(self.history, results_directory, start_time)
         self.context = WorkerContext(
             count, process_id, gtl, el, shared_el, self.metrics, k, sorted_neighbors,
             fid_to_dist, is_standby, group_ids, standby_id, sid, group_id)
@@ -30,5 +30,13 @@ class WorkerProcess(multiprocessing.Process):
         network_thread.start()
         handler_thread.start()
 
-        network_thread.join()
         handler_thread.join()
+        network_thread.stop()
+        network_thread.join()
+        self.sock.close()
+        while not event_queue.empty():
+            try:
+                event_queue.get(False)
+            except queue.Empty:
+                continue
+            event_queue.task_done()
