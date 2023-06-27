@@ -5,8 +5,7 @@ import numpy as np
 from config import Config
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-
-# mpl.use('macosx')
+import matplotlib.animation as animation
 
 
 class MetricTypes:
@@ -61,7 +60,7 @@ def merge_timelines(timelines):
     merged = []
     while heap:
         val, lst_idx, elem_idx = heapq.heappop(heap)
-        merged.append(lists[lst_idx][elem_idx])
+        merged.append(lists[lst_idx][elem_idx] + [lst_idx])
         if elem_idx + 1 < len(lists[lst_idx]):
             next_elem = lists[lst_idx][elem_idx + 1][0]
             heapq.heappush(heap, (next_elem, lst_idx, elem_idx + 1))
@@ -75,7 +74,9 @@ def gen_charts(events, fig_dir):
     failed = {"t": [0], "y": [0]}
     mid_flight = {"t": [0], "y": [0]}
 
-    for t, e in events:
+    for event in events:
+        t = event[0]
+        e = event[1]
         if e == TimelineEvents.DISPATCH:
             dispatched["t"].append(t)
             dispatched["y"].append(dispatched["y"][-1] + 1)
@@ -141,6 +142,18 @@ def gen_charts(events, fig_dir):
     }
 
 
+def log_sum(obj, key, value):
+    obj[key] += value
+
+
+def log_max(obj, key, value):
+    obj[key] = max(obj[key], value)
+
+
+def log_min(obj, key, value):
+    obj[key] = min(obj[key], value)
+
+
 class Metrics:
     def __init__(self, history, results_directory, start_time):
         self.results_directory = results_directory
@@ -163,33 +176,29 @@ class Metrics:
             "33_replacement_duration": -1,
             "34_failed_fls_id": -1,
             "20_total_distance_traveled": 0,
+            # "A4_num_dropped_messages": 0,
+        }
+        self.network_metrics = {
             "21_bytes_sent": 0,
             "22_bytes_received": 0,
             "23_num_messages_sent": 0,
             "24_num_messages_received": 0,
-            # "A4_num_dropped_messages": 0,
         }
         self.sent_msg_hist = {}
         self.received_msg_hist = {}
 
-    def log_sum(self, key, value):
-        self.general_metrics[key] += value
-
-    def log_max(self, key, value):
-        self.general_metrics[key] = max(self.general_metrics[key], value)
-
-    def log_min(self, key, value):
-        self.general_metrics[key] = min(self.general_metrics[key], value)
-
     def log_received_msg(self, msg_type, length):
         log_msg_hist(self.received_msg_hist, msg_type, 'received', 'C')
-        self.log_sum("24_num_messages_received", 1)
-        self.log_sum("22_bytes_received", length)
+        log_sum(self.network_metrics, "24_num_messages_received", 1)
+        log_sum(self.network_metrics, "22_bytes_received", length)
 
     def log_sent_msg(self, msg_type, length):
         log_msg_hist(self.sent_msg_hist, msg_type, 'sent', 'B')
-        self.log_sum("23_num_messages_sent", 1)
-        self.log_sum("21_bytes_sent", length)
+        log_sum(self.network_metrics, "23_num_messages_sent", 1)
+        log_sum(self.network_metrics, "21_bytes_sent", length)
+
+    def log_total_dist(self, dist):
+        log_sum(self.general_metrics, "20_total_distance_traveled", dist)
 
     def get_total_distance(self):
         way_points = self.get_location_history()
@@ -231,7 +240,7 @@ class Metrics:
         report = {
             "timeline": self.timeline
         }
-        report.update(self.general_metrics)
+        report.update(self.network_metrics)
         report.update(self.sent_msg_hist)
         report.update(self.received_msg_hist)
         return report
@@ -250,7 +259,7 @@ class Metrics:
         return report
 
     def log_initial_metrics(self, gtl, is_standby, group_id, radio_range, group_members, standby_id,
-                            timestamp, dispatch_duration):
+                            timestamp, dispatch_duration, el):
         t = timestamp - self.start_time
         self.general_metrics["00_gtl"] = gtl.tolist()
         self.general_metrics["02_group_id"] = group_id
@@ -265,7 +274,7 @@ class Metrics:
         if is_standby:
             self.timeline.append((t + dispatch_duration, TimelineEvents.STANDBY))
         else:
-            self.timeline.append((t + dispatch_duration, TimelineEvents.ILLUMINATE))
+            self.timeline.append((t + dispatch_duration, TimelineEvents.ILLUMINATE, el.tolist()))
 
     def log_group_members(self, timestamp, group_members):
         self.general_metrics["04_group_members"].append((timestamp - self.start_time, tuple(group_members)))
@@ -284,18 +293,20 @@ class Metrics:
         else:
             self.timeline.append((t, TimelineEvents.FAIL))
 
-    def log_replacement(self, replacement_time, replacement_duration, failed_fls_id):
+    def log_replacement(self, replacement_time, replacement_duration, failed_fls_id, failed_fls_el):
         t = replacement_time - self.start_time
         self.general_metrics["31_replacement_start_time"] = t
         self.general_metrics["32_replacement_arrival_time"] = t + replacement_duration
         self.general_metrics["33_replacement_duration"] = replacement_duration
         self.general_metrics["34_failed_fls_id"] = failed_fls_id
         self.timeline.append((t, TimelineEvents.REPLACE))
-        self.timeline.append((t + replacement_duration, TimelineEvents.ILLUMINATE))
+        self.timeline.append((t + replacement_duration, TimelineEvents.ILLUMINATE, failed_fls_el.tolist()))
 
 
 if __name__ == '__main__':
-    with open("/Users/hamed/Desktop/dragon_k10_1h/26-Jun-14_54_50/charts.json") as f:
+    mpl.use('macosx')
+
+    with open("/Users/hamed/Desktop/dragon_k10_1h_metric_fix/27-Jun-11_32_19/charts.json") as f:
         data = json.load(f)
 
         plt.step(data["dispatched"]["t"], data["dispatched"]["y"], where='post', label="Dispatched FLSs")

@@ -84,7 +84,7 @@ class WorkerContext:
     def deploy(self):
         timestamp, dur, dest = self.move(self.gtl - self.el)
         self.metrics.log_initial_metrics(self.gtl, self.is_standby, self.swarm_id, self.radio_range, self.group_ids,
-                                         self.standby_id, timestamp, dur)
+                                         self.standby_id, timestamp, dur, dest)
         return dur, dest
         # if self.shm_name:
         #     shared_mem = shared_memory.SharedMemory(name=self.shm_name)
@@ -96,7 +96,7 @@ class WorkerContext:
         erred_v = self.add_dead_reckoning_error(vector)
         dest = self.el + erred_v
         # self.history.log(MetricTypes.LOCATION, self.el)
-        self.metrics.log_sum("20_total_distance_traveled", np.linalg.norm(vector))
+        self.metrics.log_total_dist(np.linalg.norm(vector))
         vm = velocity.VelocityModel(self.el, dest)
         vm.solve()
         dur = vm.total_time
@@ -171,7 +171,7 @@ class WorkerContext:
         self.metrics.log_sent_msg(msg_type, length)
         self.message_id += 1
 
-    def log_replacement(self, timestamp, dur, failed_fls_id, is_stand_by, new_group):
-        self.metrics.log_replacement(timestamp, dur, failed_fls_id)
+    def log_replacement(self, timestamp, dur, failed_fls_id, is_stand_by, new_group, failed_fls_el):
+        self.metrics.log_replacement(timestamp, dur, failed_fls_id, failed_fls_el)
         self.metrics.log_is_standby(timestamp, is_stand_by)
         self.metrics.log_group_members(timestamp, new_group)

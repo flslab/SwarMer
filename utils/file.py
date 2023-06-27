@@ -72,6 +72,8 @@ def create_csv_from_json(directory, fig_dir):
         writer.writerows(node_rows)
 
     merged_timeline = merge_timelines(timelines)
+    with open(os.path.join(directory, 'timeline.json'), "w") as f:
+        json.dump(merged_timeline, f)
     chart_data = gen_charts(merged_timeline, fig_dir)
     with open(os.path.join(directory, 'charts.json'), "w") as f:
         json.dump(chart_data, f)

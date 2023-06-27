@@ -273,7 +273,7 @@ class StateMachine:
         v = msg.el - self.context.el
         timestamp, dur, dest = self.context.move(v)
         # threading.Timer(dur, self.put_state_in_q, (MessageTypes.MOVE, (dest,))).start()
-        self.context.log_replacement(timestamp, dur, msg.fid, False, self.context.group_ids)
+        self.context.log_replacement(timestamp, dur, msg.fid, False, self.context.group_ids, msg.el)
         # print(f"_ {self.context.fid} replaced {msg.fid} in group {msg.swarm_id}
         # new group is {self.context.group_ids}")
 
