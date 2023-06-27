@@ -368,9 +368,9 @@ if __name__ == '__main__':
                     error_handling_socket.broadcast(new_standby_msg)
 
                     # send the notification to the previous standby of this group
-                    notify_previous = Message(MessageTypes.FAILURE_NOTIFICATION)\
-                        .from_fls(msg).to_fls_id(previous_standby, group_id)
-                    error_handling_socket.broadcast(notify_previous)
+                    # notify_previous = Message(MessageTypes.FAILURE_NOTIFICATION, radio_range=msg.range)\
+                    #     .from_fls(msg).to_fls_id(previous_standby, group_id)
+                    error_handling_socket.broadcast(msg.to_fls_id(previous_standby, group_id))
                     processes_id.pop(fid).join()
             if time.time() - start_time > Config.DURATION:
                 break
