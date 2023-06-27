@@ -26,7 +26,7 @@ class Config:
     BUSY_WAITING = False
     MIN_ADJUSTMENT = 0
     SAMPLE_SIZE = 0
-    DURATION = 3600 * 14
+    DURATION = 3600
     READ_FROM_NPY = 0
     K = 10
     MAX_NEIGHBORS = 0
