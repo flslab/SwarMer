@@ -346,9 +346,12 @@ if __name__ == '__main__':
                     if fid in c:
                         # replace the failed fls with the standby fls
                         group_map[group_id] = (c - {fid}) | {group_standby_id[group_id]}
+
                     # update the standby fls of the group
+                    previous_standby = group_standby_id[group_id]
                     group_standby_id[group_id] = pid
                     # print(f"{fid} failed in group {group_id}. new standby is {i}. new group is {group_map[group_id]}")
+
                     # dispatch the new standby fls
                     dispatcher = assign_dispatcher(pid, dispatchers)
                     p = worker.WorkerProcess(
@@ -358,10 +361,16 @@ if __name__ == '__main__':
                     # processes.append(p)
                     processes_id[pid] = p
                     p.start()
+
                     # send the id of the new standby to group members
                     new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(pid,))\
                         .from_server(-nid).to_fls_id("*", group_id)
                     error_handling_socket.broadcast(new_standby_msg)
+
+                    # send the notification to the previous standby of this group
+                    notify_previous = Message(MessageTypes.FAILURE_NOTIFICATION)\
+                        .from_fls(msg).to_fls_id(previous_standby, group_id)
+                    error_handling_socket.broadcast(notify_previous)
                     processes_id.pop(fid).join()
             if time.time() - start_time > Config.DURATION:
                 break

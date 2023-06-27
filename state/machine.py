@@ -28,6 +28,7 @@ class StateMachine:
         self.is_neighbors_processed = False
         self.solution_eta_idx = -1
         self.max_eta_idx = -1
+        self.handled_failure = dict()
 
     def get_w(self):
         return self.context.w
@@ -271,12 +272,13 @@ class StateMachine:
         v = msg.el - self.context.el
         timestamp, dur = self.context.move(v)
         self.context.log_replacement(timestamp, dur, msg.fid, False, self.context.group_ids)
-        # print(f"_ {self.context.fid} replaced {msg.fid} in group {msg.swarm_id} new group is {self.context.group_ids}")
+        # print(f"_ {self.context.fid} replaced {msg.fid} in group {msg.swarm_id}
+        # new group is {self.context.group_ids}")
 
     def handle_failure_notification(self, msg):
         if self.context.is_standby:
             self.replace_failed_fls(msg)
-        else:
+        elif msg.fid not in self.handled_failure:
             timestamp = time.time()
             if msg.fid != self.context.standby_id and self.context.standby_id is not None:
                 c = self.context.group_ids
@@ -284,6 +286,7 @@ class StateMachine:
                 self.context.metrics.log_group_members(timestamp, self.context.group_ids)
             self.context.standby_id = None
             self.context.metrics.log_standby_id(timestamp, None)
+        self.handled_failure[msg.fid] = True
 
     def send_failure_notification(self):
         msg_to_group = Message(MessageTypes.FAILURE_NOTIFICATION).to_swarm(self.context)
