@@ -14,6 +14,7 @@ class MessageTypes(Enum):
     SHOULD_FAIL = 9
     FAILURE_NOTIFICATION = 10
     ASSIGN_STANDBY = 11
+    MOVE = 12
 
     def get_cat(self):
         pass

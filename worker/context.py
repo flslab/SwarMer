@@ -82,9 +82,10 @@ class WorkerContext:
         self.radio_range = radio_range
 
     def deploy(self):
-        timestamp, dur = self.move(self.gtl - self.el)
+        timestamp, dur, dest = self.move(self.gtl - self.el)
         self.metrics.log_initial_metrics(self.gtl, self.is_standby, self.swarm_id, self.radio_range, self.group_ids,
                                          self.standby_id, timestamp, dur)
+        return dur, dest
         # if self.shm_name:
         #     shared_mem = shared_memory.SharedMemory(name=self.shm_name)
         #     shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
@@ -110,7 +111,7 @@ class WorkerContext:
             time.sleep(dur)
 
         self.set_el(dest)
-        return timestamp, dur
+        return timestamp, dur, dest
 
     def add_dead_reckoning_error(self, vector):
         if vector[0] or vector[1]:

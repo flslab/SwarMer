@@ -62,7 +62,8 @@ class StateMachine:
         return self.get_w_v(c) if self.is_proper_v(c) else (-1,)
 
     def start(self):
-        self.context.deploy()
+        dur, dest = self.context.deploy()
+        # threading.Timer(dur, self.put_state_in_q, (MessageTypes.MOVE, (dest,))).start()
         self.enter(StateTypes.SINGLE)
         self.start_timers()
 
@@ -256,9 +257,9 @@ class StateMachine:
         self.broadcast(discover_msg)
 
     def fail(self, msg):
-        self.context.metrics.log_failure_time(time.time())
-        self.send_failure_notification()
         self.put_state_in_q(MessageTypes.STOP)
+        self.context.metrics.log_failure_time(time.time(), self.context.is_standby)
+        self.send_failure_notification()
 
     def assign_new_standby(self, msg):
         if not self.context.is_standby:
@@ -270,7 +271,8 @@ class StateMachine:
         c = self.context.group_ids
         self.context.group_ids = (c - {msg.fid}) | {self.context.fid}
         v = msg.el - self.context.el
-        timestamp, dur = self.context.move(v)
+        timestamp, dur, dest = self.context.move(v)
+        # threading.Timer(dur, self.put_state_in_q, (MessageTypes.MOVE, (dest,))).start()
         self.context.log_replacement(timestamp, dur, msg.fid, False, self.context.group_ids)
         # print(f"_ {self.context.fid} replaced {msg.fid} in group {msg.swarm_id}
         # new group is {self.context.group_ids}")
@@ -299,6 +301,9 @@ class StateMachine:
             random.random() * Config.FAILURE_TIMEOUT, self.put_state_in_q, (MessageTypes.SHOULD_FAIL,))
         self.timer_failure.start()
 
+    def handle_move(self, msg):
+        self.context.set_el(msg.args[0])
+
     def enter(self, state):
         if self.timer_single is not None:
             self.timer_single.cancel()
@@ -313,8 +318,8 @@ class StateMachine:
     def reenter(self, state):
         self.enter(state)
 
-    def put_state_in_q(self, event):
-        msg = Message(event).to_fls(self.context)
+    def put_state_in_q(self, event, args=()):
+        msg = Message(event, args=args).to_fls(self.context)
         item = PrioritizedItem(1, msg, False)
         self.event_queue.put(item)
 
@@ -332,6 +337,8 @@ class StateMachine:
             self.handle_failure_notification(msg)
         elif event == MessageTypes.ASSIGN_STANDBY:
             self.assign_new_standby(msg)
+        # elif event == MessageTypes.MOVE:
+        #     self.handle_move(msg)
 
     def drive(self, msg):
         self.drive_failure_handling(msg)

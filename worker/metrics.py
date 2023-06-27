@@ -1,8 +1,12 @@
+import json
 import math
 import heapq
 import numpy as np
 from config import Config
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+mpl.use('macosx')
 
 
 class MetricTypes:
@@ -18,6 +22,7 @@ class TimelineEvents:
     STANDBY = 2
     FAIL = 3
     REPLACE = 4
+    STANDBY_FAIL = 5
 
 
 def update_dict_sum(obj, key):
@@ -91,6 +96,11 @@ def gen_charts(events, fig_dir):
             failed["y"].append(failed["y"][-1] + 1)
             illuminating["t"].append(t)
             illuminating["y"].append(illuminating["y"][-1] - 1)
+        elif e == TimelineEvents.STANDBY_FAIL:
+            failed["t"].append(t)
+            failed["y"].append(failed["y"][-1] + 1)
+            standby["t"].append(t)
+            standby["y"].append(standby["y"][-1] - 1)
         elif e == TimelineEvents.REPLACE:
             mid_flight["t"].append(t)
             mid_flight["y"].append(mid_flight["y"][-1] + 1)
@@ -266,10 +276,13 @@ class Metrics:
     def log_is_standby(self, timestamp, is_standby):
         self.general_metrics["01_is_standby"].append((timestamp - self.start_time, is_standby))
 
-    def log_failure_time(self, timestamp):
+    def log_failure_time(self, timestamp, is_standby):
         t = timestamp - self.start_time
         self.general_metrics["30_failure_time"] = t
-        self.timeline.append((t, TimelineEvents.FAIL))
+        if is_standby:
+            self.timeline.append((t, TimelineEvents.STANDBY_FAIL))
+        else:
+            self.timeline.append((t, TimelineEvents.FAIL))
 
     def log_replacement(self, replacement_time, replacement_duration, failed_fls_id):
         t = replacement_time - self.start_time
@@ -279,3 +292,18 @@ class Metrics:
         self.general_metrics["34_failed_fls_id"] = failed_fls_id
         self.timeline.append((t, TimelineEvents.REPLACE))
         self.timeline.append((t + replacement_duration, TimelineEvents.ILLUMINATE))
+
+
+if __name__ == '__main__':
+    with open("/Users/hamed/Desktop/dragon_k10_1h/26-Jun-14_54_50/charts.json") as f:
+        data = json.load(f)
+
+        plt.step(data["dispatched"]["t"], data["dispatched"]["y"], where='post', label="Dispatched FLSs")
+        plt.step(data["standby"]["t"], data["standby"]["y"], where='post', label="Standby FLSs")
+        plt.step(data["illuminating"]["t"], data["illuminating"]["y"], where='post', label="Illuminating FLSs")
+        plt.step(data["failed"]["t"], data["failed"]["y"], where='post', label="Failed FLSs")
+        plt.step(data["mid_flight"]["t"], data["mid_flight"]["y"], where='post', label="Mid-flight FLSs")
+        plt.legend()
+        plt.grid()
+        # plt.yscale("log")
+        plt.show()
