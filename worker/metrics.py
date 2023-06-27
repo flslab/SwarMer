@@ -6,7 +6,7 @@ from config import Config
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-mpl.use('macosx')
+# mpl.use('macosx')
 
 
 class MetricTypes:
