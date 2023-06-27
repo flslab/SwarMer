@@ -268,12 +268,11 @@ if __name__ == '__main__':
         i = 0
         if error_handling:
             groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{file_name}.xlsx'))
-            # groups, radio_ranges = read_cliques_xlsx("/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
+            # groups, radio_ranges = read_cliques_xlsx(
+            # "/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
             # print(radio_ranges)
             # exit()
             for j in range(len(groups)):
-                if j == 2:
-                    break
                 if j % N == nid:
                     group = groups[j]
                     group_id = N * (i + 1) + nid
