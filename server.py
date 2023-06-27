@@ -267,8 +267,8 @@ if __name__ == '__main__':
         group_radio_range = {}
         i = 0
         if error_handling:
-            # groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{file_name}.xlsx'))
-            groups, radio_ranges = read_cliques_xlsx("/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
+            groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{file_name}.xlsx'))
+            # groups, radio_ranges = read_cliques_xlsx("/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
             # print(radio_ranges)
             # exit()
             for j in range(len(groups)):
@@ -353,7 +353,7 @@ if __name__ == '__main__':
                     # update the standby fls of the group
                     previous_standby = group_standby_id[group_id]
                     group_standby_id[group_id] = pid
-                    print(f"{fid} failed in group {group_id}. new standby is {i}. new group is {group_map[group_id]}")
+                    # print(f"{fid} failed in group {group_id}. new standby is {i}. new group is {group_map[group_id]}")
 
                     # dispatch the new standby fls
                     dispatcher = assign_dispatcher(pid, dispatchers)
