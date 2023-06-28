@@ -28,10 +28,10 @@ class Config:
     SAMPLE_SIZE = 0
     DURATION = 600
     READ_FROM_NPY = 0
-    K = 100
+    K = 20
     MAX_NEIGHBORS = 0
     SHAPE = 'racecar'
-    RESULTS_PATH = 'results'
+    RESULTS_PATH = '/proj/nova-PG0/hamed/results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
     DIR_KEYS = ['H']
