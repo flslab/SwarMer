@@ -19,8 +19,8 @@ fps = 30
 frame_rate = 1/fps
 total_points = 11888
 
-output_name = "racecar_g10_c1_d1"
-input_path = "/Users/hamed/Desktop/racecar_k10_5min/28-Jun-14_23_04/timeline.json"
+output_name = "racecar_g10_c1_d3"
+input_path = "/Users/hamed/Desktop/racecar_k10_5min_d3/28-Jun-15_30_44/timeline.json"
 
 
 def set_axis():
