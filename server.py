@@ -400,8 +400,8 @@ if __name__ == '__main__':
     #         np.save(f, point_cloud)
 
     if not Config.DEBUG and nid == 0:
-        if IS_CLUSTER_SERVER:
-            time.sleep(120)
+        # if IS_CLUSTER_SERVER:
+        #     time.sleep(120)
         utils.create_csv_from_json(results_directory, end_time-start_time)
         utils.write_configs(results_directory, current_date_time)
         utils.combine_csvs(results_directory, shape_directory, file_name)
