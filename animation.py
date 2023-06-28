@@ -17,8 +17,10 @@ start_time = 0
 duration = 20
 fps = 30
 frame_rate = 1/fps
-output_name = "dragon"
-input_path = "/Users/hamed/Desktop/dragon_k10_2m/27-Jun-15_42_50/timeline.json"
+total_points = 11888
+
+output_name = "racecar_g10_c1_d1"
+input_path = "/Users/hamed/Desktop/racecar_k10_5min/28-Jun-14_23_04/timeline.json"
 
 
 def set_axis():
@@ -60,7 +62,9 @@ length = math.ceil(length / ticks_gap) * ticks_gap
 width = math.ceil(width / ticks_gap) * ticks_gap
 height = math.ceil(height / ticks_gap) * ticks_gap
 points = {}
-total_points = 760
+
+print(length)
+print(width)
 
 
 def init():
@@ -103,6 +107,6 @@ if __name__ == '__main__':
         frames=30 * duration,
         init_func=init)
 
-    # plt.show()
-    writer = FFMpegWriter(fps=fps)
-    ani.save(f"results/{output_name}.mp4", writer=writer)
+    plt.show()
+    # writer = FFMpegWriter(fps=fps)
+    # ani.save(f"results/{output_name}.mp4", writer=writer)

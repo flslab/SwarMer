@@ -99,6 +99,10 @@ def assign_dispatcher(fid, dispatchers):
     return dispatchers[fid % len(dispatchers)]
 
 
+def assign_closest_dispatcher(coord, dispatcher_coords):
+    return dispatcher_coords[np.argmin(np.linalg.norm(dispatcher_coords-coord, axis=1))]
+
+
 def send_msg(sock, msg):
     # Prefix each message with a 4-byte big-endian unsigned integer (network byte order)
     msg = struct.pack('>I', len(msg)) + msg
@@ -244,7 +248,13 @@ if __name__ == '__main__':
 
     count = 0
 
-    dispatchers = get_dispatchers_for_shape(None)
+    # dispatchers = get_dispatchers_for_shape(None)
+    dispatchers = np.array([
+        [.0, .0, .0],
+        [30.0, 50.0, .0],
+        [60.0, 100.0, .0],
+    ])
+
     # processes = []
     # shared_arrays = dict()
     # shared_memories = dict()
@@ -317,7 +327,7 @@ if __name__ == '__main__':
                     for member_coord in group:
                         i += 1
                         pid = N * i + nid
-                        dispatcher = assign_dispatcher(pid, dispatchers)
+                        dispatcher = assign_closest_dispatcher(member_coord, dispatchers)
                         p = worker.WorkerProcess(
                             count, pid, member_coord, dispatcher, None, results_directory,
                             K, [], [], start_time, standby_id=standby_id, group_ids=set(group_ids), sid=-nid,
@@ -329,7 +339,7 @@ if __name__ == '__main__':
 
                     i += 1
                     pid = N * i + nid
-                    dispatcher = assign_dispatcher(pid, dispatchers)
+                    dispatcher = assign_closest_dispatcher(stand_by_coord, dispatchers)
                     p = worker.WorkerProcess(
                         count, pid, stand_by_coord, dispatcher, None, results_directory,
                         K, [], [], start_time, is_standby=True, group_ids=set(group_ids), sid=-nid,
@@ -381,7 +391,7 @@ if __name__ == '__main__':
                     # print(f"{fid} failed in group {group_id}. new standby is {i}. new group is {group_map[group_id]}")
 
                     # dispatch the new standby fls
-                    dispatcher = assign_dispatcher(pid, dispatchers)
+                    dispatcher = assign_closest_dispatcher(group_standby_coord[group_id], dispatchers)
                     p = worker.WorkerProcess(
                         count, pid, group_standby_coord[group_id], dispatcher, None, results_directory,
                         K, [], [], start_time, is_standby=True, group_ids=group_map[group_id], sid=-nid,
