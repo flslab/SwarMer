@@ -269,9 +269,35 @@ if __name__ == '__main__':
         if error_handling:
             groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{file_name}.xlsx'))
             # groups, radio_ranges = read_cliques_xlsx(
+            # "/Users/hamed/Desktop/chess_k10/chess_K:10.xlsx")
             # "/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
             # print(radio_ranges)
             # exit()
+            # print(groups)
+            # print(radio_ranges)
+            single_members = []
+            single_indexes = []
+            max_dist_singles = 0
+            for k in range(len(groups)):
+                if groups[k].shape[0] == 1:
+                    print(groups[k])
+                    if len(single_indexes):
+                        max_dist_n = np.max(np.linalg.norm(np.stack(single_members) - groups[k][0], axis=1))
+                        max_dist_singles = max(max_dist_singles, max_dist_n)
+                    single_members.append(groups[k][0])
+                    single_indexes.append(k)
+
+            for k in reversed(single_indexes):
+                groups.pop(k)
+                radio_ranges.pop(k)
+
+            groups.append(np.stack(single_members))
+            radio_ranges.append(max_dist_singles)
+
+            # print(groups)
+            # print(radio_ranges)
+            # exit()
+
             for j in range(len(groups)):
                 if j % N == nid:
                     group = groups[j]

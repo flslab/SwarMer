@@ -10,7 +10,7 @@ class Config:
     CHALLENGE_PROB_DECAY = 5
     INITIAL_CHALLENGE_PROB = 1
     CHALLENGE_LEASE_DURATION = 1
-    FAILURE_TIMEOUT = 120 * 2
+    FAILURE_TIMEOUT = 3600 * 2
     FAILURE_PROB = 0
     NUMBER_ROUND = 5
     ACCELERATION = 1
@@ -26,11 +26,11 @@ class Config:
     BUSY_WAITING = False
     MIN_ADJUSTMENT = 0
     SAMPLE_SIZE = 0
-    DURATION = 120
+    DURATION = 3600 * 12
     READ_FROM_NPY = 0
     K = 10
     MAX_NEIGHBORS = 0
-    SHAPE = 'dragon'
+    SHAPE = 'skateboard'
     RESULTS_PATH = '/proj/nova-PG0/hamed/results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
