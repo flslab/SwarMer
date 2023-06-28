@@ -30,8 +30,8 @@ class Config:
     READ_FROM_NPY = 0
     K = 10
     MAX_NEIGHBORS = 0
-    SHAPE = 'racecar'
-    RESULTS_PATH = '/proj/nova-PG0/hamed/results'
+    SHAPE = 'chess'
+    RESULTS_PATH = 'results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
     DIR_KEYS = ['H']
