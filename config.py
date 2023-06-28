@@ -28,9 +28,9 @@ class Config:
     SAMPLE_SIZE = 0
     DURATION = 600
     READ_FROM_NPY = 0
-    K = 20
+    K = 10
     MAX_NEIGHBORS = 0
-    SHAPE = 'dragon'
+    SHAPE = 'skateboard'
     RESULTS_PATH = '/proj/nova-PG0/hamed/results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
