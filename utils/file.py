@@ -203,14 +203,14 @@ def combine_xlsx(directory):
         for file in sorted(xlsx_files):
             print(file)
             df = pd.read_excel(file, sheet_name='metrics')
-            m = re.search(r'K:(\d+)_R:(\d+)', file)
-            k = m.group(1)
-            r = m.group(2)
+            m = re.search(r'(\w+)_K:(\d+)', file)
+            shape = m.group(1)
+            k = m.group(2)
 
-            df2 = pd.DataFrame([k, r])
+            df2 = pd.DataFrame([shape, k])
             df3 = pd.concat([df2, df.value])
             dfs.append(df3)
-        pd.concat([pd.concat([pd.DataFrame(['k', 'r']), df.metric])] + dfs, axis=1).to_excel(writer, index=False)
+        pd.concat([pd.concat([pd.DataFrame(['shape', 'k']), df.metric])] + dfs, axis=1).to_excel(writer, index=False)
 
 
 def read_cliques_xlsx(path):
@@ -219,16 +219,15 @@ def read_cliques_xlsx(path):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) == 4:
-        dir_in = sys.argv[1]
-        dir_out = sys.argv[2]
-        name = sys.argv[3]
-    else:
-        dir_in, dir_out, name = "../results/20-Jun-09_37_32/results/racecar/H:2/20-Jun-08_52_06", "../results/20-Jun-09_37_32/results/racecar/H:2", "agg"
-    create_csv_from_json(dir_in, 0)
-    combine_csvs(dir_in, dir_out, name)
-        # print(f"usage: {sys.argv[0]} <input_dir> <output_dir> <xlsx_file_name>")
-    # combine_xlsx("results/1/results/racecar/H:2/20-Jun-08_52_06")
-    # combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K-1")
+    # if len(sys.argv) == 4:
+    #     dir_in = sys.argv[1]
+    #     dir_out = sys.argv[2]
+    #     name = sys.argv[3]
+    # else:
+    #     dir_in, dir_out, name = "../results/20-Jun-09_37_32/results/racecar/H:2/20-Jun-08_52_06", "../results/20-Jun-09_37_32/results/racecar/H:2", "agg"
+    # create_csv_from_json(dir_in, 0)
+    # combine_csvs(dir_in, dir_out, name)
+
+    combine_xlsx("/Users/hamed/Desktop/h_2 k-clique")
     # combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K")
     # combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:1.5K")

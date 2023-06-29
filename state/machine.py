@@ -19,7 +19,6 @@ class StateMachine:
         self.metrics = metrics
         self.sock = sock
         self.timer_single = None
-        self.timer_failure = None
         self.timer_break_check = None
         self.event_queue = event_queue
         self.last_neighbors_hash = None
@@ -28,6 +27,7 @@ class StateMachine:
         self.is_neighbors_processed = False
         self.solution_eta_idx = -1
         self.max_eta_idx = -1
+        self.range_discovered_neighbors = dict()
 
     def get_w(self):
         return self.context.w
@@ -53,8 +53,6 @@ class StateMachine:
     def is_proper_v(self, c):
         new_w = self.get_w_v(c)
         weights = [self.context.neighbors[i].w for i in c]
-        # if len(self.get_c()) == 0:
-        #     print(new_w, weights)
         return all([new_w >= w for w in weights])
 
     def attr_v(self, c):
@@ -118,12 +116,9 @@ class StateMachine:
             # self.context.set_pair(self.context.el)
             print(f"{self.context.fid} is single eta={self.eta}")
 
-        # if self.context.fid in [2, 4, 8]:
-        #     with open(f"results/{self.context.fid}.txt", "w") as f:
-        #         f.write("time type from to w m\n")
-        #         for i in self.context.history.merge_lists():
-        #             f.write(f"{str(i)}\n")
-            # print(self.context.history.merge_lists())
+    def request_range_expansion(self, current_range):
+        if len(self.range_discovered_neighbors[current_range]):
+            pass
 
     def vns_shake(self, c, d):
         u = set(random.sample(c, d))
@@ -182,7 +177,6 @@ class StateMachine:
         candidates = []
         last_idx = 0
 
-        # if len(self.context.neighbors) >= self.context.k - 1:
         for i in range(len(self.context.sorted_neighbors)):
             fid = self.context.sorted_neighbors[i]
             if fid in self.context.neighbors:
@@ -204,11 +198,6 @@ class StateMachine:
                 last_idx = i
                 break
 
-        # if len(self.context.neighbors) >= self.context.k - 1:
-        #     if all(n in self.context.neighbors for n in self.knn):
-        #         return tuple(random.sample(self.knn, self.context.k - 1))
-        # if len(candidates) >= self.context.k - 1:
-        #     return tuple(random.sample(candidates, self.context.k - 1))
         if len(candidates) == self.context.k - 1:
             return tuple(candidates), last_idx
         return (), last_idx
@@ -254,7 +243,6 @@ class StateMachine:
         if n_hash != self.last_neighbors_hash:
             self.last_neighbors_hash = n_hash
             self.knn = self.context.sorted_neighbors[:self.eta]
-            # if len(self.context.neighbors) >= self.context.k - 1:
             if all(n in self.context.neighbors for n in self.knn):
                 for u in combinations(self.knn, self.context.k - 1):
                     attr_v_u = self.attr_v(u)
@@ -266,36 +254,9 @@ class StateMachine:
         elif self.is_neighbors_processed:
             self.eta += 1
             self.is_neighbors_processed = False
-        # else:
-        #     if Config.MAX_NEIGHBORS:
-        #         if len(self.context.neighbors) < Config.MAX_NEIGHBORS:
-        #             self.context.increment_range()
-        #     else:
-        #         self.context.increment_range()
-        #     self.heard = False
-            # print(self.context.radio_range)
 
         discover_msg = Message(MessageTypes.DISCOVER).to_all()
         self.broadcast(discover_msg)
-
-    def fail(self, msg):
-        self.send_failure_notification()
-        self.context.fail()
-        self.set_timer_to_fail()
-
-    def replace_failed_fls(self, msg):
-        pass
-
-    def send_failure_notification(self):
-        msg_to_standby = Message(MessageTypes.FAILURE_NOTIFICATION,).to_fls_id(self.context.standby_id, "*")
-        msg_to_server = Message(MessageTypes.FAILURE_NOTIFICATION,)
-        self.broadcast(msg_to_standby)
-        self.send_to_server(msg_to_server)
-
-    def set_timer_to_fail(self):
-        self.timer_failure = threading.Timer(
-            random.random() * Config.FAILURE_TIMEOUT, self.put_state_in_q, (MessageTypes.SHOULD_FAIL,))
-        self.timer_failure.start()
 
     def enter(self, state):
         if self.timer_single is not None:
@@ -335,10 +296,6 @@ class StateMachine:
         elif event == MessageTypes.REENTER_SINGLE_STATE:
             if self.state == StateTypes.SINGLE:
                 self.reenter(StateTypes.SINGLE)
-        elif event == MessageTypes.SHOULD_FAIL:
-            self.fail(msg)
-        elif event == MessageTypes.FAILURE_NOTIFICATION:
-            self.replace_failed_fls(msg)
 
     def broadcast(self, msg):
         msg.from_fls(self.context)
@@ -356,6 +313,3 @@ class StateMachine:
         if self.timer_single is not None:
             self.timer_single.cancel()
             self.timer_single = None
-        if self.timer_failure is not None:
-            self.timer_failure.cancel()
-            self.timer_failure = None
