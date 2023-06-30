@@ -3,8 +3,8 @@ import sys
 
 def_general_conf = {
     "THAW_SWARMS": "False",
-    "INITIAL_RANGE": "1",
-    "MAX_RANGE": "100",
+    "INITIAL_RANGE": "2000",
+    "MAX_RANGE": "2000",
     "DROP_PROB_SENDER": "0",
     "DROP_PROB_RECEIVER": "0",
     "STATE_TIMEOUT": "0",
@@ -31,10 +31,16 @@ def_general_conf = {
     "SAMPLE_SIZE": "0",
     "DURATION": "600",
     "READ_FROM_NPY": "0",
-    "K": "3",
-    "SHAPE": "'butterfly'",
-    "RESULTS_PATH": "'results'",
+    "K": "10",
+    "MAX_NEIGHBORS": "0",
+    "SHAPE": "'racecar'",
+    "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
+    "DEBUG": "False",
     "FILE_NAME_KEYS": "['K']",
+    "SERVER_TIMEOUT": "120",
+    "PROCESS_JOIN_TIMEOUT": "120",
+    "NUM_DISPATCHERS": "1",
+    "MULTICAST": "True",
 }
 
 def_test_conf = {
@@ -52,13 +58,11 @@ def_test_conf = {
 general_props = [
     {
         "keys": ["K"],
-        "values": ["3", "5", "10"]
+        "values": ["10", "20", "3", "5"]
     },
     {
-        "keys": ["SAMPLE_SIZE", "SHAPE"],
-        "values": [{"SAMPLE_SIZE": 94, "SHAPE": "'butterfly'"},
-                   {"SAMPLE_SIZE": 100, "SHAPE": "'teapot'"},
-                   {"SAMPLE_SIZE": 114, "SHAPE": "'cat'"}]
+        "keys": ["SHAPE"],
+        "values": ["'skateboard'", "'racecar'", "'chess'", "'dragon'"]
     },
 ]
 #
