@@ -41,4 +41,5 @@ class Config:
         [30.0, 50.0, .0],
         [60.0, 100.0, .0],
     ]
+    C = 1  # number of standbys per group
     MULTICAST = True
