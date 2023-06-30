@@ -3,8 +3,8 @@ import sys
 
 def_general_conf = {
     "THAW_SWARMS": "False",
-    "INITIAL_RANGE": "1",
-    "MAX_RANGE": "100",
+    "INITIAL_RANGE": "2000",
+    "MAX_RANGE": "2000",
     "DROP_PROB_SENDER": "0",
     "DROP_PROB_RECEIVER": "0",
     "STATE_TIMEOUT": "0",
@@ -13,12 +13,12 @@ def_general_conf = {
     "CHALLENGE_PROB_DECAY": "5",
     "INITIAL_CHALLENGE_PROB": "1",
     "CHALLENGE_LEASE_DURATION": "1",
-    "FAILURE_TIMEOUT": "0",
+    "FAILURE_TIMEOUT": "60 * 2",
     "FAILURE_PROB": "0",
     "NUMBER_ROUND": "5",
-    "ACCELERATION": "6",
-    "DECELERATION": "6",
-    "MAX_SPEED": "6",
+    "ACCELERATION": "1",
+    "DECELERATION": "1",
+    "MAX_SPEED": "3",
     "DISPLAY_CELL_SIZE": "0.05",
     "HD_TIMOUT": "5",
     "SIZE_QUERY_PARTICIPATION_PERCENT": "1",
@@ -29,12 +29,18 @@ def_general_conf = {
     "BUSY_WAITING": "False",
     "MIN_ADJUSTMENT": "0",
     "SAMPLE_SIZE": "0",
-    "DURATION": "600",
+    "DURATION": "60 * 1",
     "READ_FROM_NPY": "0",
-    "K": "3",
-    "SHAPE": "'butterfly'",
-    "RESULTS_PATH": "'results'",
+    "K": "10",
+    "MAX_NEIGHBORS": "0",
+    "SHAPE": "'racecar'",
+    "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
+    "DEBUG": "False",
     "FILE_NAME_KEYS": "['K']",
+    "SERVER_TIMEOUT": "120",
+    "PROCESS_JOIN_TIMEOUT": "120",
+    "DISPATCHERS": "[[.0, .0, .0]]",
+    "MULTICAST": "True",
 }
 
 def_test_conf = {
@@ -52,14 +58,18 @@ def_test_conf = {
 general_props = [
     {
         "keys": ["K"],
-        "values": ["3", "5", "10"]
+        "values": ["10", "20"]
     },
     {
-        "keys": ["SAMPLE_SIZE", "SHAPE"],
-        "values": [{"SAMPLE_SIZE": 94, "SHAPE": "'butterfly'"},
-                   {"SAMPLE_SIZE": 100, "SHAPE": "'teapot'"},
-                   {"SAMPLE_SIZE": 114, "SHAPE": "'cat'"}]
-    },
+        "keys": ["SHAPE"],
+        "values": ["racecar, skateboard"]
+    }
+    # {
+    #     "keys": ["SAMPLE_SIZE", "SHAPE"],
+    #     "values": [{"SAMPLE_SIZE": 94, "SHAPE": "'butterfly'"},
+    #                {"SAMPLE_SIZE": 100, "SHAPE": "'teapot'"},
+    #                {"SAMPLE_SIZE": 114, "SHAPE": "'cat'"}]
+    # },
 ]
 #
 # test_props = [

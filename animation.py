@@ -71,6 +71,7 @@ def init():
     ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.zaxis.set_pane_color((0, 0, 0, 0.025))
+    ax.view_init(elev=14, azim=136, roll=0)
     return line1,
 
 

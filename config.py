@@ -10,7 +10,7 @@ class Config:
     CHALLENGE_PROB_DECAY = 5
     INITIAL_CHALLENGE_PROB = 1
     CHALLENGE_LEASE_DURATION = 1
-    FAILURE_TIMEOUT = 60 * 10
+    FAILURE_TIMEOUT = 60 * 2
     FAILURE_PROB = 0
     NUMBER_ROUND = 5
     ACCELERATION = 1
@@ -26,7 +26,7 @@ class Config:
     BUSY_WAITING = False
     MIN_ADJUSTMENT = 0
     SAMPLE_SIZE = 0
-    DURATION = 60 * 5
+    DURATION = 60 * 1
     READ_FROM_NPY = 0
     K = 10
     MAX_NEIGHBORS = 0
@@ -34,8 +34,11 @@ class Config:
     RESULTS_PATH = '/proj/nova-PG0/hamed/results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
-    DIR_KEYS = ['FAILURE_TIMEOUT']
     SERVER_TIMEOUT = 120
     PROCESS_JOIN_TIMEOUT = 120
-    NUM_DISPATCHERS = 1
+    DISPATCHERS = [
+        [.0, .0, .0],
+        [30.0, 50.0, .0],
+        [60.0, 100.0, .0],
+    ]
     MULTICAST = True

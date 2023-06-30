@@ -82,7 +82,7 @@ def get_shape_floor_radius(arr, center):
     return np.max(np.linalg.norm(arr_projected_floor - center, axis=1))
 
 
-def get_dispatchers_for_shape(shape, num_dispatchers=Config.NUM_DISPATCHERS):
+def get_dispatchers_for_shape(shape, num_dispatchers=len(Config.DISPATCHERS)):
     if num_dispatchers == 1:
         return [np.array([0.0, 0.0, 0.0])]
 
@@ -249,11 +249,7 @@ if __name__ == '__main__':
     count = 0
 
     # dispatchers = get_dispatchers_for_shape(None)
-    dispatchers = np.array([
-        [.0, .0, .0],
-        [30.0, 50.0, .0],
-        [60.0, 100.0, .0],
-    ])
+    dispatchers = np.array(Config.DISPATCHERS)
 
     # processes = []
     # shared_arrays = dict()
@@ -415,11 +411,11 @@ if __name__ == '__main__':
 
     end_time = time.time()
 
-    # if IS_CLUSTER_SERVER:
-    #     for i in range(N - 1):
-    #         stop_client(clients[i])
-    #         clients[i].close()
-    #     ServerSocket.close()
+    if IS_CLUSTER_SERVER:
+        for i in range(N - 1):
+            # stop_client(clients[i])
+            clients[i].close()
+        ServerSocket.close()
 
     if nid == 0:
         stop.stop_all()
