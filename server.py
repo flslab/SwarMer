@@ -147,7 +147,13 @@ if __name__ == '__main__':
     if IS_CLUSTER_SERVER:
         ServerSocket = socket.socket()
         ServerSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        ServerSocket.bind(server_address)
+        while True:
+            try:
+                ServerSocket.bind(server_address)
+            except OSError:
+                time.sleep(10)
+                continue
+            break
         ServerSocket.listen(N-1)
 
         clients = []
@@ -158,7 +164,13 @@ if __name__ == '__main__':
 
     if IS_CLUSTER_CLIENT:
         client_socket = socket.socket()
-        client_socket.connect(server_address)
+        while True:
+            try:
+                client_socket.connect(server_address)
+            except OSError:
+                time.sleep(10)
+                continue
+            break
 
     K = TestConfig.K if TestConfig.ENABLED else Config.K
     FILE_NAME_KEYS = TestConfig.FILE_NAME_KEYS if TestConfig.ENABLED else Config.FILE_NAME_KEYS

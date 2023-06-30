@@ -3,7 +3,7 @@
 source cloudlab_vars.sh
 
 now=$(date +%d_%b_%H_%M_%S)
-port="600$1"
+port="6000"
 for (( i=1; i<num_of_total_servers; i++ )); do
     server_addr=${USERNAME}@node-$i.${HOSTNAME}
     ssh -oStrictHostKeyChecking=no -f "${server_addr}" "ulimit -n 9999 && cd SwarMer && cp experiments/config$1.py config.py && sleep 10 && nohup python3 server.py ${num_of_total_servers} ${i} ${now} ${port} > my.log 2>&1 &" &
