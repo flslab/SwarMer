@@ -1,3 +1,4 @@
+import select
 import socket
 import pickle
 import numpy as np
@@ -319,7 +320,6 @@ if __name__ == '__main__':
                 # client_socket.sendall(pickle.dumps(response))
                 send_msg(client_socket, pickle.dumps(response))
             elif server_msg.type == MessageTypes.STOP:
-                client_socket.close()
                 break
     else:
         while True:
@@ -354,17 +354,23 @@ if __name__ == '__main__':
 
     end_time = time.time()
 
-    if IS_CLUSTER_SERVER:
-        for i in range(N - 1):
-            stop_client(clients[i])
-            clients[i].close()
-        ServerSocket.close()
-
     if nid == 0:
         stop.stop_all()
     print("done")
 
-    time.sleep(1)
+    if IS_CLUSTER_SERVER:
+        for i in range(N - 1):
+            stop_client(clients[i])
+
+        done_clients = 0
+        while done_clients != N-1:
+            ready_socks, _, _ = select.select(clients, [], [])
+            for sock in ready_socks:
+                done_clients += 1
+                sock.recv(1)
+                sock.close()
+        ServerSocket.close()
+
     for p in processes:
         p.join(Config.PROCESS_JOIN_TIMEOUT)
         if p.is_alive():
@@ -395,13 +401,7 @@ if __name__ == '__main__':
         else:
             plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
 
-    # if not Config.READ_FROM_NPY and any([v != 2 for v in point_connections.values()]):
-    #     with open(f'{Config.RESULTS_PATH}/{experiment_name}.npy', 'wb') as f:
-    #         np.save(f, point_cloud)
-
     if not Config.DEBUG and nid == 0:
-        # if IS_CLUSTER_SERVER:
-        #     time.sleep(120)
         utils.create_csv_from_json(results_directory, end_time-start_time)
         utils.write_configs(results_directory, current_date_time)
         utils.combine_csvs(results_directory, shape_directory, file_name)
@@ -410,4 +410,8 @@ if __name__ == '__main__':
         s.close()
         s.unlink()
 
+    if IS_CLUSTER_CLIENT:
+        time.sleep(10)
+        client_socket.send(struct.pack('b', True))
+        client_socket.close()
     # utils.plot_point_cloud(np.stack(gtl_point_cloud), None)
