@@ -119,7 +119,7 @@ def gen_charts(events, fig_dir):
     mid_flight["t"].append(events[-1][0])
     mid_flight["y"].append(mid_flight["y"][-1])
 
-    print(dispatched["t"], dispatched["y"])
+    # print(dispatched["t"], dispatched["y"])
     plt.step(dispatched["t"], dispatched["y"], where='post', label="Dispatched FLSs")
     plt.step(standby["t"], standby["y"], where='post', label="Standby FLSs")
     plt.step(illuminating["t"], illuminating["y"], where='post', label="Illuminating FLSs")
