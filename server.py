@@ -144,6 +144,7 @@ if __name__ == '__main__':
 
     if IS_CLUSTER_SERVER:
         ServerSocket = socket.socket()
+        ServerSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         ServerSocket.bind(Constants.SERVER_ADDRESS)
         ServerSocket.listen(N-1)
 
