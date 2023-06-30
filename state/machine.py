@@ -302,9 +302,9 @@ class StateMachine:
         length = self.sock.broadcast(msg)
         self.context.log_sent_message(msg, length)
 
-    def send_to_server(self, msg):
-        msg.from_fls(self.context).to_server()
-        self.sock.send_to_server(msg)
+    # def send_to_server(self, msg):
+    #     msg.from_fls(self.context).to_server()
+    #     self.sock.send_to_server(msg)
 
     def start_timers(self):
         pass

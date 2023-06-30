@@ -60,10 +60,10 @@ class WorkerSocket:
                 self.broadcast(msg, retry - 1)
         return len(data)
 
-    def send_to_server(self, msg):
-        data = pickle.dumps(msg)
-        self.sock.sendto(data, Constants.SERVER_ADDRESS)
-        return len(data)
+    # def send_to_server(self, msg):
+    #     data = pickle.dumps(msg)
+    #     self.sock.sendto(data, Constants.SERVER_ADDRESS)
+    #     return len(data)
 
     def is_ready(self):
         ready = select.select([self.sock], [], [], 1)

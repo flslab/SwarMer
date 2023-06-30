@@ -134,10 +134,12 @@ if __name__ == '__main__':
     N = 1
     nid = 0
     experiment_name = str(int(time.time()))
+    server_address = Constants.SERVER_ADDRESS
     if len(sys.argv) > 1:
         N = int(sys.argv[1])
         nid = int(sys.argv[2])
         experiment_name = sys.argv[3]
+        server_address[1] = int(sys.argv[4])
 
     IS_CLUSTER_SERVER = N != 1 and nid == 0
     IS_CLUSTER_CLIENT = N != 1 and nid != 0
@@ -145,7 +147,7 @@ if __name__ == '__main__':
     if IS_CLUSTER_SERVER:
         ServerSocket = socket.socket()
         ServerSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        ServerSocket.bind(Constants.SERVER_ADDRESS)
+        ServerSocket.bind(server_address)
         ServerSocket.listen(N-1)
 
         clients = []
@@ -156,7 +158,7 @@ if __name__ == '__main__':
 
     if IS_CLUSTER_CLIENT:
         client_socket = socket.socket()
-        client_socket.connect(Constants.SERVER_ADDRESS)
+        client_socket.connect(server_address)
 
     K = TestConfig.K if TestConfig.ENABLED else Config.K
     FILE_NAME_KEYS = TestConfig.FILE_NAME_KEYS if TestConfig.ENABLED else Config.FILE_NAME_KEYS
