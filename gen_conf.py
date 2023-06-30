@@ -62,7 +62,7 @@ general_props = [
     },
     {
         "keys": ["SHAPE"],
-        "values": ["racecar, skateboard"]
+        "values": ["racecar", "skateboard"]
     }
     # {
     #     "keys": ["SAMPLE_SIZE", "SHAPE"],
