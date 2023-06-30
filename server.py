@@ -163,7 +163,7 @@ if __name__ == '__main__':
             keys = "_".join(f"{k}:{CONFIG.__getattribute__(CONFIG, k)}" for k in FILE_NAME_KEYS)
         else:
             keys = current_date_time
-        file_name = f"{Config.SHAPE}_{keys}"
+        file_name = f"{Config.SHAPE}_{keys}_{experiment_name}"
 
         if len(TestConfig.DIR_KEYS):
             dir_name = "_".join(f"{k}:{TestConfig.__getattribute__(TestConfig, k)}" for k in TestConfig.DIR_KEYS)

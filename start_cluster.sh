@@ -2,7 +2,7 @@
 
 source cloudlab_vars.sh
 
-now=$(date +%d-%b-%H_%M_%S)
+now=$(date +%d_%b_%H_%M_%S)
 
 for (( i=1; i<num_of_total_servers; i++ )); do
     server_addr=${USERNAME}@node-$i.${HOSTNAME}
