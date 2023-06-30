@@ -139,7 +139,7 @@ if __name__ == '__main__':
         N = int(sys.argv[1])
         nid = int(sys.argv[2])
         experiment_name = sys.argv[3]
-        server_address[1] = int(sys.argv[4])
+        server_address = (Constants.SERVER_ADDRESS[0], int(sys.argv[4]))
 
     IS_CLUSTER_SERVER = N != 1 and nid == 0
     IS_CLUSTER_CLIENT = N != 1 and nid != 0
