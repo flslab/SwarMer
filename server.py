@@ -1,6 +1,8 @@
 import select
 import socket
 import pickle
+import threading
+
 import numpy as np
 from multiprocessing import shared_memory
 import scipy.io
@@ -121,6 +123,11 @@ def recvall(sock, n):
             return None
         data.extend(packet)
     return data
+
+
+def wait_for_client(sock):
+    sock.recv(1)
+    sock.close()
 
 
 if __name__ == '__main__':
@@ -362,13 +369,14 @@ if __name__ == '__main__':
         for i in range(N - 1):
             stop_client(clients[i])
 
-        done_clients = 0
-        while done_clients != N-1:
-            ready_socks, _, _ = select.select(clients, [], [])
-            for sock in ready_socks:
-                done_clients += 1
-                sock.recv(1)
-                sock.close()
+        client_threads = []
+        for client in clients:
+            t = threading.Thread(target=wait_for_client, args=(client,))
+            t.start()
+            client_threads.append(t)
+        for t in client_threads:
+            t.join()
+
         ServerSocket.close()
 
     for p in processes:
