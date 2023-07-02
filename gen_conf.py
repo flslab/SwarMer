@@ -58,7 +58,7 @@ def_test_conf = {
 general_props = [
     {
         "keys": ["K"],
-        "values": ["10", "20", "3", "5"]
+        "values": ["10", "3", "5", "20"]
     },
     {
         "keys": ["SHAPE"],
