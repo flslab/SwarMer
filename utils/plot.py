@@ -8,7 +8,7 @@ import numpy as np
 import scipy
 
 
-mpl.use('macosx')
+# mpl.use('macosx')
 
 
 def plot_point_cloud(ptcld, name):
