@@ -386,7 +386,7 @@ if __name__ == '__main__':
                     if Config.C == 0:
                         dispatcher = assign_closest_dispatcher(msg.gtl, dispatchers)
                         p = worker.WorkerProcess(
-                            count, pid, group_standby_coord[group_id], dispatcher, None, results_directory,
+                            count, pid, msg.gtl, dispatcher, None, results_directory,
                             K, [], [], start_time, group_ids=group_map[group_id], sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
                         processes_id[pid] = p
