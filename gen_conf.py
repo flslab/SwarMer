@@ -31,15 +31,16 @@ def_general_conf = {
     "SAMPLE_SIZE": "0",
     "DURATION": "60 * 1",
     "READ_FROM_NPY": "0",
-    "K": "10",
+    "K": "20",
     "MAX_NEIGHBORS": "0",
-    "SHAPE": "'racecar'",
+    "SHAPE": "'dragon'",
     "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
     "DEBUG": "False",
-    "FILE_NAME_KEYS": "['K']",
+    "FILE_NAME_KEYS": "['K', 'DISPATCHERS', 'FAILURE_TIMEOUT']",
     "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "DISPATCHERS": "[[.0, .0, .0]]",
+    "C": "1",
     "MULTICAST": "True",
 }
 
@@ -57,13 +58,21 @@ def_test_conf = {
 
 general_props = [
     {
-        "keys": ["K"],
-        "values": ["10", "20"]
+        "keys": ["C"],
+        "values": ["0", "1"]
     },
     {
-        "keys": ["SHAPE"],
-        "values": ["'racecar'", "'skateboard'"]
+        "keys": ["DISPATCHERS"],
+        "values": ["1", "5"]
+    },
+    {
+        "keys": ["FAILURE_TIMEOUT"],
+        "values": ["30", "600"]
     }
+    # {
+    #     "keys": ["SHAPE"],
+    #     "values": ["'racecar'", "'skateboard'"]
+    # }
     # {
     #     "keys": ["SAMPLE_SIZE", "SHAPE"],
     #     "values": [{"SAMPLE_SIZE": 94, "SHAPE": "'butterfly'"},

@@ -249,7 +249,11 @@ if __name__ == '__main__':
     count = 0
 
     # dispatchers = get_dispatchers_for_shape(None)
-    dispatchers = np.array(Config.DISPATCHERS)
+    if Config.DISPATCHERS == 1:
+        dispatchers = np.array([[50, 35, 0]])
+    if Config.DISPATCHERS == 5:
+        dispatchers = np.array([[50, 35, 0], [100, 0, 0], [0, 70, 0], [100, 70, 0], [0, 0, 0]])
+    # dispatchers = np.array(Config.DISPATCHERS)
 
     # processes = []
     # shared_arrays = dict()
@@ -309,17 +313,21 @@ if __name__ == '__main__':
                     group = groups[j]
                     group_id = N * (i + 1) + nid
                     group_ids = list(range(group_id, group_id + N * len(group), N))
-                    standby_id = group_ids[-1] + N
+                    if Config.C == 1:
+                        standby_id = group_ids[-1] + N
+                        group_standby_id[group_id] = standby_id
+                        length = group.shape[0]
+                        sum_x = np.sum(group[:, 0])
+                        sum_y = np.sum(group[:, 1])
+                        sum_z = np.sum(group[:, 2])
+                        stand_by_coord = np.array([sum_x / length, sum_y / length, sum_z / length])
+                        group_standby_coord[group_id] = stand_by_coord
+                    else:
+                        standby_id = None
                     group_map[group_id] = set(group_ids)
-                    group_standby_id[group_id] = standby_id
                     group_radio_range[group_id] = radio_ranges[j]
-                    length = group.shape[0]
-                    sum_x = np.sum(group[:, 0])
-                    sum_y = np.sum(group[:, 1])
-                    sum_z = np.sum(group[:, 2])
-                    stand_by_coord = np.array([sum_x / length, sum_y / length, sum_z / length])
-                    group_standby_coord[group_id] = stand_by_coord
 
+                    # dispatch group members
                     for member_coord in group:
                         i += 1
                         pid = N * i + nid
@@ -329,21 +337,19 @@ if __name__ == '__main__':
                             K, [], [], start_time, standby_id=standby_id, group_ids=set(group_ids), sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
                         p.start()
-                        # print(i, member_coord)
-                        # processes.append(p)
                         processes_id[pid] = p
 
-                    i += 1
-                    pid = N * i + nid
-                    dispatcher = assign_closest_dispatcher(stand_by_coord, dispatchers)
-                    p = worker.WorkerProcess(
-                        count, pid, stand_by_coord, dispatcher, None, results_directory,
-                        K, [], [], start_time, is_standby=True, group_ids=set(group_ids), sid=-nid,
-                        group_id=group_id, radio_range=group_radio_range[group_id])
-                    p.start()
-                    # print(i, stand_by_coord)
-                    # processes.append(p)
-                    processes_id[pid] = p
+                    # dispatch standby
+                    if Config.C == 1:
+                        i += 1
+                        pid = N * i + nid
+                        dispatcher = assign_closest_dispatcher(stand_by_coord, dispatchers)
+                        p = worker.WorkerProcess(
+                            count, pid, stand_by_coord, dispatcher, None, results_directory,
+                            K, [], [], start_time, is_standby=True, group_ids=set(group_ids), sid=-nid,
+                            group_id=group_id, radio_range=group_radio_range[group_id])
+                        p.start()
+                        processes_id[pid] = p
             print(group_map)
             print(group_standby_id)
             # print(group_standby_coord)
@@ -374,38 +380,46 @@ if __name__ == '__main__':
                     i += 1
                     pid = i * N + nid
                     group_id = msg.swarm_id
-                    fid = msg.fid
+                    failed_fid = msg.fid
 
-                    c = group_map[group_id]
-                    if fid in c:
-                        # replace the failed fls with the standby fls
-                        group_map[group_id] = (c - {fid}) | {group_standby_id[group_id]}
+                    if Config.C == 0:
+                        dispatcher = assign_closest_dispatcher(msg.gtl, dispatchers)
+                        p = worker.WorkerProcess(
+                            count, pid, group_standby_coord[group_id], dispatcher, None, results_directory,
+                            K, [], [], start_time, group_ids=group_map[group_id], sid=-nid,
+                            group_id=group_id, radio_range=group_radio_range[group_id])
+                        processes_id[pid] = p
+                        p.start()
+                    elif Config.C == 1:
+                        c = group_map[group_id]
+                        if failed_fid in c:
+                            # replace the failed fls with the standby fls
+                            group_map[group_id] = (c - {failed_fid}) | {group_standby_id[group_id]}
 
-                    # update the standby fls of the group
-                    previous_standby = group_standby_id[group_id]
-                    group_standby_id[group_id] = pid
-                    # print(f"{fid} failed in group {group_id}. new standby is {i}. new group is {group_map[group_id]}")
+                        # update the standby fls of the group
+                        previous_standby = group_standby_id[group_id]
+                        group_standby_id[group_id] = pid
+                        # print(f"{fid} failed in group {group_id}.
+                        # new standby is {i}. new group is {group_map[group_id]}")
 
-                    # dispatch the new standby fls
-                    dispatcher = assign_closest_dispatcher(group_standby_coord[group_id], dispatchers)
-                    p = worker.WorkerProcess(
-                        count, pid, group_standby_coord[group_id], dispatcher, None, results_directory,
-                        K, [], [], start_time, is_standby=True, group_ids=group_map[group_id], sid=-nid,
-                        group_id=group_id, radio_range=group_radio_range[group_id])
-                    # processes.append(p)
-                    processes_id[pid] = p
-                    p.start()
+                        # dispatch the new standby fls
+                        dispatcher = assign_closest_dispatcher(group_standby_coord[group_id], dispatchers)
+                        p = worker.WorkerProcess(
+                            count, pid, group_standby_coord[group_id], dispatcher, None, results_directory,
+                            K, [], [], start_time, is_standby=True, group_ids=group_map[group_id], sid=-nid,
+                            group_id=group_id, radio_range=group_radio_range[group_id])
+                        # processes.append(p)
+                        processes_id[pid] = p
+                        p.start()
 
-                    # send the id of the new standby to group members
-                    new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(pid,))\
-                        .from_server(-nid).to_fls_id("*", group_id)
-                    error_handling_socket.broadcast(new_standby_msg)
+                        # send the id of the new standby to group members
+                        new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(pid,))\
+                            .from_server(-nid).to_fls_id("*", group_id)
+                        error_handling_socket.broadcast(new_standby_msg)
 
-                    # send the notification to the previous standby of this group
-                    # notify_previous = Message(MessageTypes.FAILURE_NOTIFICATION, radio_range=msg.range)\
-                    #     .from_fls(msg).to_fls_id(previous_standby, group_id)
-                    error_handling_socket.broadcast(msg.to_fls_id(previous_standby, group_id))
-                    processes_id.pop(fid).join()
+                        # send the notification to the previous standby of this group
+                        error_handling_socket.broadcast(msg.to_fls_id(previous_standby, group_id))
+                        processes_id.pop(failed_fid).join()
             if time.time() - start_time > Config.DURATION:
                 break
 
