@@ -42,6 +42,7 @@ def_general_conf = {
     "DISPATCHERS": "1",
     "C": "1",
     "MULTICAST": "True",
+    "INPUT": "dragon_K:20"
 }
 
 def_test_conf = {
