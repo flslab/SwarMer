@@ -82,7 +82,7 @@ def get_shape_floor_radius(arr, center):
     return np.max(np.linalg.norm(arr_projected_floor - center, axis=1))
 
 
-def get_dispatchers_for_shape(shape, num_dispatchers=len(Config.DISPATCHERS)):
+def get_dispatchers_for_shape(shape, num_dispatchers=1):
     if num_dispatchers == 1:
         return [np.array([0.0, 0.0, 0.0])]
 
