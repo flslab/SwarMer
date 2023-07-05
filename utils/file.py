@@ -195,10 +195,10 @@ def combine_csvs(directory, xslx_dir, file_name):
     # shutil.rmtree(os.path.join(directory))
 
 
-def combine_xlsx(directory):
+def combine_xlsx(directory, name):
     xlsx_files = glob.glob(f"{directory}/*.xlsx")
 
-    with pd.ExcelWriter(os.path.join(directory, 'summary.xlsx')) as writer:
+    with pd.ExcelWriter(os.path.join(directory, f'{name}.xlsx')) as writer:
         dfs = []
         for file in sorted(xlsx_files):
             print(file)
@@ -228,6 +228,9 @@ if __name__ == "__main__":
     # create_csv_from_json(dir_in, 0)
     # combine_csvs(dir_in, dir_out, name)
 
-    combine_xlsx("/Users/hamed/Desktop/h_2 k-clique")
+    combine_xlsx("/Users/hamed/Desktop/racecar/k20", "racecar_K:20")
+    # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")
+    # combine_xlsx("/Users/hamed/Desktop/skateboard/k20", "skateboard_K:20")
+    # combine_xlsx("/Users/hamed/Desktop/racecar/k10", "racecar_K:10")
     # combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:K")
     # combine_xlsx("/Users/hamed/Desktop/165-point_64-core/H:rs_ETA_STR:1.5K")
