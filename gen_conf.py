@@ -47,11 +47,11 @@ def_test_conf = {
     "ENABLED": "True",
     "NUMBER_OF_FLSS": "165",
     "K": "3",
-    "R": "100",
-    "H": "1",
+    "R": "1000",
+    "H": "2",
     "ETA": "K-1",
     "ETA_STR": "'K-1'",
-    "FILE_NAME_KEYS": "['H', 'K', 'R']",
+    "FILE_NAME_KEYS": "['K', 'R']",
     "DIR_KEYS": "['H']"
 }
 
@@ -89,16 +89,12 @@ general_props = [
 
 test_props = [
     {
-        "keys": ["H"],
-        "values": ["2", "'vns'"]
+        "keys": ["R"],
+        "values": ["1000", "100", "10", "1"]
     },
     {
         "keys": ["K"],
-        "values": ["11", "15"]
-    },
-    {
-        "keys": ["R"],
-        "values": ["10", "1"]
+        "values": ["3", "5", "11", "15"]
     },
 ]
 
