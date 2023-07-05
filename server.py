@@ -301,8 +301,9 @@ if __name__ == '__main__':
                 groups.pop(k)
                 radio_ranges.pop(k)
 
-            groups.append(np.stack(single_members))
-            radio_ranges.append(max_dist_singles)
+            if len(single_members):
+                groups.append(np.stack(single_members))
+                radio_ranges.append(max_dist_singles)
 
             # print(groups)
             # print(radio_ranges)
