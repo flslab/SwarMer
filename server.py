@@ -185,7 +185,7 @@ if __name__ == '__main__':
             dir_name = "_".join(f"{k}:{TestConfig.__getattribute__(TestConfig, k)}" for k in TestConfig.DIR_KEYS)
 
     main_dir = Config.RESULTS_PATH if dir_name is None else os.path.join(Config.RESULTS_PATH, Config.SHAPE, dir_name)
-    results_directory = os.path.join(main_dir, experiment_name)
+    results_directory = os.path.join(main_dir, file_name if file_name is not None else experiment_name)
     shape_directory = main_dir
     figure_directory = os.path.join(shape_directory, 'figures')
     if not Config.DEBUG:
@@ -249,10 +249,14 @@ if __name__ == '__main__':
     count = 0
 
     # dispatchers = get_dispatchers_for_shape(None)
+    l = 50
+    w = 100
     if Config.DISPATCHERS == 1:
-        dispatchers = np.array([[50, 35, 0]])
-    if Config.DISPATCHERS == 5:
-        dispatchers = np.array([[50, 35, 0], [100, 0, 0], [0, 70, 0], [100, 70, 0], [0, 0, 0]])
+        dispatchers = np.array([[l/2, w/2, 0]])
+    elif Config.DISPATCHERS == 3:
+        dispatchers = np.array([[l/2, w/2, 0], [l, w, 0], [0, 0, 0]])
+    elif Config.DISPATCHERS == 5:
+        dispatchers = np.array([[l/2, w/2, 0], [l, 0, 0], [0, w, 0], [l, w, 0], [0, 0, 0]])
     # dispatchers = np.array(Config.DISPATCHERS)
 
     # processes = []

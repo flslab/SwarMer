@@ -36,10 +36,6 @@ class Config:
     FILE_NAME_KEYS = ['K']
     SERVER_TIMEOUT = 120
     PROCESS_JOIN_TIMEOUT = 120
-    DISPATCHERS = [
-        [.0, .0, .0],
-        [30.0, 50.0, .0],
-        [60.0, 100.0, .0],
-    ]
+    DISPATCHERS = 1
     C = 1  # number of standbys per group valid values are 0 and 1
     MULTICAST = True

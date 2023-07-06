@@ -35,8 +35,8 @@ def plot_point_cloud(ptcld, name):
     ax.set_yticks(range(0, width + 1, width))
     ax.set_zticks(range(0, height + 1, height))
     ax.tick_params(labelsize=16)
-    plt.savefig(f'../results/{name}.png')
-    # plt.show()
+    # plt.savefig(f'../results/{name}.png')
+    plt.show()
 
 
 def update(num, graph, shm_name, count):
@@ -49,7 +49,7 @@ def update(num, graph, shm_name, count):
 
 if __name__ == '__main__':
 # for name in ['chess', 'dragon', 'skateboard', 'racecar']:
-    name = 'dragon'
+    name = 'racecar'
     mat = scipy.io.loadmat(f'../assets/{name}.mat')
     point_cloud = mat['p']
     plot_point_cloud(point_cloud, name)

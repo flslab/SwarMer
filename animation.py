@@ -19,8 +19,9 @@ fps = 30
 frame_rate = 1/fps
 total_points = 11888
 
-output_name = "racecar_g10_c1_d3"
-input_path = "/Users/hamed/Desktop/racecar_k10_5min_d3/28-Jun-15_30_44/timeline.json"
+# t30_d1_g0	t30_d1_g20	t30_d5_g0	t30_d5_g20	t600_d1_g0	t600_d1_g20	t600_d5_g0	t600_d5_g20
+output_name = "t600_d5_g20"
+input_path = f"/Users/hamed/Desktop/dragon_reli_all/{output_name}/timeline.json"
 
 
 def set_axis():
@@ -102,12 +103,39 @@ def update(frame):
     return line1,
 
 
-if __name__ == '__main__':
-    ani = FuncAnimation(
-        fig, update,
-        frames=30 * duration,
-        init_func=init)
+def show_last_frame():
+    final_points = dict()
+    for event in filtered_events:
+        event_time = event[0]
+        if event_time > 50:
+            break
+        event_type = event[1]
+        fls_id = event[-1]
+        if event_type == TimelineEvents.ILLUMINATE:
+            final_points[fls_id] = event[2]
+        else:
+            final_points.pop(fls_id)
 
-    plt.show()
+    coords = final_points.values()
+    xs = [c[0] for c in coords]
+    ys = [c[1] for c in coords]
+    zs = [c[2] for c in coords]
+
+    # fig2 = plt.figure(figsize=(fig_width, fig_height))
+    # ax2 = fig2.add_subplot(projection='3d')
+    ax.scatter(xs, ys, zs, c='blue', s=2, alpha=1)
+    set_axis()
+
+
+if __name__ == '__main__':
+    # ani = FuncAnimation(
+    #     fig, update,
+    #     frames=30 * duration,
+    #     init_func=init)
+
+    show_last_frame()
+
+    plt.savefig('figs/50s/' + output_name + '.png')
+    # plt.show()
     # writer = FFMpegWriter(fps=fps)
     # ani.save(f"results/{output_name}.mp4", writer=writer)

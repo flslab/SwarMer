@@ -36,7 +36,7 @@ def_general_conf = {
     "SHAPE": "'dragon'",
     "RESULTS_PATH": "'results'",
     "DEBUG": "False",
-    "FILE_NAME_KEYS": "['K', 'DISPATCHERS', 'FAILURE_TIMEOUT']",
+    "FILE_NAME_KEYS": "['C', 'K', 'DISPATCHERS', 'FAILURE_TIMEOUT']",
     "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "DISPATCHERS": "1",
@@ -59,16 +59,22 @@ def_test_conf = {
 
 general_props = [
     {
-        "keys": ["C"],
-        "values": ["0", "1"]
+        "keys": ["C", "K", "INPUT"],
+        "values": [
+            {"C": "0", "K": "3", "INPUT": "'racecar_K:3'"},
+            {"C": "1", "K": "3", "INPUT": "'racecar_K:3'"},
+            {"C": "1", "K": "5", "INPUT": "'racecar_K:5'"},
+            {"C": "1", "K": "10", "INPUT": "'racecar_K:10'"},
+            {"C": "1", "K": "20", "INPUT": "'racecar_K:20'"},
+        ]
     },
     {
         "keys": ["DISPATCHERS"],
-        "values": ["1", "5"]
+        "values": ["1", "3", "5"]
     },
     {
         "keys": ["FAILURE_TIMEOUT"],
-        "values": ["30", "600"]
+        "values": ["1", "3", "6", "30", "60", "120", "600"]
     }
     # {
     #     "keys": ["SHAPE"],
