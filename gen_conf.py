@@ -34,7 +34,7 @@ def_general_conf = {
     "K": "20",
     "MAX_NEIGHBORS": "0",
     "SHAPE": "'racecar'",
-    "RESULTS_PATH": "'results'",
+    "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
     "DEBUG": "False",
     "FILE_NAME_KEYS": "['C', 'K', 'DISPATCHERS', 'FAILURE_TIMEOUT']",
     "SERVER_TIMEOUT": "120",
