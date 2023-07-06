@@ -33,7 +33,7 @@ def_general_conf = {
     "READ_FROM_NPY": "0",
     "K": "20",
     "MAX_NEIGHBORS": "0",
-    "SHAPE": "'dragon'",
+    "SHAPE": "'racecar'",
     "RESULTS_PATH": "'results'",
     "DEBUG": "False",
     "FILE_NAME_KEYS": "['C', 'K', 'DISPATCHERS', 'FAILURE_TIMEOUT']",
