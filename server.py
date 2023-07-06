@@ -306,7 +306,7 @@ if __name__ == '__main__':
             max_dist_singles = 0
             for k in range(len(groups)):
                 if groups[k].shape[0] == 1:
-                    print(groups[k])
+                    # print(groups[k])
                     if len(single_indexes):
                         max_dist_n = np.max(np.linalg.norm(np.stack(single_members) - groups[k][0], axis=1))
                         max_dist_singles = max(max_dist_singles, max_dist_n)
@@ -367,8 +367,8 @@ if __name__ == '__main__':
                             group_id=group_id, radio_range=group_radio_range[group_id])
                         p.start()
                         processes_id[pid] = p
-            print(group_map)
-            print(group_standby_id)
+            # print(group_map)
+            # print(group_standby_id)
             # print(group_standby_coord)
             print(i)
             # exit()
