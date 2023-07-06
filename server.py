@@ -147,7 +147,13 @@ if __name__ == '__main__':
     if IS_CLUSTER_SERVER:
         # Experimental artifact to gather theoretical stats for scientific publications.
         ServerSocket = socket.socket()
-        ServerSocket.bind(Constants.SERVER_ADDRESS)
+        while True:
+            try:
+                ServerSocket.bind(Constants.SERVER_ADDRESS)
+            except OSError:
+                time.sleep(10)
+                continue
+            break
         ServerSocket.listen(N-1)
 
         clients = []
@@ -162,7 +168,13 @@ if __name__ == '__main__':
 
     if IS_CLUSTER_CLIENT:
         client_socket = socket.socket()
-        client_socket.connect(Constants.SERVER_ADDRESS)
+        while True:
+            try:
+                client_socket.connect(Constants.SERVER_ADDRESS)
+            except OSError:
+                time.sleep(10)
+                continue
+            break
         server_msg = client_socket.recv(1024)
         start_time = pickle.loads(server_msg)
 

@@ -3,9 +3,9 @@
 bash gen_conf_cluster.sh
 sleep 10
 
-for i in {0..3}
+for i in {0..104}
 do
 #   bash set_conf_cluster.sh "$i"
-#   sleep 10
+   sleep 10
    bash start_cluster.sh "$i"
 done
