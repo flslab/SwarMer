@@ -18,8 +18,6 @@ class StateMachine:
         self.context = context
         self.metrics = metrics
         self.sock = sock
-        self.timer_single = None
-        self.timer_break_check = None
         self.event_queue = event_queue
         self.last_neighbors_hash = None
         self.eta = TestConfig.ETA
@@ -28,6 +26,7 @@ class StateMachine:
         self.solution_eta_idx = -1
         self.max_eta_idx = -1
         self.range_discovered_neighbors = dict()
+        self.num_heuristic_invoked = 0
 
     def get_w(self):
         return self.context.w
@@ -61,7 +60,6 @@ class StateMachine:
     def start(self):
         self.context.deploy()
         self.enter(StateTypes.SINGLE)
-        self.start_timers()
 
     def handle_discover(self, msg):
         pass
@@ -110,11 +108,12 @@ class StateMachine:
 
         if len(self.get_c()):
             # self.context.set_pair(self.get_m().el)
-            print(f"{self.context.fid} is paired with {self.get_c()} w={self.get_w()} eta={self.eta}")
+            print(f"{self.context.fid} is paired with {self.get_c()} w={self.get_w()}"
+                  f" num_heuristic_invoked={self.num_heuristic_invoked}")
 
         else:
             # self.context.set_pair(self.context.el)
-            print(f"{self.context.fid} is single eta={self.eta}")
+            print(f"{self.context.fid} is single num_heuristic_invoked={self.num_heuristic_invoked}")
 
     def request_range_expansion(self, current_range):
         if len(self.range_discovered_neighbors[current_range]):
@@ -225,6 +224,7 @@ class StateMachine:
             c_prime, last_idx = self.heuristic_vns(c)
         elif TestConfig.H == 'rs':
             c_prime, last_idx = self.heuristic_rs(c)
+        self.num_heuristic_invoked += 1
         self.max_eta_idx = max(self.max_eta_idx, last_idx)
         if self.attr_v(c_prime) > self.attr_v(c):
             c = c_prime
@@ -259,20 +259,11 @@ class StateMachine:
         self.broadcast(discover_msg)
 
     def enter(self, state):
-        if self.timer_single is not None:
-            self.timer_single.cancel()
-            self.timer_single = None
-
-        self.leave(self.state)
         self.state = state
 
         if self.state == StateTypes.SINGLE:
             self.enter_single_state_with_heuristic()
-
-        if self.state == StateTypes.SINGLE:
-            self.timer_single = threading.Timer(
-                Config.STATE_TIMEOUT, self.put_state_in_q, (MessageTypes.REENTER_SINGLE_STATE,))
-            self.timer_single.start()
+            self.put_state_in_q(MessageTypes.REENTER_SINGLE_STATE)
 
     def reenter(self, state):
         self.enter(state)
@@ -281,9 +272,6 @@ class StateMachine:
         msg = Message(event).to_fls(self.context)
         item = PrioritizedItem(1, msg, False)
         self.event_queue.put(item)
-
-    def leave(self, state):
-        pass
 
     def drive(self, msg):
         event = msg.type
@@ -310,6 +298,4 @@ class StateMachine:
         pass
 
     def cancel_timers(self):
-        if self.timer_single is not None:
-            self.timer_single.cancel()
-            self.timer_single = None
+        pass
