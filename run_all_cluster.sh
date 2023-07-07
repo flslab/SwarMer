@@ -9,6 +9,7 @@ do
   do
      bash start_cluster.sh "$i" "$j"
      sleep 10
+     echo "$i" "$j"
      pkill python3
   done
 done
