@@ -1,16 +1,15 @@
+import itertools
 import json
 import math
+from functools import partial
 
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, FFMpegWriter
 import matplotlib as mpl
 from worker.metrics import TimelineEvents
 
-mpl.use('macosx')
 
-height = 0
-width = 0
-length = 0
+
 ticks_gap = 20
 
 start_time = 0
@@ -24,7 +23,7 @@ output_name = "t600_d5_g20"
 input_path = f"/Users/hamed/Desktop/dragon_reli_all/{output_name}/timeline.json"
 
 
-def set_axis():
+def set_axis(ax, length, width, height):
     ax.axes.set_xlim3d(left=0, right=length)
     ax.axes.set_ylim3d(bottom=0, top=width)
     ax.axes.set_zlim3d(bottom=0, top=height)
@@ -35,45 +34,50 @@ def set_axis():
     ax.set_zticks(range(0, height+1, ticks_gap))
 
 
-def set_text(t, missing_flss):
+def set_text(tx, t, missing_flss):
     tx.set(text=f"Elapsed time: {int(t)} seconds\nNumber of missing FLSs: {missing_flss}")
 
 
-px = 1/plt.rcParams['figure.dpi']
-fig_width = 1280*px
-fig_height = 720*px
-fig = plt.figure(figsize=(fig_width, fig_height))
-ax = fig.add_subplot(projection='3d')
-tx = fig.text(0.1, 0.8, s="", fontsize=16)
-line1 = ax.scatter([], [], [])
-
-with open(input_path) as f:
-    events = json.load(f)
-
-filtered_events = []
-for e in events:
-    if e[1] == TimelineEvents.FAIL:
-        filtered_events.append(e)
-    elif e[1] == TimelineEvents.ILLUMINATE:
-        filtered_events.append(e)
-        length = max(int(e[2][0]), length)
-        width = max(int(e[2][1]), width)
-        height = max(int(e[2][2]), height)
-length = math.ceil(length / ticks_gap) * ticks_gap
-width = math.ceil(width / ticks_gap) * ticks_gap
-height = math.ceil(height / ticks_gap) * ticks_gap
-points = {}
-
-print(length)
-print(width)
+def draw_figure():
+    px = 1/plt.rcParams['figure.dpi']
+    fig_width = 1280*px
+    fig_height = 720*px
+    fig = plt.figure(figsize=(fig_width, fig_height))
+    ax = fig.add_subplot(projection='3d')
+    tx = fig.text(0.1, 0.8, s="", fontsize=16)
+    line1 = ax.scatter([], [], [])
+    return fig, ax, tx
 
 
-def init():
+def read_point_cloud(input_path):
+    with open(input_path) as f:
+        events = json.load(f)
+
+    height = 0
+    width = 0
+    length = 0
+    filtered_events = []
+    for e in events:
+        if e[1] == TimelineEvents.FAIL:
+            filtered_events.append(e)
+        elif e[1] == TimelineEvents.ILLUMINATE:
+            filtered_events.append(e)
+            length = max(int(e[2][0]), length)
+            width = max(int(e[2][1]), width)
+            height = max(int(e[2][2]), height)
+    length = math.ceil(length / ticks_gap) * ticks_gap
+    width = math.ceil(width / ticks_gap) * ticks_gap
+    height = math.ceil(height / ticks_gap) * ticks_gap
+
+    return filtered_events, length, width, height
+
+
+def init(ax):
     ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
     ax.zaxis.set_pane_color((0, 0, 0, 0.025))
     ax.view_init(elev=14, azim=136, roll=0)
-    return line1,
+    # return line1,
 
 
 def update(frame):
@@ -97,17 +101,17 @@ def update(frame):
     xs = [c[0] for c in coords]
     ys = [c[1] for c in coords]
     zs = [c[2] for c in coords]
-    ax.scatter(xs, ys, zs, c='blue', s=2, alpha=1)
-    set_axis()
-    set_text(t, total_points - len(coords))
-    return line1,
+    ln = ax.scatter(xs, ys, zs, c='blue', s=2, alpha=1)
+    set_axis(ax, length, width, height)
+    set_text(tx, t, total_points - len(coords))
+    return ln,
 
 
-def show_last_frame():
+def show_last_frame(events, t=30):
     final_points = dict()
-    for event in filtered_events:
+    for event in events:
         event_time = event[0]
-        if event_time > 50:
+        if event_time > t:
             break
         event_type = event[1]
         fls_id = event[-1]
@@ -121,21 +125,59 @@ def show_last_frame():
     ys = [c[1] for c in coords]
     zs = [c[2] for c in coords]
 
-    # fig2 = plt.figure(figsize=(fig_width, fig_height))
-    # ax2 = fig2.add_subplot(projection='3d')
-    ax.scatter(xs, ys, zs, c='blue', s=2, alpha=1)
-    set_axis()
+    return xs, ys, zs
 
 
 if __name__ == '__main__':
+    # mpl.use('macosx')
+
+    # filtered_events, length, width, height = read_point_cloud(input_path)
+    # fig, ax, tx = draw_figure()
+    # points = dict()
     # ani = FuncAnimation(
-    #     fig, update,
+    #     fig, partial(update,),
     #     frames=30 * duration,
-    #     init_func=init)
-
-    show_last_frame()
-
-    plt.savefig('figs/50s/' + output_name + '.png')
+    #     init_func=partial(init, ax))
+    #
     # plt.show()
     # writer = FFMpegWriter(fps=fps)
     # ani.save(f"results/{output_name}.mp4", writer=writer)
+    # exit()
+    configs = [
+        {
+            "keys": ["C", "K"],
+            "values": [
+                {"C": "0", "K": "3"},
+                {"C": "1", "K": "3"},
+                {"C": "1", "K": "5"},
+                {"C": "1", "K": "10"},
+                {"C": "1", "K": "20"},
+            ]
+        },
+        {
+            "keys": ["DISPATCHERS"],
+            "values": ["1", "3", "5"]
+        },
+        {
+            "keys": ["FAILURE_TIMEOUT"],
+            "values": ["1", "3", "6", "30", "60", "120", "600"]
+        }
+    ]
+
+    props_values = [p["values"] for p in configs]
+    combinations = list(itertools.product(*props_values))
+    # print(combinations)
+
+    for c in combinations:
+        file_name = f"racecar_C:{c[0]['C']}_K:{c[0]['K']}_DISPATCHERS:{c[1]}_FAILURE_TIMEOUT:{c[2]}"
+        input_path = f"/Users/hamed/Desktop/racecar_reli/{file_name}/timeline.json"
+        filtered_events, length, width, height = read_point_cloud(input_path)
+        fig, ax, _ = draw_figure()
+        init(ax)
+        xs, ys, zs = show_last_frame(filtered_events)
+        ax.scatter(xs, ys, zs, c='blue', s=2, alpha=1)
+        set_axis(ax, length, width, height)
+        # plt.show()
+        plt.savefig('figs/racecar/' + file_name + '.png')
+        plt.close()
+        # break

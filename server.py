@@ -436,7 +436,7 @@ if __name__ == '__main__':
 
                         # send the notification to the previous standby of this group
                         error_handling_socket.broadcast(msg.to_fls_id(previous_standby, group_id))
-                        processes_id.pop(failed_fid).join()
+                    processes_id.pop(failed_fid).join()
             if time.time() - start_time > Config.DURATION:
                 break
 
