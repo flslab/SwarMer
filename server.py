@@ -240,9 +240,9 @@ if __name__ == '__main__':
             np.random.shuffle(point_cloud)
             point_cloud = point_cloud[:Config.SAMPLE_SIZE]
 
-    dists = np.linalg.norm(point_cloud, axis=1)
-    sorted_indexes = np.flip(np.argsort(dists))
-    point_cloud = point_cloud[sorted_indexes]
+    # dists = np.linalg.norm(point_cloud, axis=1)
+    # sorted_indexes = np.flip(np.argsort(dists))
+    # point_cloud = point_cloud[sorted_indexes]
 
     total_count = point_cloud.shape[0]
     # h = np.log2(total_count)
@@ -271,6 +271,14 @@ if __name__ == '__main__':
 
     knn_idx, knn_dists = utils.knn(gtl_point_cloud)
 
+    # print(gtl_point_cloud)
+    # print(knn_idx[0])
+    # print(knn_dists[0])
+    # exit()
+    # 1: DISCOVER
+    # 1 * (101.454, 1, 13, 25, 39, 41, 62, 64, 81, 84, 107, 120, 135, 139, 146, 158)\
+    #     (158, 107, 146, 84, 64, 139, 39, 81,
+    #                                                                                25, 62, 41, 13, 135, 120)
     try:
         for i in node_point_idx:
             shm = shared_memory.SharedMemory(create=True, size=sample.nbytes)
