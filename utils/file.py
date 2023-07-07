@@ -73,40 +73,40 @@ def create_csv_from_json(directory, duration):
         writer = csv.writer(csvfile)
         writer.writerows(node_rows)
 
-    pair_weights = list(filter(lambda x: x != -1, weights))
-    pair_min_dists = list(filter(lambda x: x != 0, min_dists))
-    pair_avg_dists = list(filter(lambda x: x != 0, avg_dists))
-    pair_max_dists = list(filter(lambda x: x != 0, max_dists))
-
-    if len(pair_weights) == 0:
-        pair_weights = [-1]
-    if len(pair_min_dists) == 0:
-        pair_min_dists = [-1]
-    if len(pair_avg_dists) == 0:
-        pair_avg_dists = [-1]
-    if len(pair_max_dists) == 0:
-        pair_max_dists = [-1]
-
-    metrics_rows = [["metric", "value"],
-                    ["duration", duration],
-                    ["min min_dists", min(pair_min_dists)],
-                    ["avg min_dists", sum(pair_min_dists) / len(pair_min_dists)],
-                    ["max min_dists", max(pair_min_dists)],
-                    ["min avg_dists", min(pair_avg_dists)],
-                    ["avg avg_dists", sum(pair_avg_dists) / len(pair_avg_dists)],
-                    ["max avg_dists", max(pair_avg_dists)],
-                    ["min max_dists", min(pair_max_dists)],
-                    ["avg max_dists", sum(pair_max_dists) / len(pair_max_dists)],
-                    ["max max_dists", max(pair_max_dists)],
-                    ["min weights", min(pair_weights)],
-                    ["avg weights", sum(pair_weights) / len(pair_weights)],
-                    ["max weights", max(pair_weights)],
-                    ["number of cliques", len(pair_weights)],
-                    ["number of single nodes", len(list(filter(lambda x: x == -1, weights)))]
-                    ]
-    with open(os.path.join(directory, 'metrics.csv'), 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerows(metrics_rows)
+    # pair_weights = list(filter(lambda x: x != -1, weights))
+    # pair_min_dists = list(filter(lambda x: x != 0, min_dists))
+    # pair_avg_dists = list(filter(lambda x: x != 0, avg_dists))
+    # pair_max_dists = list(filter(lambda x: x != 0, max_dists))
+    #
+    # if len(pair_weights) == 0:
+    #     pair_weights = [-1]
+    # if len(pair_min_dists) == 0:
+    #     pair_min_dists = [-1]
+    # if len(pair_avg_dists) == 0:
+    #     pair_avg_dists = [-1]
+    # if len(pair_max_dists) == 0:
+    #     pair_max_dists = [-1]
+    #
+    # metrics_rows = [["metric", "value"],
+    #                 ["duration", duration],
+    #                 ["min min_dists", min(pair_min_dists)],
+    #                 ["avg min_dists", sum(pair_min_dists) / len(pair_min_dists)],
+    #                 ["max min_dists", max(pair_min_dists)],
+    #                 ["min avg_dists", min(pair_avg_dists)],
+    #                 ["avg avg_dists", sum(pair_avg_dists) / len(pair_avg_dists)],
+    #                 ["max avg_dists", max(pair_avg_dists)],
+    #                 ["min max_dists", min(pair_max_dists)],
+    #                 ["avg max_dists", sum(pair_max_dists) / len(pair_max_dists)],
+    #                 ["max max_dists", max(pair_max_dists)],
+    #                 ["min weights", min(pair_weights)],
+    #                 ["avg weights", sum(pair_weights) / len(pair_weights)],
+    #                 ["max weights", max(pair_weights)],
+    #                 ["number of cliques", len(pair_weights)],
+    #                 ["number of single nodes", len(list(filter(lambda x: x == -1, weights)))]
+    #                 ]
+    # with open(os.path.join(directory, 'metrics.csv'), 'w', newline='') as csvfile:
+    #     writer = csv.writer(csvfile)
+    #     writer.writerows(metrics_rows)
 
 
 def write_csv(directory, rows, name):

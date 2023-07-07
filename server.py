@@ -453,8 +453,8 @@ if __name__ == '__main__':
         else:
             plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
 
-    if not Config.DEBUG and nid == 0 and not is_failed:
-        # utils.create_csv_from_json(results_directory, end_time-start_time)
+    if not Config.DEBUG and nid == 0:  # and not is_failed
+        utils.create_csv_from_json(results_directory, end_time-start_time)
         min_distances = [-1] if len(min_distances) == 0 else min_distances
         avg_distances = [-1] if len(avg_distances) == 0 else avg_distances
         max_distances = [-1] if len(max_distances) == 0 else max_distances
