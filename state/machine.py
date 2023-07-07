@@ -115,6 +115,7 @@ class StateMachine:
         else:
             # self.context.set_pair(self.context.el)
             print(f"{self.context.fid} is single num_heuristic_invoked={self.num_heuristic_invoked}")
+            print(self.context.neighbors)
 
     def request_range_expansion(self, current_range):
         if len(self.range_discovered_neighbors[current_range]):
