@@ -293,9 +293,10 @@ if __name__ == '__main__':
         group_radio_range = {}
         i = 0
         if error_handling:
-            groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{Config.INPUT}.xlsx'))
-            # groups, radio_ranges = read_cliques_xlsx(
-            # "/Users/hamed/Desktop/chess_k10/chess_K:10.xlsx")
+            # groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{Config.INPUT}.xlsx'))
+            groups, radio_ranges = read_cliques_xlsx("/Users/hamed/Desktop/chess/k5/chess_K:5_02_Jul_17_41_43.xlsx")
+            groups = groups[:3]
+            radio_ranges = radio_ranges[:3]
             # "/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
             # print(radio_ranges)
             # exit()
@@ -351,7 +352,7 @@ if __name__ == '__main__':
                         dispatcher = assign_closest_dispatcher(member_coord, dispatchers)
                         p = worker.WorkerProcess(
                             count, pid, member_coord, dispatcher, None, results_directory,
-                            K, [], [], start_time, standby_id=standby_id, group_ids=set(group_ids), sid=-nid,
+                            start_time, standby_id=standby_id, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
                         p.start()
                         processes_id[pid] = p
@@ -363,7 +364,7 @@ if __name__ == '__main__':
                         dispatcher = assign_closest_dispatcher(stand_by_coord, dispatchers)
                         p = worker.WorkerProcess(
                             count, pid, stand_by_coord, dispatcher, None, results_directory,
-                            K, [], [], start_time, is_standby=True, group_ids=set(group_ids), sid=-nid,
+                            start_time, is_standby=True, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
                         p.start()
                         processes_id[pid] = p
@@ -393,39 +394,31 @@ if __name__ == '__main__':
         while True:
             msg, _ = error_handling_socket.receive()
             if msg.dest_fid == -nid:
-                if msg.type == MessageTypes.FAILURE_NOTIFICATION:
+                if msg.type == MessageTypes.REPLICA_REQUEST:
                     i += 1
                     pid = i * N + nid
                     group_id = msg.swarm_id
                     failed_fid = msg.fid
+                    is_illuminating = msg.args[0]
 
-                    if Config.C == 0:
+                    if is_illuminating:
                         dispatcher = assign_closest_dispatcher(msg.gtl, dispatchers)
                         p = worker.WorkerProcess(
                             count, pid, msg.gtl, dispatcher, None, results_directory,
-                            K, [], [], start_time, group_ids=group_map[group_id], sid=-nid,
+                            start_time, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
                         processes_id[pid] = p
                         p.start()
-                    elif Config.C == 1:
-                        c = group_map[group_id]
-                        if failed_fid in c:
-                            # replace the failed fls with the standby fls
-                            group_map[group_id] = (c - {failed_fid}) | {group_standby_id[group_id]}
-
-                        # update the standby fls of the group
+                    else:
                         previous_standby = group_standby_id[group_id]
                         group_standby_id[group_id] = pid
-                        # print(f"{fid} failed in group {group_id}.
-                        # new standby is {i}. new group is {group_map[group_id]}")
 
                         # dispatch the new standby fls
                         dispatcher = assign_closest_dispatcher(group_standby_coord[group_id], dispatchers)
                         p = worker.WorkerProcess(
                             count, pid, group_standby_coord[group_id], dispatcher, None, results_directory,
-                            K, [], [], start_time, is_standby=True, group_ids=group_map[group_id], sid=-nid,
+                            start_time, is_standby=True, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
-                        # processes.append(p)
                         processes_id[pid] = p
                         p.start()
 
@@ -435,7 +428,7 @@ if __name__ == '__main__':
                         error_handling_socket.broadcast(new_standby_msg)
 
                         # send the notification to the previous standby of this group
-                        error_handling_socket.broadcast(msg.to_fls_id(previous_standby, group_id))
+                        # error_handling_socket.broadcast(msg.to_fls_id(previous_standby, group_id))
                     processes_id.pop(failed_fid).join()
             if time.time() - start_time > Config.DURATION:
                 break

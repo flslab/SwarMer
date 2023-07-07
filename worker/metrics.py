@@ -39,16 +39,6 @@ def log_msg_hist(hist, msg_type, label, cat):
     # update_dict_sum(hist, key_num_cat)
 
 
-def get_messages_histogram(msgs, label, cat):
-    hist = dict()
-
-    for msg_hist in msgs:
-        msg_type = msg_hist.value
-        log_msg_hist(hist, msg_type, label, cat)
-
-    return hist
-
-
 def merge_timelines(timelines):
     lists = timelines
     heap = []
@@ -165,7 +155,6 @@ class Metrics:
             "01_is_standby": [],
             "02_group_id": 0,
             "03_radio_range": 0,
-            "04_group_members": [],  # (time, set)
             "05_standby_id": [],  # (time, id)
             "10_dispatch_time": -1,
             "12_arrival_time": -1,
@@ -200,42 +189,6 @@ class Metrics:
     def log_total_dist(self, dist):
         log_sum(self.general_metrics, "20_total_distance_traveled", dist)
 
-    def get_total_distance(self):
-        way_points = self.get_location_history()
-        total_dist = 0
-        for i in range(len(way_points) - 1):
-            d = np.linalg.norm(way_points[i+1].value - way_points[i].value)
-            total_dist += d
-
-        return total_dist
-
-    def get_total_bytes_sent(self):
-        return sum([s.meta["length"] for s in self.get_sent_messages()])
-
-    def get_total_bytes_received(self):
-        return sum([s.meta["length"] for s in self.get_received_messages()])
-
-    def get_sent_messages_histogram(self):
-        return get_messages_histogram(self.get_sent_messages(), 'sent', 'B')
-
-    def get_received_messages_histogram(self):
-        return get_messages_histogram(self.get_received_messages(), 'received', 'C')
-
-    def get_location_history(self):
-        return self.history[MetricTypes.LOCATION]
-
-    def get_received_messages(self):
-        return self.history[MetricTypes.RECEIVED_MASSAGES]
-
-    def get_sent_messages(self):
-        return self.history[MetricTypes.SENT_MESSAGES]
-
-    def get_dropped_messages(self):
-        return sum(self.history[MetricTypes.DROPPED_MESSAGES])
-
-    def get_failures(self):
-        return self.history[MetricTypes.FAILURES]
-
     def get_final_report_(self):
         report = {
             "timeline": self.timeline
@@ -245,20 +198,7 @@ class Metrics:
         report.update(self.received_msg_hist)
         return report
 
-    def get_final_report(self):
-        report = {
-            "A4_bytes_sent": sum([s.meta["length"] for s in self.get_sent_messages()]),
-            "A4_bytes_received": sum([r.meta["length"] for r in self.get_received_messages()]),
-            "A4_num_messages_sent": len(self.get_sent_messages()),
-            "A4_num_messages_received": len(self.get_received_messages()),
-            "A4_num_dropped_messages": self.get_dropped_messages(),
-        }
-        report.update(self.get_sent_messages_histogram())
-        report.update(self.get_received_messages_histogram())
-
-        return report
-
-    def log_initial_metrics(self, gtl, is_standby, group_id, radio_range, group_members, standby_id,
+    def log_initial_metrics(self, gtl, is_standby, group_id, radio_range, standby_id,
                             timestamp, dispatch_duration, el):
         t = timestamp - self.start_time
         self.general_metrics["00_gtl"] = gtl.tolist()
@@ -267,7 +207,6 @@ class Metrics:
         self.general_metrics["10_dispatch_time"] = t
         self.general_metrics["12_arrival_time"] = t + dispatch_duration
         self.general_metrics["13_dispatch_duration"] = dispatch_duration
-        self.log_group_members(timestamp, group_members)
         self.log_standby_id(timestamp, standby_id)
         self.log_is_standby(timestamp, is_standby)
         self.timeline.append((t, TimelineEvents.DISPATCH))
@@ -275,9 +214,6 @@ class Metrics:
             self.timeline.append((t + dispatch_duration, TimelineEvents.STANDBY))
         else:
             self.timeline.append((t + dispatch_duration, TimelineEvents.ILLUMINATE, el.tolist()))
-
-    def log_group_members(self, timestamp, group_members):
-        self.general_metrics["04_group_members"].append((timestamp - self.start_time, tuple(group_members)))
 
     def log_standby_id(self, timestamp, standby_id):
         self.general_metrics["05_standby_id"].append((timestamp - self.start_time, standby_id))

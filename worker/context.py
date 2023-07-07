@@ -9,8 +9,7 @@ from .history import History
 
 
 class WorkerContext:
-    def __init__(self, count, fid, gtl, el, shm_name, metrics, k,
-                 sorted_neighbors, sorted_dist, is_standby=False, group_ids=None, standby_id=None, sid=0, group_id=None,
+    def __init__(self, count, fid, gtl, el, shm_name, metrics, is_standby=False, standby_id=None, sid=0, group_id=None,
                  radio_range=2000):
         self.count = count
         self.fid = fid
@@ -20,50 +19,15 @@ class WorkerContext:
         self.swarm_id = self.fid if group_id is None else group_id
         self.neighbors = dict()
         self.fid_to_w = dict()
-        self.sorted_dist = sorted_dist
-        self.sorted_neighbors = sorted_neighbors
         self.radio_range = radio_range
         self.max_range = Config.MAX_RANGE
-        self.size = 1
-        self.anchor = None
-        self.query_id = None
-        self.challenge_id = None
         self.shm_name = shm_name
         self.message_id = 0
         self.alpha = Config.DEAD_RECKONING_ANGLE / 180 * np.pi
         self.metrics = metrics
-        self.w = (-1,)
-        self.c = ()
-        self.k = k
-        self.history = History(2)
         self.is_standby = is_standby
-        self.group_ids = group_ids
         self.standby_id = standby_id
         self.sid = sid
-
-    def set_pair(self):
-        if self.shm_name:
-            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-            shared_array = np.ndarray((self.k,), dtype=np.int32, buffer=shared_mem.buf)
-            shared_array[:] = sorted([self.fid] + list(self.c))
-            shared_mem.close()
-
-    def set_single(self):
-        if self.shm_name:
-            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-            shared_array = np.ndarray((7,), dtype=np.float64, buffer=shared_mem.buf)
-            shared_array[6] = 0
-            shared_mem.close()
-
-    def set_swarm_id(self, swarm_id):
-        # print(f"{self.fid}({self.swarm_id}) merged into {swarm_id}")
-        self.swarm_id = swarm_id
-        # if self.shm_name:
-        #     shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-        #     shared_array = np.ndarray((5,), dtype=np.float64, buffer=shared_mem.buf)
-        #     shared_array[3] = self.swarm_id
-        #     shared_mem.close()
-        # self.history.log(MetricTypes.SWARM_ID, self.swarm_id)
 
     def set_el(self, el):
         self.el = el
@@ -75,15 +39,12 @@ class WorkerContext:
 
         # self.history.log(MetricTypes.LOCATION, self.el)
 
-    def set_query_id(self, query_id):
-        self.query_id = query_id
-
     def set_radio_range(self, radio_range):
         self.radio_range = radio_range
 
     def deploy(self):
         timestamp, dur, dest = self.move(self.gtl - self.el)
-        self.metrics.log_initial_metrics(self.gtl, self.is_standby, self.swarm_id, self.radio_range, self.group_ids,
+        self.metrics.log_initial_metrics(self.gtl, self.is_standby, self.swarm_id, self.radio_range,
                                          self.standby_id, timestamp, dur, dest)
         return dur, dest
         # if self.shm_name:
@@ -171,7 +132,6 @@ class WorkerContext:
         self.metrics.log_sent_msg(msg_type, length)
         self.message_id += 1
 
-    def log_replacement(self, timestamp, dur, failed_fls_id, is_stand_by, new_group, failed_fls_el):
+    def log_replacement(self, timestamp, dur, failed_fls_id, is_stand_by, failed_fls_el):
         self.metrics.log_replacement(timestamp, dur, failed_fls_id, failed_fls_el)
         self.metrics.log_is_standby(timestamp, is_stand_by)
-        self.metrics.log_group_members(timestamp, new_group)
