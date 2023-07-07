@@ -303,6 +303,7 @@ if __name__ == '__main__':
     # gtl_point_cloud = local_gtl_point_cloud
 
     start_time = time.time()
+    is_failed = False
     print('waiting for processes ...')
 
     # last_num = 0
@@ -371,6 +372,9 @@ if __name__ == '__main__':
                 freeze_counter = 0
 
             if freeze_counter == Config.SERVER_TIMEOUT:
+                is_failed = True
+                print("__TIMEOUT__")
+                print(cliques)
                 break
             last_hash = d_hash
             if len(list(clique_sizes)) == total_count // K and len(list(single_sizes)) == total_count % K:
@@ -449,7 +453,7 @@ if __name__ == '__main__':
         else:
             plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
 
-    if not Config.DEBUG and nid == 0:
+    if not Config.DEBUG and nid == 0 and not is_failed:
         # utils.create_csv_from_json(results_directory, end_time-start_time)
         min_distances = [-1] if len(min_distances) == 0 else min_distances
         avg_distances = [-1] if len(avg_distances) == 0 else avg_distances
