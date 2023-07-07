@@ -78,35 +78,35 @@ class StateMachine:
         self.broadcast(stop_msg)
         self.cancel_timers()
 
-        if not Config.DEBUG:
-            min_fid = min(self.get_c() + (self.context.fid,))
-
-            if len(self.get_c()):
-                dists = []
-                count = 0
-                els = [self.context.el] + [self.context.neighbors[i].el for i in self.get_c()]
-                for el_i, el_j in combinations(els, 2):
-                    dists.append(np.linalg.norm(el_i - el_j))
-                    count += 1
-            else:
-                dists = [0]
-                count = 1
-                els = [self.context.el]
-            results = {
-                "5 weight": self.get_w()[0],
-                "0 clique members": self.get_w()[1:],
-                "6 dist between each pair": dists,
-                "7 coordinates": [list(el) for el in els],
-                "1 min dist": min(dists),
-                "2 avg dist": sum(dists) / count,
-                "3 max dist": max(dists),
-                "4 total dist": sum(dists),
-                "8 max eta": self.max_eta_idx + 1,
-                "8 solution eta": self.solution_eta_idx + 1,
-                "9 max range": self.context.sorted_dist[self.max_eta_idx] if self.max_eta_idx != -1 else 0,
-                "9 solution range": self.context.sorted_dist[self.solution_eta_idx] if self.solution_eta_idx != -1 else 0,
-            }
-            write_json(self.context.fid, results, self.metrics.results_directory, self.context.fid == min_fid)
+        # if not Config.DEBUG:
+        #     min_fid = min(self.get_c() + (self.context.fid,))
+        #
+        #     if len(self.get_c()):
+        #         dists = []
+        #         count = 0
+        #         els = [self.context.el] + [self.context.neighbors[i].el for i in self.get_c()]
+        #         for el_i, el_j in combinations(els, 2):
+        #             dists.append(np.linalg.norm(el_i - el_j))
+        #             count += 1
+        #     else:
+        #         dists = [0]
+        #         count = 1
+        #         els = [self.context.el]
+        #     results = {
+        #         "5 weight": self.get_w()[0],
+        #         "0 clique members": self.get_w()[1:],
+        #         "6 dist between each pair": dists,
+        #         "7 coordinates": [list(el) for el in els],
+        #         "1 min dist": min(dists),
+        #         "2 avg dist": sum(dists) / count,
+        #         "3 max dist": max(dists),
+        #         "4 total dist": sum(dists),
+        #         "8 max eta": self.max_eta_idx + 1,
+        #         "8 solution eta": self.solution_eta_idx + 1,
+        #         "9 max range": self.context.sorted_dist[self.max_eta_idx] if self.max_eta_idx != -1 else 0,
+        #         "9 solution range": self.context.sorted_dist[self.solution_eta_idx] if self.solution_eta_idx != -1 else 0,
+        #     }
+        #     write_json(self.context.fid, results, self.metrics.results_directory, self.context.fid == min_fid)
 
         if len(self.get_c()):
             # self.context.set_pair(self.get_m().el)

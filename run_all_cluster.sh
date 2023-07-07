@@ -8,7 +8,7 @@ do
   for j in {0..9}
   do
      bash start_cluster.sh "$i"
-     sleep 60
+     sleep 10
      pkill python3
   done
 done

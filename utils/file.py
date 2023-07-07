@@ -109,6 +109,12 @@ def create_csv_from_json(directory, duration):
         writer.writerows(metrics_rows)
 
 
+def write_csv(directory, rows, name):
+    with open(os.path.join(directory, 'metrics.csv'), 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(rows)
+
+
 def write_hds_time(hds, directory, nid):
     if not os.path.exists(directory):
         return

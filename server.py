@@ -1,7 +1,9 @@
+import copy
 import select
 import socket
 import pickle
 import threading
+from itertools import combinations
 
 import numpy as np
 from multiprocessing import shared_memory
@@ -54,9 +56,10 @@ def stop_client(connection):
     # return message.args[0]
 
 
-def aggregate_cliques(indexes, sh_arrays):
+def aggregate_cliques(indexes, sh_arrs):
     all_cliques = dict()
     all_connections = dict()
+    sh_arrays = copy.deepcopy(sh_arrs)
     for k in indexes:
         all_connections[k + 1] = sh_arrays[k]
         clique_key = ".".join([str(clique) for clique in sh_arrays[k]])
@@ -212,7 +215,7 @@ if __name__ == '__main__':
             c1 = [r1 * np.cos(theta), r1 * np.sin(theta), 0]
             for j in range(n2):
                 alpha = theta + j * 2 * np.pi / n2
-                point = [c1[0] + r2 * np.cos(alpha), c1[1] + r2 * np.sin(alpha), j]
+                point = [c1[0] + r2 * np.cos(alpha), c1[1] + r2 * np.sin(alpha), 0]
                 points.append(point)
 
         # for i in range(n2):
@@ -372,6 +375,7 @@ if __name__ == '__main__':
             last_hash = d_hash
             if len(list(clique_sizes)) == total_count // K and len(list(single_sizes)) == total_count % K:
                 print(cliques)
+                # print(connections)
                 break
 
     end_time = time.time()
@@ -406,18 +410,39 @@ if __name__ == '__main__':
     if nid == 0:
         visited = set()
         fig = plt.figure()
-        ax = fig.add_subplot(projection='3d')
+        # ax = fig.add_subplot(projection='3d')
+        ax = fig.add_subplot()
         ax.set_aspect('equal')
+        avg_distances = []
+        min_distances = []
+        max_distances = []
+        num_cliques = 0
+        num_singles = 0
         for c in connections.values():
             key = str(c)
             if key in visited:
                 continue
             visited.add(key)
 
-            xs = [gtl_point_cloud[ci - 1][0] for ci in c]
-            ys = [gtl_point_cloud[ci - 1][1] for ci in c]
-            zs = [gtl_point_cloud[ci - 1][2] for ci in c]
-            ax.plot3D(xs + [xs[0]], ys + [ys[0]], zs + [zs[0]], '-o')
+            group_points = [gtl_point_cloud[ci - 1] for ci in c]
+            num_members = len(set(c))
+            if num_members == K:
+                c_count = 0
+                dists = []
+                for el_i, el_j in combinations(group_points, 2):
+                    dists.append(np.linalg.norm(el_i - el_j))
+                    c_count += 1
+                avg_distances.append(sum(dists) / c_count)
+                min_distances.append(min(dists))
+                max_distances.append(max(dists))
+                num_cliques += 1
+            elif num_members == 1:
+                num_singles += 1
+            xs = [p[0] for p in group_points]
+            ys = [p[1] for p in group_points]
+            zs = [p[2] for p in group_points]
+            # ax.plot3D(xs + [xs[0]], ys + [ys[0]], zs + [zs[0]], '-o')
+            ax.plot(xs + [xs[0]], ys + [ys[0]], '-o')
         # plt.savefig(f'{Config.RESULTS_PATH}/{experiment_name}.jpg')
         if Config.DEBUG:
             plt.show()
@@ -425,7 +450,25 @@ if __name__ == '__main__':
             plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
 
     if not Config.DEBUG and nid == 0:
-        utils.create_csv_from_json(results_directory, end_time-start_time)
+        # utils.create_csv_from_json(results_directory, end_time-start_time)
+        min_distances = [-1] if len(min_distances) == 0 else min_distances
+        avg_distances = [-1] if len(avg_distances) == 0 else avg_distances
+        max_distances = [-1] if len(max_distances) == 0 else max_distances
+        rows = [["metric", "value"],
+                ["duration", end_time-start_time],
+                ["min min_dists", min(min_distances)],
+                ["avg min_dists", sum(min_distances) / num_cliques],
+                ["max min_dists", max(min_distances)],
+                ["min avg_dists", min(avg_distances)],
+                ["avg avg_dists", sum(avg_distances) / num_cliques],
+                ["max avg_dists", max(avg_distances)],
+                ["min max_dists", min(max_distances)],
+                ["avg max_dists", sum(max_distances) / num_cliques],
+                ["max max_dists", max(max_distances)],
+                ["number of cliques", num_cliques],
+                ["number of single nodes", num_singles]
+                ]
+        utils.write_csv(results_directory, rows, 'metrics')
         utils.write_configs(results_directory, current_date_time)
         utils.combine_csvs(results_directory, shape_directory, file_name)
 
