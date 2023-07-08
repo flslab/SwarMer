@@ -209,34 +209,34 @@ class StateMachine:
         if self.is_proper_v(self.get_c()):
             c = self.get_c()
 
-        # n_hash = dict_hash(self.context.fid_to_w)
-        # if n_hash != self.last_neighbors_hash:
-        #     self.last_neighbors_hash = n_hash
+        n_hash = dict_hash(self.context.fid_to_w)
+        if n_hash != self.last_neighbors_hash:
+            self.last_neighbors_hash = n_hash
 
-        for n in self.context.neighbors.values():
-            if self.context.fid in n.c:
-                new_c = tuple(nc for nc in n.c if nc != self.context.fid) + (n.fid,)
-                if all(nc in self.context.neighbors for nc in new_c):
-                    if self.attr_v(new_c) > self.attr_v(c):
-                        c = new_c
-        if TestConfig.H == 1:
-            c_prime, last_idx = self.heuristic_1(c)
-        elif TestConfig.H == 2:
-            c_prime, last_idx = self.heuristic_2(c)
-        elif TestConfig.H == 'vns':
-            c_prime, last_idx = self.heuristic_vns(c)
-        elif TestConfig.H == 'rs':
-            c_prime, last_idx = self.heuristic_rs(c)
-        self.num_heuristic_invoked += 1
-        self.max_eta_idx = max(self.max_eta_idx, last_idx)
-        if self.attr_v(c_prime) > self.attr_v(c):
-            c = c_prime
-            self.solution_eta_idx = last_idx
+            for n in self.context.neighbors.values():
+                if self.context.fid in n.c:
+                    new_c = tuple(nc for nc in n.c if nc != self.context.fid) + (n.fid,)
+                    if all(nc in self.context.neighbors for nc in new_c):
+                        if self.attr_v(new_c) > self.attr_v(c):
+                            c = new_c
+            if TestConfig.H == 1:
+                c_prime, last_idx = self.heuristic_1(c)
+            elif TestConfig.H == 2:
+                c_prime, last_idx = self.heuristic_2(c)
+            elif TestConfig.H == 'vns':
+                c_prime, last_idx = self.heuristic_vns(c)
+            elif TestConfig.H == 'rs':
+                c_prime, last_idx = self.heuristic_rs(c)
+            self.num_heuristic_invoked += 1
+            self.max_eta_idx = max(self.max_eta_idx, last_idx)
+            if self.attr_v(c_prime) > self.attr_v(c):
+                c = c_prime
+                self.solution_eta_idx = last_idx
 
-        self.set_pair(c)
+            self.set_pair(c)
 
-        discover_msg = Message(MessageTypes.DISCOVER).to_all()
-        self.broadcast(discover_msg)
+            discover_msg = Message(MessageTypes.DISCOVER).to_all()
+            self.broadcast(discover_msg)
 
     def enter_single_state(self):
         c = ()
