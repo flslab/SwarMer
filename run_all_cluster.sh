@@ -5,11 +5,11 @@ sleep 10
 
 for i in {0..15}
 do
-  for j in {0..9}
+  for j in {0..14}
   do
-     bash start_cluster.sh "$i" "$j"
+     bash start_cluster.sh "$i"
+#     echo "$i" "$j"
      sleep 10
-     echo "$i" "$j"
      pkill python3
   done
 done
