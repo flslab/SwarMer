@@ -1,3 +1,4 @@
+import itertools
 import os
 import json
 import csv
@@ -209,14 +210,14 @@ def combine_xlsx(directory, name):
         for file in sorted(xlsx_files):
             print(file)
             df = pd.read_excel(file, sheet_name='metrics')
-            m = re.search(r'(\w+)_K:(\d+)', file)
-            shape = m.group(1)
-            k = m.group(2)
+            m = re.search(r'K:(\d+)_R:(\d+)', file)
+            k = m.group(1)
+            r = m.group(2)
 
-            df2 = pd.DataFrame([shape, k])
+            df2 = pd.DataFrame([k, r])
             df3 = pd.concat([df2, df.value])
             dfs.append(df3)
-        pd.concat([pd.concat([pd.DataFrame(['shape', 'k']), df.metric])] + dfs, axis=1).to_excel(writer, index=False)
+        pd.concat([pd.concat([pd.DataFrame(['G', 'R']), df.metric])] + dfs, axis=1).to_excel(writer, index=False)
 
 
 def read_cliques_xlsx(path):
@@ -234,7 +235,14 @@ if __name__ == "__main__":
     # create_csv_from_json(dir_in, 0)
     # combine_csvs(dir_in, dir_out, name)
 
-    combine_xlsx("/Users/hamed/Desktop/racecar/k20", "racecar_K:20")
+    props_values = [[3, 5, 11, 15], [1, 10, 100, 1000]]
+    combinations = list(itertools.product(*props_values))
+    # for name in combinations:
+        # print(name)
+    # name = (3, 10)
+    combine_xlsx(f"/Users/hamed/Desktop/all_k5", f"summary")
+    combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
+    combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")
     # combine_xlsx("/Users/hamed/Desktop/skateboard/k20", "skateboard_K:20")
     # combine_xlsx("/Users/hamed/Desktop/racecar/k10", "racecar_K:10")
