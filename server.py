@@ -162,7 +162,7 @@ if __name__ == '__main__':
         clients = []
         for i in range(N-1):
             client, address = ServerSocket.accept()
-            print(address)
+            print(address, time.time())
             clients.append(client)
 
     if IS_CLUSTER_CLIENT:
