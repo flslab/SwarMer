@@ -37,4 +37,4 @@ class Config:
     SERVER_TIMEOUT = 120
     PROCESS_JOIN_TIMEOUT = 120
     NUM_DISPATCHERS = 1
-    MULTICAST = False
+    MULTICAST = True
