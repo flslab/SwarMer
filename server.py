@@ -161,6 +161,8 @@ def handle_dispatcher_assignments(client_sock, processes_dict):
     # client runs this
     while True:
         ser_msg = client_sock.recv(1024)
+        if not ser_msg:
+            continue
         ser_msg = pickle.loads(ser_msg)
         if ser_msg:
             fid, dispatcher_coord = ser_msg
@@ -177,6 +179,8 @@ def handle_dispatcher_requests(client_sock, ds):
     # server runs this
     while True:
         cl_msg = client_sock.recv(1024)
+        if not cl_msg:
+            continue
         cl_msg = pickle.loads(cl_msg)
         if cl_msg:
             fid, gtl = cl_msg
