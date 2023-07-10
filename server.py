@@ -527,8 +527,6 @@ if __name__ == '__main__':
 
     end_time = time.time()
 
-    if nid == 0:
-        stop.stop_all()
     print("done")
 
     time.sleep(1)
@@ -550,10 +548,8 @@ if __name__ == '__main__':
             d.q.put(False)
             d.join()
 
-        # for i in range(N - 1):
-        #     # stop_client(clients[i])
-        #     clients[i].close()
-        # ServerSocket.close()
+    if nid == 0:
+        stop.stop_all()
 
     print("waiting for flss")
     for p in processes_id.values():
@@ -563,6 +559,11 @@ if __name__ == '__main__':
     for p in processes_id.values():
         if p.is_alive():
             p.terminate()
+
+    for i in range(N - 1):
+        # stop_client(clients[i])
+        clients[i].close()
+    ServerSocket.close()
 
     # if nid == 0:
     #     visited = set()

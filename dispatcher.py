@@ -19,7 +19,10 @@ class Dispatcher(threading.Thread):
             if isinstance(item, WorkerProcess):
                 item.start()
             elif callable(item):
-                item()
+                try:
+                    item()
+                except BrokenPipeError:
+                    continue
             else:
                 break
             time.sleep(self.delay)
