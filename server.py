@@ -525,12 +525,6 @@ if __name__ == '__main__':
 
     end_time = time.time()
 
-    if IS_CLUSTER_SERVER:
-        for i in range(N - 1):
-            # stop_client(clients[i])
-            clients[i].close()
-        ServerSocket.close()
-
     if nid == 0:
         stop.stop_all()
     print("done")
@@ -541,17 +535,26 @@ if __name__ == '__main__':
         dispatcher_handler_thread.join()
 
     if IS_CLUSTER_SERVER:
+        print("waiting for dispatcher handlers")
+
         for client in clients:
             client.send(pickle.dumps(False))
         for dt in dispatch_request_handler_threads:
             dt.join()
 
+        for i in range(N - 1):
+            # stop_client(clients[i])
+            clients[i].close()
+        ServerSocket.close()
+
     if nid == 0:
+        print("waiting for dispatchers")
         for d in dispatchers:
             d.q.put(False)
             d.join()
 
     for p in processes_id.values():
+        print("waiting for flss")
         p.join(Config.PROCESS_JOIN_TIMEOUT)
         if p.is_alive():
             break
