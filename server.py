@@ -232,10 +232,6 @@ if __name__ == '__main__':
             print(address)
             clients.append(client)
 
-        start_time = time.time()
-        for client in clients:
-            client.send(pickle.dumps(start_time))
-
     client_socket = None
     if IS_CLUSTER_CLIENT:
         client_socket = socket.socket()
@@ -361,9 +357,24 @@ if __name__ == '__main__':
 
     # knn_idx, knn_dists = utils.knn(gtl_point_cloud)
 
-    if N == 1 and nid == 0:
-        start_time = time.time()
     processes_id = dict()
+
+    if IS_CLUSTER_CLIENT:
+        dispatcher_handler_thread = Thread(target=handle_dispatcher_assignments, args=(client_socket, processes_id))
+        dispatcher_handler_thread.start()
+
+    if IS_CLUSTER_SERVER:
+        dispatch_request_handler_threads = []
+        for client in clients:
+            dt = Thread(target=handle_dispatcher_requests, args=(client, dispatchers))
+            dt.start()
+            dispatch_request_handler_threads.append(dt)
+
+    start_time = time.time()
+    if IS_CLUSTER_SERVER:
+        for client in clients:
+            client.send(pickle.dumps(start_time))
+
     try:
         # failure handling
         group_map = {}
@@ -462,17 +473,6 @@ if __name__ == '__main__':
 
     # gtl_point_cloud = local_gtl_point_cloud
 
-    if IS_CLUSTER_CLIENT:
-        dispatcher_handler_thread = Thread(target=handle_dispatcher_assignments, args=(client_socket, processes_id))
-        dispatcher_handler_thread.start()
-
-    if IS_CLUSTER_SERVER:
-        dispatch_request_handler_threads = []
-        for client in clients:
-            dt = Thread(target=handle_dispatcher_requests, args=(client, dispatchers))
-            dt.start()
-            dispatch_request_handler_threads.append(dt)
-
     print('waiting for processes ...')
 
     freeze_counter = 0
@@ -511,7 +511,7 @@ if __name__ == '__main__':
                         dispatch_fls(p, client_socket, dispatchers, group_standby_coord[group_id], processes_id)
 
                         # send the id of the new standby to group members
-                        new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(pid,))\
+                        new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(pid,)) \
                             .from_server(-nid).to_fls_id("*", group_id)
                         error_handling_socket.broadcast(new_standby_msg)
 
