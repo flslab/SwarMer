@@ -33,9 +33,10 @@ class Config:
     SHAPE = 'racecar'
     RESULTS_PATH = '/proj/nova-PG0/hamed/results'
     DEBUG = False
-    FILE_NAME_KEYS = ['K']
+    FILE_NAME_KEYS = ['DISPATCHERS']
     SERVER_TIMEOUT = 120
     PROCESS_JOIN_TIMEOUT = 120
-    DISPATCHERS = 1
+    DISPATCHERS = 5  # valid values 1 3 5
+    DISPATCH_RATE = 1  # valid values 'inf' or a non-zero number
     C = 1  # number of standbys per group valid values are 0 and 1
     MULTICAST = True

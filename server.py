@@ -1,6 +1,7 @@
 import queue
 import socket
 import pickle
+import random
 from threading import Thread
 
 import numpy as np
@@ -10,6 +11,7 @@ import time
 import os
 import struct
 import stop
+from dispatcher import Dispatcher
 from test_config import TestConfig
 from config import Config
 from constants import Constants
@@ -99,8 +101,9 @@ def assign_dispatcher(fid, dispatchers):
     return dispatchers[fid % len(dispatchers)]
 
 
-def assign_closest_dispatcher(coord, dispatcher_coords):
-    return dispatcher_coords[np.argmin(np.linalg.norm(dispatcher_coords-coord, axis=1))]
+def assign_closest_dispatcher(ds, coord):
+    dispatcher_coords = np.stack([d.coord for d in ds])
+    return ds[np.argmin(np.linalg.norm(dispatcher_coords - coord, axis=1))]
 
 
 def send_msg(sock, msg):
@@ -128,6 +131,25 @@ def recvall(sock, n):
             return None
         data.extend(packet)
     return data
+
+
+def assign_dispatcher_po2(ds):
+    if len(ds) == 1:
+        return ds[0]
+    elif len(ds) == 2:
+        if ds[0].q.qsize() < ds[1].q.qsize():
+            return ds[0]
+        return ds[1]
+
+    rand_ds = random.sample(ds, 2)
+    if rand_ds[0].q.qsize() < rand_ds[1].q.qsize():
+        return rand_ds[0]
+    return rand_ds[1]
+
+
+def select_dispatcher(ds, coord):
+    return assign_dispatcher_po2(ds)
+    # return assign_closest_dispatcher(ds, coord)
 
 
 error_handling = True
@@ -264,12 +286,21 @@ if __name__ == '__main__':
     l = 50
     w = 100
     if Config.DISPATCHERS == 1:
-        dispatchers = np.array([[l/2, w/2, 0]])
+        dispatchers_coords = np.array([[l/2, w/2, 0]])
     elif Config.DISPATCHERS == 3:
-        dispatchers = np.array([[l/2, w/2, 0], [l, w, 0], [0, 0, 0]])
+        dispatchers_coords = np.array([[l/2, w/2, 0], [l, w, 0], [0, 0, 0]])
     elif Config.DISPATCHERS == 5:
-        dispatchers = np.array([[l/2, w/2, 0], [l, 0, 0], [0, w, 0], [l, w, 0], [0, 0, 0]])
+        dispatchers_coords = np.array([[l/2, w/2, 0], [l, 0, 0], [0, w, 0], [l, w, 0], [0, 0, 0]])
     # dispatchers = np.array(Config.DISPATCHERS)
+
+    dispatcher_queues = []
+    dispatchers = []
+    for coord in dispatchers_coords:
+        q = queue.Queue()
+        d = Dispatcher(q, Config.DISPATCH_RATE, coord)
+        dispatchers.append(d)
+        dispatcher_queues.append(q)
+        d.start()
 
     # processes = []
     # shared_arrays = dict()
@@ -293,10 +324,10 @@ if __name__ == '__main__':
         group_radio_range = {}
         i = 0
         if error_handling:
-            # groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{Config.INPUT}.xlsx'))
-            groups, radio_ranges = read_cliques_xlsx("/Users/hamed/Desktop/chess/k5/chess_K:5_02_Jul_17_41_43.xlsx")
-            groups = groups[:3]
-            radio_ranges = radio_ranges[:3]
+            groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{Config.INPUT}.xlsx'))
+            # groups, radio_ranges = read_cliques_xlsx("/Users/hamed/Desktop/chess/k5/chess_K:5_02_Jul_17_41_43.xlsx")
+            # groups = groups[:3]
+            # radio_ranges = radio_ranges[:3]
             # "/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
             # print(radio_ranges)
             # exit()
@@ -349,24 +380,24 @@ if __name__ == '__main__':
                     for member_coord in group:
                         i += 1
                         pid = N * i + nid
-                        dispatcher = assign_closest_dispatcher(member_coord, dispatchers)
+                        dispatcher = select_dispatcher(dispatchers, member_coord)
                         p = worker.WorkerProcess(
-                            count, pid, member_coord, dispatcher, None, results_directory,
+                            count, pid, member_coord, dispatcher.coord, None, results_directory,
                             start_time, standby_id=standby_id, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
-                        p.start()
+                        dispatcher.q.put(p)
                         processes_id[pid] = p
 
                     # dispatch standby
                     if Config.C == 1:
                         i += 1
                         pid = N * i + nid
-                        dispatcher = assign_closest_dispatcher(stand_by_coord, dispatchers)
+                        dispatcher = select_dispatcher(dispatchers, stand_by_coord)
                         p = worker.WorkerProcess(
-                            count, pid, stand_by_coord, dispatcher, None, results_directory,
+                            count, pid, stand_by_coord, dispatcher.coord, None, results_directory,
                             start_time, is_standby=True, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
-                        p.start()
+                        dispatcher.q.put(p)
                         processes_id[pid] = p
             # print(group_map)
             # print(group_standby_id)
@@ -402,25 +433,25 @@ if __name__ == '__main__':
                     is_illuminating = msg.args[0]
 
                     if is_illuminating:
-                        dispatcher = assign_closest_dispatcher(msg.gtl, dispatchers)
+                        dispatcher = select_dispatcher(dispatchers, msg.gtl)
                         p = worker.WorkerProcess(
-                            count, pid, msg.gtl, dispatcher, None, results_directory,
+                            count, pid, msg.gtl, dispatcher.coord, None, results_directory,
                             start_time, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
                         processes_id[pid] = p
-                        p.start()
+                        dispatcher.q.put(p)
                     else:
                         previous_standby = group_standby_id[group_id]
                         group_standby_id[group_id] = pid
 
                         # dispatch the new standby fls
-                        dispatcher = assign_closest_dispatcher(group_standby_coord[group_id], dispatchers)
+                        dispatcher = select_dispatcher(dispatchers, group_standby_coord[group_id])
                         p = worker.WorkerProcess(
-                            count, pid, group_standby_coord[group_id], dispatcher, None, results_directory,
+                            count, pid, group_standby_coord[group_id], dispatcher.coord, None, results_directory,
                             start_time, is_standby=True, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
                         processes_id[pid] = p
-                        p.start()
+                        dispatcher.q.put(p)
 
                         # send the id of the new standby to group members
                         new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(pid,))\
@@ -446,6 +477,10 @@ if __name__ == '__main__':
     print("done")
 
     time.sleep(1)
+    for d in dispatchers:
+        d.q.put(False)
+        d.join()
+
     for p in processes_id.values():
         p.join(Config.PROCESS_JOIN_TIMEOUT)
         if p.is_alive():

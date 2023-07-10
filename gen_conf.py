@@ -36,10 +36,11 @@ def_general_conf = {
     "SHAPE": "'racecar'",
     "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
     "DEBUG": "False",
-    "FILE_NAME_KEYS": "['C', 'K', 'DISPATCHERS', 'FAILURE_TIMEOUT']",
+    "FILE_NAME_KEYS": "['C', 'K', 'DISPATCHERS', 'DISPATCH_RATE', 'FAILURE_TIMEOUT']",
     "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "DISPATCHERS": "1",
+    "DISPATCH_RATE": "1",
     "C": "1",
     "MULTICAST": "True",
     "INPUT": "'dragon_K:20'"
@@ -63,8 +64,8 @@ general_props = [
         "values": [
             {"C": "0", "K": "3", "INPUT": "'racecar_K:3'"},
             {"C": "1", "K": "3", "INPUT": "'racecar_K:3'"},
-            {"C": "1", "K": "5", "INPUT": "'racecar_K:5'"},
-            {"C": "1", "K": "10", "INPUT": "'racecar_K:10'"},
+            # {"C": "1", "K": "5", "INPUT": "'racecar_K:5'"},
+            # {"C": "1", "K": "10", "INPUT": "'racecar_K:10'"},
             {"C": "1", "K": "20", "INPUT": "'racecar_K:20'"},
         ]
     },
@@ -74,7 +75,8 @@ general_props = [
     },
     {
         "keys": ["FAILURE_TIMEOUT"],
-        "values": ["1", "3", "6", "30", "60", "120", "600"]
+        "values": ["1", "6", "120"]
+        # "values": ["1", "3", "6", "30", "60", "120", "600"]
     }
     # {
     #     "keys": ["SHAPE"],
