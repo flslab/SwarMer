@@ -560,10 +560,11 @@ if __name__ == '__main__':
         if p.is_alive():
             p.terminate()
 
-    for i in range(N - 1):
-        # stop_client(clients[i])
-        clients[i].close()
-    ServerSocket.close()
+    if IS_CLUSTER_SERVER:
+        for i in range(N - 1):
+            # stop_client(clients[i])
+            clients[i].close()
+        ServerSocket.close()
 
     # if nid == 0:
     #     visited = set()
