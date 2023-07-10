@@ -162,6 +162,7 @@ if __name__ == '__main__':
         clients = []
         for i in range(N-1):
             client, address = ServerSocket.accept()
+            print(address)
             clients.append(client)
 
     if IS_CLUSTER_CLIENT:
@@ -239,9 +240,9 @@ if __name__ == '__main__':
             np.random.shuffle(point_cloud)
             point_cloud = point_cloud[:Config.SAMPLE_SIZE]
 
-    dists = np.linalg.norm(point_cloud, axis=1)
-    sorted_indexes = np.flip(np.argsort(dists))
-    point_cloud = point_cloud[sorted_indexes]
+    # dists = np.linalg.norm(point_cloud, axis=1)
+    # sorted_indexes = np.flip(np.argsort(dists))
+    # point_cloud = point_cloud[sorted_indexes]
 
     total_count = point_cloud.shape[0]
     # h = np.log2(total_count)
