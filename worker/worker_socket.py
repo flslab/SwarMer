@@ -43,7 +43,7 @@ class WorkerSocket:
         try:
             msg = pickle.loads(data)
             return msg, len(data)
-        except pickle.UnpicklingError:
+        except (pickle.UnpicklingError, EOFError):
             return None, 0
 
     def broadcast(self, msg, retry=2):
