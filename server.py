@@ -184,9 +184,9 @@ def handle_dispatcher_requests(client_sock, ds):
         cl_msg = pickle.loads(cl_msg)
         if cl_msg:
             fid, gtl = cl_msg
-            print(fid, gtl)
+            # print(fid, gtl)
             disp = select_dispatcher(ds, gtl)
-            disp.q.put(lambda: send_msg(client_sock, pickle.dumps((fid, disp.tolist().coord))))
+            disp.q.put(lambda: send_msg(client_sock, pickle.dumps((fid, disp.coord.tolist()))))
         else:
             break
 
