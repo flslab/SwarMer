@@ -445,22 +445,25 @@ if __name__ == '__main__':
                         pid = N * i + nid
 
                         p = worker.WorkerProcess(
-                            count, pid, member_coord, None, None, results_directory,
+                            count, pid, member_coord, member_coord, None, results_directory,
                             start_time, standby_id=standby_id, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
-
-                        dispatch_fls(p, client_socket, dispatchers, member_coord, processes_id)
+                        processes_id[pid] = p
+                        p.start()
+                        # dispatch_fls(p, client_socket, dispatchers, member_coord, processes_id)
 
                     # dispatch standby
                     if Config.C == 1:
                         i += 1
                         pid = N * i + nid
                         p = worker.WorkerProcess(
-                            count, pid, stand_by_coord, None, None, results_directory,
+                            count, pid, stand_by_coord, stand_by_coord, None, results_directory,
                             start_time, is_standby=True, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
 
-                        dispatch_fls(p, client_socket, dispatchers, stand_by_coord, processes_id)
+                        processes_id[pid] = p
+                        p.start()
+                        # dispatch_fls(p, client_socket, dispatchers, stand_by_coord, processes_id)
             # print(group_map)
             # print(group_standby_id)
             # print(group_standby_coord)
