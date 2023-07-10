@@ -41,7 +41,7 @@ def set_stop():
 
 def query_cliques_client(connection):
     query_msg = Message(MessageTypes.QUERY_CLIQUES)
-    connection.send(pickle.dumps(query_msg))
+    connection.sendall(pickle.dumps(query_msg))
     data = recv_msg(connection)
     message = pickle.loads(data)
     # print(message.args[0], message.args[1])
@@ -50,7 +50,7 @@ def query_cliques_client(connection):
 
 def stop_client(connection):
     stop_msg = Message(MessageTypes.STOP)
-    connection.send(pickle.dumps(stop_msg))
+    connection.sendall(pickle.dumps(stop_msg))
     # data = connection.recv(2048)
     # message = pickle.loads(data)
     # return message.args[0]
@@ -154,7 +154,7 @@ def select_dispatcher(ds, coord):
 def request_dispatcher(p, client_sock):
     # client runs this
     client_processes[p.fid] = p
-    client_sock.send(pickle.dumps((p.fid, p.gtl.tolist())))
+    client_sock.sendall(pickle.dumps((p.fid, p.gtl.tolist())))
 
 
 def handle_dispatcher_assignments(client_sock, processes_dict):
@@ -171,7 +171,7 @@ def handle_dispatcher_assignments(client_sock, processes_dict):
             processes_dict[fid] = p
             p.start()
         else:
-            client_sock.send(pickle.dumps(False))
+            client_sock.sendall(pickle.dumps(False))
             break
 
 
@@ -186,7 +186,7 @@ def handle_dispatcher_requests(client_sock, ds):
             fid, gtl = cl_msg
             print(fid, gtl)
             disp = select_dispatcher(ds, gtl)
-            disp.q.put(lambda: client_sock.send(pickle.dumps((fid, disp.tolist().coord))))
+            disp.q.put(lambda: client_sock.sendall(pickle.dumps((fid, disp.tolist().coord))))
         else:
             break
 
@@ -374,7 +374,7 @@ if __name__ == '__main__':
     start_time = time.time()
     if IS_CLUSTER_SERVER:
         for client in clients:
-            client.send(pickle.dumps(start_time))
+            client.sendall(pickle.dumps(start_time))
 
     try:
         # failure handling
@@ -537,7 +537,7 @@ if __name__ == '__main__':
         print("waiting for dispatcher handlers")
 
         for client in clients:
-            client.send(pickle.dumps(False))
+            client.sendall(pickle.dumps(False))
         for dt in dispatch_request_handler_threads:
             dt.join()
 
