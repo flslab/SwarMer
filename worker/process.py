@@ -19,8 +19,12 @@ class WorkerProcess(multiprocessing.Process):
         self.context = WorkerContext(
             count, process_id, gtl, el, shared_el, self.metrics, is_standby, standby_id, sid, group_id, radio_range)
         self.sock = WorkerSocket()
+        self.el = el
+        self.fid = process_id
+        self.gtl = gtl
 
     def run(self):
+        self.context.el = self.el
         event_queue = queue.Queue()
         state_machine = state.StateMachine(self.context, self.sock, self.metrics, event_queue)
 

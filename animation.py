@@ -19,8 +19,8 @@ frame_rate = 1/fps
 total_points = 11888
 
 # t30_d1_g0	t30_d1_g20	t30_d5_g0	t30_d5_g20	t600_d1_g0	t600_d1_g20	t600_d5_g0	t600_d5_g20
-output_name = "t600_d5_g20"
-input_path = f"/Users/hamed/Desktop/dragon_reli_all/{output_name}/timeline.json"
+output_name = "racecar_DISPATCHERS:5"
+input_path = f"results/racecar/H:2/{output_name}/timeline.json"
 
 
 def set_axis(ax, length, width, height):
@@ -129,20 +129,20 @@ def show_last_frame(events, t=30):
 
 
 if __name__ == '__main__':
-    # mpl.use('macosx')
+    mpl.use('macosx')
 
-    # filtered_events, length, width, height = read_point_cloud(input_path)
-    # fig, ax, tx = draw_figure()
-    # points = dict()
-    # ani = FuncAnimation(
-    #     fig, partial(update,),
-    #     frames=30 * duration,
-    #     init_func=partial(init, ax))
+    filtered_events, length, width, height = read_point_cloud(input_path)
+    fig, ax, tx = draw_figure()
+    points = dict()
+    ani = FuncAnimation(
+        fig, partial(update,),
+        frames=30 * duration,
+        init_func=partial(init, ax))
     #
-    # plt.show()
+    plt.show()
     # writer = FFMpegWriter(fps=fps)
     # ani.save(f"results/{output_name}.mp4", writer=writer)
-    # exit()
+    exit()
     configs = [
         {
             "keys": ["C", "K"],

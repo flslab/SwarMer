@@ -3,6 +3,8 @@ import threading
 import time
 from multiprocessing import Process
 
+from worker import WorkerProcess
+
 
 class Dispatcher(threading.Thread):
     def __init__(self, q, r, coord):
@@ -13,9 +15,11 @@ class Dispatcher(threading.Thread):
 
     def run(self):
         while True:
-            process = self.q.get()
-            if process:
-                process.start()
+            item = self.q.get()
+            if isinstance(item, WorkerProcess):
+                item.start()
+            elif callable(item):
+                item()
             else:
                 break
             time.sleep(self.delay)

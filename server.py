@@ -27,11 +27,10 @@ from utils.file import read_cliques_xlsx
 
 # mpl.use('macosx')
 
-test = True
-hd_timer = None
-hd_round = []
-hd_time = []
 should_stop = False
+client_processes = dict()
+IS_CLUSTER_SERVER = None
+IS_CLUSTER_CLIENT = None
 
 
 def set_stop():
@@ -152,6 +151,51 @@ def select_dispatcher(ds, coord):
     # return assign_closest_dispatcher(ds, coord)
 
 
+def request_dispatcher(p, client_sock):
+    # client runs this
+    client_processes[p.fid] = p
+    client_sock.send(pickle.dumps((p.fid, p.gtl)))
+
+
+def handle_dispatcher_assignments(client_sock, processes_dict):
+    # client runs this
+    while True:
+        ser_msg = client_sock.recv(1024)
+        ser_msg = pickle.loads(ser_msg)
+        if ser_msg:
+            fid, dispatcher_coord = ser_msg
+            p = client_processes.pop(fid)
+            p.el = dispatcher_coord
+            processes_dict[fid] = p
+            p.start()
+        else:
+            client_sock.send(pickle.dumps(False))
+            break
+
+
+def handle_dispatcher_requests(client_sock, ds):
+    # server runs this
+    while True:
+        cl_msg = client_sock.recv(1024)
+        cl_msg = pickle.loads(cl_msg)
+        if cl_msg:
+            fid, gtl = cl_msg
+            disp = select_dispatcher(ds, gtl)
+            disp.q.put(lambda _: client_sock.send(pickle.dumps((fid, disp.coord))))
+        else:
+            break
+
+
+def dispatch_fls(p, client_socket, dispatchers, member_coord, processes_id):
+    if IS_CLUSTER_CLIENT:
+        request_dispatcher(p, client_socket)
+    else:
+        dispatcher = select_dispatcher(dispatchers, member_coord)
+        p.el = dispatcher.coord
+        dispatcher.q.put(p)
+        processes_id[pid] = p
+
+
 error_handling = True
 
 if __name__ == '__main__':
@@ -188,6 +232,7 @@ if __name__ == '__main__':
         for client in clients:
             client.send(pickle.dumps(start_time))
 
+    client_socket = None
     if IS_CLUSTER_CLIENT:
         client_socket = socket.socket()
         while True:
@@ -293,14 +338,15 @@ if __name__ == '__main__':
         dispatchers_coords = np.array([[l/2, w/2, 0], [l, 0, 0], [0, w, 0], [l, w, 0], [0, 0, 0]])
     # dispatchers = np.array(Config.DISPATCHERS)
 
-    dispatcher_queues = []
-    dispatchers = []
-    for coord in dispatchers_coords:
-        q = queue.Queue()
-        d = Dispatcher(q, Config.DISPATCH_RATE, coord)
-        dispatchers.append(d)
-        dispatcher_queues.append(q)
-        d.start()
+    if nid == 0:
+        dispatcher_queues = []
+        dispatchers = []
+        for coord in dispatchers_coords:
+            q = queue.Queue()
+            d = Dispatcher(q, Config.DISPATCH_RATE, coord)
+            dispatchers.append(d)
+            dispatcher_queues.append(q)
+            d.start()
 
     # processes = []
     # shared_arrays = dict()
@@ -324,10 +370,10 @@ if __name__ == '__main__':
         group_radio_range = {}
         i = 0
         if error_handling:
-            groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{Config.INPUT}.xlsx'))
-            # groups, radio_ranges = read_cliques_xlsx("/Users/hamed/Desktop/chess/k5/chess_K:5_02_Jul_17_41_43.xlsx")
-            # groups = groups[:3]
-            # radio_ranges = radio_ranges[:3]
+            # groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{Config.INPUT}.xlsx'))
+            groups, radio_ranges = read_cliques_xlsx("/Users/hamed/Desktop/chess/k5/chess_K:5_02_Jul_17_41_43.xlsx")
+            groups = groups[:3]
+            radio_ranges = radio_ranges[:3]
             # "/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
             # print(radio_ranges)
             # exit()
@@ -380,25 +426,24 @@ if __name__ == '__main__':
                     for member_coord in group:
                         i += 1
                         pid = N * i + nid
-                        dispatcher = select_dispatcher(dispatchers, member_coord)
+
                         p = worker.WorkerProcess(
-                            count, pid, member_coord, dispatcher.coord, None, results_directory,
+                            count, pid, member_coord, None, None, results_directory,
                             start_time, standby_id=standby_id, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
-                        dispatcher.q.put(p)
-                        processes_id[pid] = p
+
+                        dispatch_fls(p, client_socket, dispatchers, member_coord, processes_id)
 
                     # dispatch standby
                     if Config.C == 1:
                         i += 1
                         pid = N * i + nid
-                        dispatcher = select_dispatcher(dispatchers, stand_by_coord)
                         p = worker.WorkerProcess(
-                            count, pid, stand_by_coord, dispatcher.coord, None, results_directory,
+                            count, pid, stand_by_coord, None, None, results_directory,
                             start_time, is_standby=True, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
-                        dispatcher.q.put(p)
-                        processes_id[pid] = p
+
+                        dispatch_fls(p, client_socket, dispatchers, stand_by_coord, processes_id)
             # print(group_map)
             # print(group_standby_id)
             # print(group_standby_coord)
@@ -414,6 +459,17 @@ if __name__ == '__main__':
         exit()
 
     # gtl_point_cloud = local_gtl_point_cloud
+
+    if IS_CLUSTER_CLIENT:
+        dispatcher_handler_thread = Thread(target=handle_dispatcher_assignments, args=(client_socket, processes_id))
+        dispatcher_handler_thread.start()
+
+    if IS_CLUSTER_SERVER:
+        dispatch_request_handler_threads = []
+        for client in clients:
+            dt = Thread(target=handle_dispatcher_requests(client, dispatchers))
+            dt.start()
+            dispatch_request_handler_threads.append(dt)
 
     print('waiting for processes ...')
 
@@ -433,25 +489,24 @@ if __name__ == '__main__':
                     is_illuminating = msg.args[0]
 
                     if is_illuminating:
-                        dispatcher = select_dispatcher(dispatchers, msg.gtl)
                         p = worker.WorkerProcess(
-                            count, pid, msg.gtl, dispatcher.coord, None, results_directory,
+                            count, pid, msg.gtl, None, None, results_directory,
                             start_time, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
-                        processes_id[pid] = p
-                        dispatcher.q.put(p)
+
+                        dispatch_fls(p, client_socket, dispatchers, msg.gtl, processes_id)
+
                     else:
                         previous_standby = group_standby_id[group_id]
                         group_standby_id[group_id] = pid
 
                         # dispatch the new standby fls
-                        dispatcher = select_dispatcher(dispatchers, group_standby_coord[group_id])
                         p = worker.WorkerProcess(
-                            count, pid, group_standby_coord[group_id], dispatcher.coord, None, results_directory,
+                            count, pid, group_standby_coord[group_id], None, None, results_directory,
                             start_time, is_standby=True, sid=-nid,
                             group_id=group_id, radio_range=group_radio_range[group_id])
-                        processes_id[pid] = p
-                        dispatcher.q.put(p)
+
+                        dispatch_fls(p, client_socket, dispatchers, group_standby_coord[group_id], processes_id)
 
                         # send the id of the new standby to group members
                         new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(pid,))\
@@ -477,9 +532,20 @@ if __name__ == '__main__':
     print("done")
 
     time.sleep(1)
-    for d in dispatchers:
-        d.q.put(False)
-        d.join()
+
+    if IS_CLUSTER_CLIENT:
+        dispatcher_handler_thread.join()
+
+    if IS_CLUSTER_SERVER:
+        for client in clients:
+            client.send(pickle.dumps(False))
+        for dt in dispatch_request_handler_threads:
+            dt.join()
+
+    if nid == 0:
+        for d in dispatchers:
+            d.q.put(False)
+            d.join()
 
     for p in processes_id.values():
         p.join(Config.PROCESS_JOIN_TIMEOUT)
