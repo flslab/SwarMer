@@ -541,16 +541,16 @@ if __name__ == '__main__':
         for dt in dispatch_request_handler_threads:
             dt.join()
 
-        for i in range(N - 1):
-            # stop_client(clients[i])
-            clients[i].close()
-        ServerSocket.close()
-
     if nid == 0:
         print("waiting for dispatchers")
         for d in dispatchers:
             d.q.put(False)
             d.join()
+
+        for i in range(N - 1):
+            # stop_client(clients[i])
+            clients[i].close()
+        ServerSocket.close()
 
     for p in processes_id.values():
         print("waiting for flss")
