@@ -40,7 +40,7 @@ def_general_conf = {
     "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "DISPATCHERS": "1",
-    "DISPATCH_RATE": "1",
+    "DISPATCH_RATE": "100",
     "C": "1",
     "MULTICAST": "True",
     "INPUT": "'dragon_K:20'"
