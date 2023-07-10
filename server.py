@@ -547,16 +547,15 @@ if __name__ == '__main__':
             d.q.put(False)
             d.join()
 
-        for i in range(N - 1):
-            # stop_client(clients[i])
-            clients[i].close()
-        ServerSocket.close()
+        # for i in range(N - 1):
+        #     # stop_client(clients[i])
+        #     clients[i].close()
+        # ServerSocket.close()
 
+    print("waiting for flss")
     for p in processes_id.values():
-        print("waiting for flss")
-        p.join(Config.PROCESS_JOIN_TIMEOUT)
         if p.is_alive():
-            break
+            p.join(Config.PROCESS_JOIN_TIMEOUT)
 
     for p in processes_id.values():
         if p.is_alive():
