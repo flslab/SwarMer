@@ -45,7 +45,7 @@ def_general_conf = {
 
 def_test_conf = {
     "ENABLED": "True",
-    "NUMBER_OF_FLSS": "165",
+    "NUMBER_OF_FLSS": "90",
     "K": "3",
     "R": "1000",
     "H": "2",
@@ -94,7 +94,7 @@ test_props = [
     },
     {
         "keys": ["K"],
-        "values": ["3", "5", "11", "15"]
+        "values": ["3", "5", "6", "10", "15"]
     },
 ]
 

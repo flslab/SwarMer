@@ -235,14 +235,13 @@ if __name__ == "__main__":
     # create_csv_from_json(dir_in, 0)
     # combine_csvs(dir_in, dir_out, name)
 
-    props_values = [[3, 5, 11, 15], [1, 10, 100, 1000]]
+    props_values = [[3, 5, 6, 10, 15], [1, 10, 100, 1000]]
     combinations = list(itertools.product(*props_values))
-    # for name in combinations:
-        # print(name)
-    # name = (3, 10)
-    combine_xlsx(f"/Users/hamed/Desktop/all_k5", f"summary")
-    combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
-    combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
+    for name in combinations:
+        fn = f"test_K{name[0]}_R{name[1]}"
+        combine_xlsx(f"/Users/hamed/Desktop/test2/{fn}", fn)
+    # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
+    # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")
     # combine_xlsx("/Users/hamed/Desktop/skateboard/k20", "skateboard_K:20")
     # combine_xlsx("/Users/hamed/Desktop/racecar/k10", "racecar_K:10")
