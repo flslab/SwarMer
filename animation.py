@@ -19,8 +19,8 @@ frame_rate = 1/fps
 total_points = 11888
 
 # t30_d1_g0	t30_d1_g20	t30_d5_g0	t30_d5_g20	t600_d1_g0	t600_d1_g20	t600_d5_g0	t600_d5_g20
-output_name = "racecar_DISPATCHERS:5"
-input_path = f"results/racecar/H:2/{output_name}/timeline.json"
+output_name = "testd"
+input_path = f"/Users/hamed/Desktop/{output_name}/timeline.json"
 
 
 def set_axis(ax, length, width, height):
@@ -139,9 +139,9 @@ if __name__ == '__main__':
         frames=30 * duration,
         init_func=partial(init, ax))
     #
-    plt.show()
-    # writer = FFMpegWriter(fps=fps)
-    # ani.save(f"results/{output_name}.mp4", writer=writer)
+    # plt.show()
+    writer = FFMpegWriter(fps=fps)
+    ani.save(f"results/{output_name}.mp4", writer=writer)
     exit()
     configs = [
         {

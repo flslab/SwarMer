@@ -62,20 +62,20 @@ general_props = [
     {
         "keys": ["C", "K", "INPUT"],
         "values": [
-            {"C": "0", "K": "3", "INPUT": "'racecar_K:3'"},
+            # {"C": "0", "K": "3", "INPUT": "'racecar_K:3'"},
             {"C": "1", "K": "3", "INPUT": "'racecar_K:3'"},
             # {"C": "1", "K": "5", "INPUT": "'racecar_K:5'"},
-            # {"C": "1", "K": "10", "INPUT": "'racecar_K:10'"},
-            {"C": "1", "K": "20", "INPUT": "'racecar_K:20'"},
+            {"C": "1", "K": "10", "INPUT": "'racecar_K:10'"},
+            # {"C": "1", "K": "20", "INPUT": "'racecar_K:20'"},
         ]
     },
     {
         "keys": ["DISPATCHERS"],
-        "values": ["1", "3", "5"]
+        "values": ["1", "5"]
     },
     {
         "keys": ["FAILURE_TIMEOUT"],
-        "values": ["1", "6", "120"]
+        "values": ["1", "30"]
         # "values": ["1", "3", "6", "30", "60", "120", "600"]
     }
     # {
