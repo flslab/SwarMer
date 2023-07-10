@@ -178,7 +178,10 @@ def handle_dispatcher_assignments(client_sock, processes_dict):
 def handle_dispatcher_requests(client_sock, ds):
     # server runs this
     while True:
-        cl_msg = recv_msg(client_sock)
+        try:
+            cl_msg = recv_msg(client_sock)
+        except ConnectionResetError:
+            break
         if not cl_msg:
             continue
         cl_msg = pickle.loads(cl_msg)
