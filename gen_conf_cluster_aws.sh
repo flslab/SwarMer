@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source scripts/aws/var.sh
+source aws_vars.sh
 
 python3 gen_conf.py -t
 

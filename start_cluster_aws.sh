@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source scripts/aws/var.sh
+source aws_vars.sh
 
 now=$(date +%d_%b_%H_%M_%S)
 port="6000"
