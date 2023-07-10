@@ -471,7 +471,7 @@ if __name__ == '__main__':
     if IS_CLUSTER_SERVER:
         dispatch_request_handler_threads = []
         for client in clients:
-            dt = Thread(target=handle_dispatcher_requests(client, dispatchers))
+            dt = Thread(target=handle_dispatcher_requests, args=(client, dispatchers))
             dt.start()
             dispatch_request_handler_threads.append(dt)
 
