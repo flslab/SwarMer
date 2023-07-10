@@ -154,7 +154,7 @@ def select_dispatcher(ds, coord):
 def request_dispatcher(p, client_sock):
     # client runs this
     client_processes[p.fid] = p
-    client_sock.send(pickle.dumps((p.fid, p.gtl)))
+    client_sock.send(pickle.dumps((p.fid, p.gtl.tolist())))
 
 
 def handle_dispatcher_assignments(client_sock, processes_dict):
@@ -167,7 +167,7 @@ def handle_dispatcher_assignments(client_sock, processes_dict):
         if ser_msg:
             fid, dispatcher_coord = ser_msg
             p = client_processes.pop(fid)
-            p.el = dispatcher_coord
+            p.el = np.array(dispatcher_coord)
             processes_dict[fid] = p
             p.start()
         else:
@@ -185,7 +185,7 @@ def handle_dispatcher_requests(client_sock, ds):
         if cl_msg:
             fid, gtl = cl_msg
             disp = select_dispatcher(ds, gtl)
-            disp.q.put(lambda _: client_sock.send(pickle.dumps((fid, disp.coord))))
+            disp.q.put(lambda x: client_sock.send(pickle.dumps((fid, disp.tolist().coord))))
         else:
             break
 
