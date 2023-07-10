@@ -370,10 +370,10 @@ if __name__ == '__main__':
         group_radio_range = {}
         i = 0
         if error_handling:
-            # groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{Config.INPUT}.xlsx'))
-            groups, radio_ranges = read_cliques_xlsx("/Users/hamed/Desktop/chess/k5/chess_K:5_02_Jul_17_41_43.xlsx")
-            groups = groups[:3]
-            radio_ranges = radio_ranges[:3]
+            groups, radio_ranges = read_cliques_xlsx(os.path.join(shape_directory, f'{Config.INPUT}.xlsx'))
+            # groups, radio_ranges = read_cliques_xlsx("/Users/hamed/Desktop/chess/k5/chess_K:5_02_Jul_17_41_43.xlsx")
+            # groups = groups[:3]
+            # radio_ranges = radio_ranges[:3]
             # "/Users/hamed/Documents/Holodeck/SwarMerPy/results/20-Jun-11_14_58/results/racecar/H:2/agg.xlsx")
             # print(radio_ranges)
             # exit()
