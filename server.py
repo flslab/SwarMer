@@ -154,13 +154,13 @@ def select_dispatcher(ds, coord):
 def request_dispatcher(p, client_sock):
     # client runs this
     client_processes[p.fid] = p
-    client_sock.sendall(pickle.dumps((p.fid, p.gtl.tolist())))
+    send_msg(client_sock, pickle.dumps((p.fid, p.gtl.tolist())))
 
 
 def handle_dispatcher_assignments(client_sock, processes_dict):
     # client runs this
     while True:
-        ser_msg = client_sock.recv(1024)
+        ser_msg = recv_msg(client_sock)
         if not ser_msg:
             continue
         ser_msg = pickle.loads(ser_msg)
@@ -171,14 +171,14 @@ def handle_dispatcher_assignments(client_sock, processes_dict):
             processes_dict[fid] = p
             p.start()
         else:
-            client_sock.sendall(pickle.dumps(False))
+            send_msg(client_sock, pickle.dumps(False))
             break
 
 
 def handle_dispatcher_requests(client_sock, ds):
     # server runs this
     while True:
-        cl_msg = client_sock.recv(1024)
+        cl_msg = recv_msg(client_sock)
         if not cl_msg:
             continue
         cl_msg = pickle.loads(cl_msg)
@@ -186,7 +186,7 @@ def handle_dispatcher_requests(client_sock, ds):
             fid, gtl = cl_msg
             print(fid, gtl)
             disp = select_dispatcher(ds, gtl)
-            disp.q.put(lambda: client_sock.sendall(pickle.dumps((fid, disp.tolist().coord))))
+            disp.q.put(lambda: send_msg(client_sock, pickle.dumps((fid, disp.tolist().coord))))
         else:
             break
 
