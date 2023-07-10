@@ -537,7 +537,7 @@ if __name__ == '__main__':
         print("waiting for dispatcher handlers")
 
         for client in clients:
-            client.sendall(pickle.dumps(False))
+            send_msg(client, pickle.dumps(False))
         for dt in dispatch_request_handler_threads:
             dt.join()
 
