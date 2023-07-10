@@ -342,14 +342,12 @@ if __name__ == '__main__':
         dispatchers_coords = np.array([[l/2, w/2, 0], [l, 0, 0], [0, w, 0], [l, w, 0], [0, 0, 0]])
     # dispatchers = np.array(Config.DISPATCHERS)
 
+    dispatchers = []
     if nid == 0:
-        dispatcher_queues = []
-        dispatchers = []
         for coord in dispatchers_coords:
             q = queue.Queue()
             d = Dispatcher(q, Config.DISPATCH_RATE, coord)
             dispatchers.append(d)
-            dispatcher_queues.append(q)
             d.start()
 
     # processes = []
