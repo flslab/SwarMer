@@ -383,7 +383,7 @@ class PrimaryNode:
 
 
 if __name__ == '__main__':
-    N = 10
+    N = 1
     name = str(int(time.time()))
     if len(sys.argv) > 1:
         N = int(sys.argv[1])
