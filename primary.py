@@ -249,6 +249,8 @@ class PrimaryNode:
     def _deploy_fls(self, properties):
         nid = properties["fid"] % self.N
         dispatcher = self._assign_dispatcher(properties)
+        if properties["el"] is None:
+            properties["el"] = dispatcher.coord
         dispatcher.q.put(lambda: self._send_msg_to_node(nid, properties))
 
     def _deploy_initial_formation(self):

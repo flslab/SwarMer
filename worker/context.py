@@ -9,9 +9,8 @@ from .history import History
 
 
 class WorkerContext:
-    def __init__(self, count, fid, gtl, el, shm_name, metrics, is_standby=False, standby_id=None, sid=0, group_id=None,
+    def __init__(self, fid, gtl, el, metrics, shm_name=None, is_standby=False, standby_id=None, sid=0, group_id=None,
                  radio_range=2000):
-        self.count = count
         self.fid = fid
         self.gtl = gtl
         self.el = el

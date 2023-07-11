@@ -11,20 +11,17 @@ from .metrics import Metrics
 
 
 class WorkerProcess(multiprocessing.Process):
-    def __init__(self, count, process_id, gtl, el, shared_el, results_directory,
-                 start_time, is_standby=False, standby_id=0, sid=0, group_id=None, radio_range=2000):
+    def __init__(self, fid, gtl, el, dir_meta,
+                 start_time, is_standby=False, standby_id=0, group_id=None, radio_range=2000):
         super(WorkerProcess, self).__init__()
         self.history = History(4)
-        self.metrics = Metrics(self.history, results_directory, start_time)
-        self.context = WorkerContext(
-            count, process_id, gtl, el, shared_el, self.metrics, is_standby, standby_id, sid, group_id, radio_range)
+        self.metrics = Metrics(self.history, dir_meta, start_time)
+        self.context = WorkerContext(fid=fid, gtl=gtl, el=el, metrics=self.metrics,
+                                     is_standby=is_standby, standby_id=standby_id, group_id=group_id,
+                                     radio_range=radio_range)
         self.sock = WorkerSocket()
-        self.el = el
-        self.fid = process_id
-        self.gtl = gtl
 
     def run(self):
-        self.context.el = self.el
         event_queue = queue.Queue()
         state_machine = state.StateMachine(self.context, self.sock, self.metrics, event_queue)
 
