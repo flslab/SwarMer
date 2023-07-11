@@ -38,6 +38,8 @@ class SecondaryNode:
         self.start_time, self.dir_meta = pickle.loads(start_cmd)
 
     def _handle_deployments(self):
+        logger.info("Started deployment handler")
+
         while True:
             msg = pickle.loads(self.sock.recv(1024))
 
@@ -65,6 +67,8 @@ class SecondaryNode:
         self.failure_handler_thread = threading.Thread(target=self._handle_failures)
         self.failure_handler_thread.start()
 
+        logger.info("Started failure handler")
+
     def _stop_failure_handler_thread(self):
         self.should_stop = True
         self.failure_handler_thread.join()
@@ -88,6 +92,7 @@ class SecondaryNode:
     def start_node(self):
         self._connect_to_primary()
         self._wait_for_start_command()
+        self._start_failure_handler_thread()
         self._handle_deployments()
 
     def stop_node(self):

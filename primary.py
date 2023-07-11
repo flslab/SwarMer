@@ -295,6 +295,8 @@ class PrimaryNode:
         logger.info(f"Deployed {self.pid} FLSs")
 
     def _handle_failures(self):
+        logger.info("Started failure handler")
+
         failure_handling_socket = worker.WorkerSocket()
         failure_handling_socket.sock.settimeout(1)
         while time.time() - self.start_time <= Config.DURATION:
