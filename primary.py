@@ -158,6 +158,7 @@ class PrimaryNode:
     def _listen_to_secondary_nodes(self):
         logger.info("Waiting for secondary nodes to connect")
 
+        self.sock.listen(N)
         for i in range(N):
             client, address = self.sock.accept()
             logger.info(address)
