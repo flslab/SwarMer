@@ -12,10 +12,14 @@ class Dispatcher(threading.Thread):
         self.q = q
         self.delay = 1 / r if isinstance(r, int) else 0
         self.coord = coord
+        self.should_stop = False
 
     def run(self):
-        while True:
-            item = self.q.get()
+        while not self.should_stop:
+            try:
+                item = self.q.get(timeout=1)
+            except queue.Empty:
+                continue
             if isinstance(item, WorkerProcess):
                 item.start()
             elif callable(item):
@@ -23,9 +27,11 @@ class Dispatcher(threading.Thread):
                     item()
                 except BrokenPipeError:
                     continue
-            else:
-                break
+
             time.sleep(self.delay)
+
+    def stop(self):
+        self.should_stop = True
 
 
 def create_process():

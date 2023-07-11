@@ -32,18 +32,20 @@ def_general_conf = {
     "DURATION": "60 * 1",
     "READ_FROM_NPY": "0",
     "K": "20",
+    "H": "2",
     "MAX_NEIGHBORS": "0",
     "SHAPE": "'racecar'",
     "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
     "DEBUG": "False",
     "FILE_NAME_KEYS": "['C', 'K', 'DISPATCHERS', 'DISPATCH_RATE', 'FAILURE_TIMEOUT']",
+    "DIR_KEYS": "['H']",
     "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "DISPATCHERS": "1",
     "DISPATCH_RATE": "100",
     "C": "1",
     "MULTICAST": "True",
-    "INPUT": "'dragon_K:20'"
+    "INPUT": "'racecar_K:20'"
 }
 
 def_test_conf = {
