@@ -90,7 +90,7 @@ general_props = [
 test_props = [
     {
         "keys": ["R"],
-        "values": ["1000", "100", "10", "1"]
+        "values": ["1"]
     },
     {
         "keys": ["K"],

@@ -3,9 +3,9 @@
 bash gen_conf_cluster_aws.sh
 sleep 10
 
-for i in {0..19}
+for i in {0..4}
 do
-  for j in {0..14}
+  for j in {0..9}
   do
      bash start_cluster_aws.sh "$i"
 #     echo "$i" "$j"
