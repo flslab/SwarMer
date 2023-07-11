@@ -292,7 +292,7 @@ class PrimaryNode:
                 }
                 self._deploy_fls(fls)
 
-        logger.info(f"Deployed {self.pid} FLSs")
+        logger.info(f"Assigned {self.pid} FLSs to dispatchers")
 
     def _handle_failures(self):
         logger.info("Started failure handler")
