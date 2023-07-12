@@ -63,7 +63,7 @@ def aggregate_cliques(indexes, sh_arrs):
     sh_arrays = copy.deepcopy(sh_arrs)
     for k in indexes:
         all_connections[k + 1] = sh_arrays[k][:K]
-        all_connections[k + 1] = sh_arrays[k][K]
+        all_neighbors[k + 1] = sh_arrays[k][K]
         clique_key = ".".join([str(clique) for clique in sh_arrays[k][:K]])
         if clique_key in all_cliques:
             all_cliques[clique_key] += 1
