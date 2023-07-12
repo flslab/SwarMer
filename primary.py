@@ -23,6 +23,12 @@ from utils.socket import send_msg
 CONFIG = TestConfig if TestConfig.ENABLED else Config
 
 
+def join_config_properties(conf, props):
+    return "_".join(
+        f"{k[1] if isinstance(k, tuple) else k}:{getattr(conf, k[0] if isinstance(k, tuple) else k)}" for k in
+        props)
+
+
 class DispatchPolicy(ABC):
     @abstractmethod
     def assign(self, **kwargs):
@@ -113,13 +119,13 @@ class PrimaryNode:
 
     def _setup_results_directory(self):
         if len(CONFIG.FILE_NAME_KEYS):
-            result_config = "_".join(f"{k}:{CONFIG.__getattribute__(CONFIG, k)}" for k in CONFIG.FILE_NAME_KEYS)
+            result_config = join_config_properties(CONFIG, CONFIG.FILE_NAME_KEYS)
         else:
             result_config = self.name
         self.result_name = f"{Config.SHAPE}_{result_config}"
 
         if len(CONFIG.DIR_KEYS):
-            group_config = "_".join(f"{k}:{CONFIG.__getattribute__(CONFIG, k)}" for k in CONFIG.DIR_KEYS)
+            group_config = join_config_properties(CONFIG, CONFIG.DIR_KEYS)
         else:
             group_config = ""
 
@@ -211,7 +217,7 @@ class PrimaryNode:
             self.group_standby_coord[group_id] = None
             self.group_standby_id[group_id] = group_id + len(group)
 
-            if Config.C == 1:
+            if Config.K:
                 member_count = group.shape[0]
                 sum_x = np.sum(group[:, 0])
                 sum_y = np.sum(group[:, 1])
@@ -231,7 +237,7 @@ class PrimaryNode:
                 self._deploy_fls(fls)
 
             # deploy standby
-            if Config.C == 1:
+            if Config.K:
                 self.pid += 1
                 fls = {
                     "fid": self.pid,

@@ -425,7 +425,7 @@ if __name__ == '__main__':
                     group = groups[j]
                     group_id = N * (i + 1) + nid
                     group_ids = list(range(group_id, group_id + N * len(group), N))
-                    if Config.C == 1:
+                    if Config.K:
                         standby_id = group_ids[-1] + N
                         group_standby_id[group_id] = standby_id
                         length = group.shape[0]
@@ -453,7 +453,7 @@ if __name__ == '__main__':
                         # dispatch_fls(p, client_socket, dispatchers, member_coord, processes_id)
 
                     # dispatch standby
-                    if Config.C == 1:
+                    if Config.K:
                         i += 1
                         pid = N * i + nid
                         p = worker.WorkerProcess(
