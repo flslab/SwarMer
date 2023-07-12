@@ -1,12 +1,10 @@
 import queue
 import socket
-import pickle
 import random
 import threading
 import sys
 import time
 import os
-import struct
 from abc import ABC, abstractmethod
 import numpy as np
 
@@ -157,7 +155,7 @@ class PrimaryNode:
             self._send_msg_to_node(nid, msg)
 
     def _send_msg_to_node(self, nid, msg):
-        send_msg(self.client_sockets[nid], pickle.dumps(msg))
+        send_msg(self.client_sockets[nid], msg)
 
     def _receive_msg_from_node(self, nid):
         return self.client_sockets[nid].recv(1024)
