@@ -13,6 +13,7 @@ class MessageTypes(Enum):
     REPLY_CLIQUES = 8
     FAILURE_DETECTED = 9
     REPLICA_REQUEST = 10
+    REPLICA_REQUEST_HUB = 13
     ASSIGN_STANDBY = 11
     MOVE = 12
 

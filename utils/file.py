@@ -20,6 +20,12 @@ def write_json(fid, results, directory, is_clique):
         json.dump(results, f)
 
 
+def write_csv(directory, rows, file_name):
+    with open(os.path.join(directory, f'{file_name}.csv'), 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerows(rows)
+
+
 def create_csv_from_json(directory, fig_dir):
     if not os.path.exists(directory):
         return

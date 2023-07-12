@@ -43,15 +43,15 @@ class StateMachine:
         self.put_state_in_q(MessageTypes.STOP, args=(False,))  # False for not broadcasting stop msg
         if self.context.is_standby:
             # request a standby FLS from the hub, arg False is for standby FLS
-            self.send_to_server(Message(MessageTypes.REPLICA_REQUEST, args=(False,)))
+            self.send_to_server(Message(MessageTypes.REPLICA_REQUEST_HUB, args=(False,)))
         elif self.context.standby_id is None:
             # request an illuminating FLS from the hub, arg True is for illuminating FLS
-            self.send_to_server(Message(MessageTypes.REPLICA_REQUEST, args=(True,)))
+            self.send_to_server(Message(MessageTypes.REPLICA_REQUEST_HUB, args=(True,)))
         else:
             # notify group
             self.broadcast(Message(MessageTypes.REPLICA_REQUEST, args=(False,)).to_swarm(self.context))
             # request standby from server
-            self.send_to_server(Message(MessageTypes.REPLICA_REQUEST, args=(False,)))
+            self.send_to_server(Message(MessageTypes.REPLICA_REQUEST_HUB, args=(False,)))
 
     def assign_new_standby(self, msg):
         if not self.context.is_standby:

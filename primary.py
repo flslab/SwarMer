@@ -85,6 +85,7 @@ class PrimaryNode:
         self.group_radio_range = {}
         self.pid = 0
         self.dispatch_policy = PoDPolicy()
+        self.num_handled_failures = 0
 
     def _create_server_socket(self):
         # Experimental artifact to gather theoretical stats for scientific publications.
@@ -254,7 +255,7 @@ class PrimaryNode:
                 continue
 
             if msg.dest_fid == 0:
-                if msg.type == MessageTypes.REPLICA_REQUEST:
+                if msg.type == MessageTypes.REPLICA_REQUEST_HUB:
                     self.pid += 1
                     group_id = msg.swarm_id
                     failed_fid = msg.fid
@@ -286,6 +287,8 @@ class PrimaryNode:
                             .from_server().to_fls_id("*", group_id)
                         failure_handling_socket.broadcast(new_standby_msg)
 
+                    self.num_handled_failures += 1
+
         self.end_time = time.time()
 
     def _stop_dispatchers(self):
@@ -311,6 +314,7 @@ class PrimaryNode:
     def _write_results(self):
         logger.info("Writing results")
 
+        utils.write_csv(self.dir_meta, [["num_handled_failures", self.num_handled_failures]], 'metrics')
         utils.create_csv_from_json(self.dir_meta, os.path.join(self.dir_figure, f'{self.result_name}.jpg'))
         utils.write_configs(self.dir_meta, self.start_time)
         utils.combine_csvs(self.dir_meta, self.dir_experiment, "reli_" + self.result_name)
