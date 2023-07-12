@@ -36,7 +36,7 @@ class SecondaryNode:
         logger.info("Waiting for the start command from the primary node")
 
         start_cmd = recv_msg(self.sock)
-        self.start_time, self.dir_meta = pickle.loads(start_cmd)
+        self.start_time, self.dir_meta = start_cmd
 
     def _handle_deployments(self):
         logger.info("Started deployment handler")

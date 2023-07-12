@@ -1,8 +1,10 @@
+import pickle
 import struct
 
 
 def send_msg(sock, msg):
     # Prefix each message with a 4-byte big-endian unsigned integer (network byte order)
+    msg = pickle.dumps(msg)
     msg = struct.pack('>I', len(msg)) + msg
     sock.sendall(msg)
 
@@ -25,4 +27,4 @@ def recvall(sock, n):
         if not packet:
             return None
         data.extend(packet)
-    return data
+    return pickle.loads(data)
