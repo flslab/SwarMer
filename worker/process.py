@@ -12,13 +12,14 @@ from .metrics import Metrics
 
 class WorkerProcess(multiprocessing.Process):
     def __init__(self, fid, gtl, el, dir_meta,
-                 start_time, is_standby=False, standby_id=0, group_id=None, radio_range=2000):
+                 start_time, is_standby=False, standby_id=None, group_id=None, radio_range=2000):
         super(WorkerProcess, self).__init__()
         self.history = History(4)
         self.metrics = Metrics(self.history, dir_meta, start_time)
         self.context = WorkerContext(fid=fid, gtl=gtl, el=el, metrics=self.metrics,
                                      is_standby=is_standby, standby_id=standby_id, group_id=group_id,
                                      radio_range=radio_range)
+
         self.sock = WorkerSocket()
 
     def run(self):
