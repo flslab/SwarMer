@@ -8,6 +8,7 @@ from config import Config
 from constants import Constants
 import worker
 from utils import logger
+from utils.socket import recv_msg
 
 
 class SecondaryNode:
@@ -41,7 +42,8 @@ class SecondaryNode:
         logger.info("Started deployment handler")
 
         while True:
-            msg = pickle.loads(self.sock.recv(1024))
+            msg = recv_msg(self.sock)
+            logger.debug(msg)
 
             if not msg:
                 break

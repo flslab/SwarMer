@@ -19,59 +19,7 @@ import worker
 import utils
 from utils import logger
 from utils.file import read_cliques_xlsx
-
-
-def get_shape_floor_center(arr):
-    length = arr.shape[0]
-    sum_x = np.sum(arr[:, 0])
-    sum_y = np.sum(arr[:, 1])
-    return np.array([sum_x / length, sum_y / length, 0])
-
-
-def get_shape_floor_radius(arr, center):
-    arr_projected_floor = np.copy(arr)
-    arr_projected_floor[:, 2] = 0
-    return np.max(np.linalg.norm(arr_projected_floor - center, axis=1))
-
-
-def get_dispatchers_for_shape(shape, num_dispatchers=1):
-    if num_dispatchers == 1:
-        return [np.array([0.0, 0.0, 0.0])]
-
-    center = get_shape_floor_center(shape)
-    r = get_shape_floor_radius(shape, center)
-    dispatcher_coordinates = []
-    for k in range(num_dispatchers):
-        phi = 2 * np.pi * k / num_dispatchers
-        dispatcher_coordinates.append(center + np.array([r * np.cos(phi), r * np.sin(phi), 0]))
-    return dispatcher_coordinates
-
-
-def send_msg(sock, msg):
-    # Prefix each message with a 4-byte big-endian unsigned integer (network byte order)
-    msg = struct.pack('>I', len(msg)) + msg
-    sock.sendall(msg)
-
-
-def recv_msg(sock):
-    # Read message length and unpack it into an integer
-    raw_msglen = recvall(sock, 4)
-    if not raw_msglen:
-        return None
-    msglen = struct.unpack('>I', raw_msglen)[0]
-    # Read the message data
-    return recvall(sock, msglen)
-
-
-def recvall(sock, n):
-    # Helper function to recv n bytes or return None if EOF is hit
-    data = bytearray()
-    while len(data) < n:
-        packet = sock.recv(n - len(data))
-        if not packet:
-            return None
-        data.extend(packet)
-    return data
+from utils.socket import send_msg
 
 
 CONFIG = TestConfig if TestConfig.ENABLED else Config
@@ -205,11 +153,11 @@ class PrimaryNode:
             d.start()
 
     def _send_msg_to_all_nodes(self, msg):
-        for s in self.client_sockets:
-            s.sendall(pickle.dumps(msg))
+        for nid in range(len(self.client_sockets)):
+            self._send_msg_to_node(nid, msg)
 
     def _send_msg_to_node(self, nid, msg):
-        self.client_sockets[nid].sendall(pickle.dumps(msg))
+        send_msg(self.client_sockets[nid], pickle.dumps(msg))
 
     def _receive_msg_from_node(self, nid):
         return self.client_sockets[nid].recv(1024)
@@ -221,6 +169,8 @@ class PrimaryNode:
 
     def _read_groups(self):
         self.groups, self.radio_ranges = read_cliques_xlsx(os.path.join(self.dir_experiment, f'{Config.INPUT}.xlsx'))
+        self.groups = self.groups[:10]
+        self.radio_ranges = self.radio_ranges[:10]
 
         single_members = []
         single_indexes = []
