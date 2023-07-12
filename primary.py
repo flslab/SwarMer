@@ -215,7 +215,7 @@ class PrimaryNode:
             group_id = self.pid + 1
             self.group_radio_range[group_id] = self.radio_ranges[i]
             self.group_standby_coord[group_id] = None
-            self.group_standby_id[group_id] = group_id + len(group)
+            self.group_standby_id[group_id] = None
 
             if Config.K:
                 member_count = group.shape[0]
@@ -224,6 +224,7 @@ class PrimaryNode:
                 sum_z = np.sum(group[:, 2])
                 stand_by_coord = np.array([sum_x / member_count, sum_y / member_count, sum_z / member_count])
                 self.group_standby_coord[group_id] = stand_by_coord
+                self.group_standby_id[group_id] = group_id + len(group)
 
             # deploy group members
             for member_coord in group:
@@ -264,7 +265,6 @@ class PrimaryNode:
                 if msg.type == MessageTypes.REPLICA_REQUEST_HUB:
                     self.pid += 1
                     group_id = msg.swarm_id
-                    failed_fid = msg.fid
                     is_illuminating = msg.args[0]
 
                     if is_illuminating:
