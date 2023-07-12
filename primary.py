@@ -323,10 +323,10 @@ class PrimaryNode:
         self._write_results()
 
     def start_experiment(self):
+        self._setup_results_directory()
         self._create_server_socket()
         self._bind_server_socket()
         self._listen_to_secondary_nodes()
-        self._setup_results_directory()
         self._read_groups()
         self._define_dispatcher_coords()
         self._start_secondary_nodes()
