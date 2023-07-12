@@ -77,7 +77,7 @@ general_props = [
     },
     {
         "keys": ["FAILURE_TIMEOUT"],
-        "values": ["1", "30"]
+        "values": ["1", "120"]
         # "values": ["1", "3", "6", "30", "60", "120", "600"]
     }
     # {
