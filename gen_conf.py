@@ -27,7 +27,7 @@ def_general_conf = {
     "DISPATCHERS": "1",
     "DISPATCH_RATE": "'inf'",
     "MULTICAST": "True",
-    "INPUT": "'racecar_K:20'"
+    "INPUT": "'racecar_K20'"
 }
 
 def_test_conf = {
@@ -50,9 +50,9 @@ general_props = [
     {
         "keys": ["K", "INPUT"],
         "values": [
-            {"K": "0", "INPUT": "'chess_K:3'"},
-            {"K": "3", "INPUT": "'chess_K:3'"},
-            {"K": "20", "INPUT": "'chess_K:20'"},
+            {"K": "0", "INPUT": "'chess_K3'"},
+            {"K": "3", "INPUT": "'chess_K3'"},
+            {"K": "20", "INPUT": "'chess_K20'"},
         ]
     },
     {
