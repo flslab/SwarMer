@@ -35,19 +35,22 @@ class WorkerContext:
         self.c = ()
         self.k = k
         self.history = History(2)
+        self.num_neighbors = 0
 
     def set_pair(self):
         if self.shm_name:
             shared_mem = shared_memory.SharedMemory(name=self.shm_name)
             shared_array = np.ndarray((self.k,), dtype=np.int32, buffer=shared_mem.buf)
-            shared_array[:] = sorted([self.fid] + list(self.c))
+            shared_array[:self.k] = sorted([self.fid] + list(self.c))
             shared_mem.close()
 
-    def set_single(self):
-        if self.shm_name:
-            shared_mem = shared_memory.SharedMemory(name=self.shm_name)
-            shared_array = np.ndarray((7,), dtype=np.float64, buffer=shared_mem.buf)
-            shared_array[6] = 0
+    def set_num_neighbors(self):
+        if self.num_neighbors != len(self.neighbors):
+            self.num_neighbors = len(self.neighbors)
+            if self.shm_name:
+                shared_mem = shared_memory.SharedMemory(name=self.shm_name)
+            shared_array = np.ndarray((self.k,), dtype=np.int32, buffer=shared_mem.buf)
+            shared_array[self.k] = len(self.neighbors)
             shared_mem.close()
 
     def set_swarm_id(self, swarm_id):
@@ -138,6 +141,7 @@ class WorkerContext:
         if ctx.fid:
             self.neighbors[ctx.fid] = ctx
             self.fid_to_w[ctx.fid] = ctx.w
+            self.set_num_neighbors()
 
     def increment_range(self):
         if self.radio_range < self.max_range:

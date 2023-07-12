@@ -45,7 +45,7 @@ def query_cliques_client(connection):
     data = recv_msg(connection)
     message = pickle.loads(data)
     # print(message.args[0], message.args[1])
-    return message.args[0], message.args[1]  # cliques, connections
+    return message.args[0], message.args[1], message.args[2]  # cliques, connections, neighbors
 
 
 def stop_client(connection):
@@ -59,16 +59,18 @@ def stop_client(connection):
 def aggregate_cliques(indexes, sh_arrs):
     all_cliques = dict()
     all_connections = dict()
+    all_neighbors = dict()
     sh_arrays = copy.deepcopy(sh_arrs)
     for k in indexes:
-        all_connections[k + 1] = sh_arrays[k]
-        clique_key = ".".join([str(clique) for clique in sh_arrays[k]])
+        all_connections[k + 1] = sh_arrays[k][:K]
+        all_connections[k + 1] = sh_arrays[k][K]
+        clique_key = ".".join([str(clique) for clique in sh_arrays[k][:K]])
         if clique_key in all_cliques:
             all_cliques[clique_key] += 1
         else:
             all_cliques[clique_key] = 1
 
-    return all_cliques, all_connections
+    return all_cliques, all_connections, Counter(list(all_neighbors.values()))
 
 
 def get_shape_floor_center(arr):
@@ -248,7 +250,7 @@ if __name__ == '__main__':
     # h = np.log2(total_count)
 
     gtl_point_cloud = np.random.uniform(0, 5, size=(total_count, 3))
-    sample = np.zeros(K, dtype=np.int32)
+    sample = np.zeros(K+1, dtype=np.int32)
 
     node_point_idx = []
     for i in range(total_count):
@@ -283,7 +285,8 @@ if __name__ == '__main__':
         for i in node_point_idx:
             shm = shared_memory.SharedMemory(create=True, size=sample.nbytes)
             shared_array = np.ndarray(sample.shape, dtype=sample.dtype, buffer=shm.buf)
-            shared_array[:] = i+1
+            shared_array[:K] = i+1
+            shared_array[K] = 0
 
             shared_arrays[i] = shared_array
             shared_memories[i] = shm
@@ -349,8 +352,8 @@ if __name__ == '__main__':
             server_msg = pickle.loads(server_msg)
 
             if server_msg.type == MessageTypes.QUERY_CLIQUES:
-                client_cliques, client_connections = aggregate_cliques(node_point_idx, shared_arrays)
-                response = Message(MessageTypes.REPLY_CLIQUES, args=(client_cliques, client_connections))
+                client_cliques, client_connections, client_neighbors = aggregate_cliques(node_point_idx, shared_arrays)
+                response = Message(MessageTypes.REPLY_CLIQUES, args=(client_cliques, client_connections, client_neighbors))
                 # client_socket.sendall(pickle.dumps(response))
                 send_msg(client_socket, pickle.dumps(response))
             elif server_msg.type == MessageTypes.STOP:
@@ -358,11 +361,12 @@ if __name__ == '__main__':
     else:
         while True:
             time.sleep(1)
-            cliques, connections = aggregate_cliques(node_point_idx, shared_arrays)
+            cliques, connections, neighbors = aggregate_cliques(node_point_idx, shared_arrays)
 
             if IS_CLUSTER_SERVER:
                 for i in range(N-1):
-                    client_clique, client_connection = query_cliques_client(clients[i])
+                    client_clique, client_connection, client_neighbors = query_cliques_client(clients[i])
+                    neighbors += client_neighbors
                     for key, con in client_connection.items():
                         connections[key] = con
                     for key, size in client_clique.items():
