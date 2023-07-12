@@ -129,38 +129,36 @@ def show_last_frame(events, t=30):
 
 
 if __name__ == '__main__':
-    mpl.use('macosx')
-
-    filtered_events, length, width, height = read_point_cloud(input_path)
-    fig, ax, tx = draw_figure()
-    points = dict()
-    ani = FuncAnimation(
-        fig, partial(update,),
-        frames=30 * duration,
-        init_func=partial(init, ax))
+    # mpl.use('macosx')
     #
-    # plt.show()
-    writer = FFMpegWriter(fps=fps)
-    ani.save(f"results/{output_name}.mp4", writer=writer)
-    exit()
+    # filtered_events, length, width, height = read_point_cloud(input_path)
+    # fig, ax, tx = draw_figure()
+    # points = dict()
+    # ani = FuncAnimation(
+    #     fig, partial(update,),
+    #     frames=30 * duration,
+    #     init_func=partial(init, ax))
+    # #
+    # # plt.show()
+    # writer = FFMpegWriter(fps=fps)
+    # ani.save(f"results/{output_name}.mp4", writer=writer)
+    # exit()
     configs = [
         {
-            "keys": ["C", "K"],
-            "values": [
-                {"C": "0", "K": "3"},
-                {"C": "1", "K": "3"},
-                {"C": "1", "K": "5"},
-                {"C": "1", "K": "10"},
-                {"C": "1", "K": "20"},
-            ]
+            "keys": ["K"],
+            "values": ["3"]
         },
         {
-            "keys": ["DISPATCHERS"],
-            "values": ["1", "3", "5"]
+            "keys": ["D"],
+            "values": ["5"]
         },
         {
-            "keys": ["FAILURE_TIMEOUT"],
-            "values": ["1", "3", "6", "30", "60", "120", "600"]
+            "keys": ["R"],
+            "values": ["inf", "50"]
+        },
+        {
+            "keys": ["T"],
+            "values": ["1", "30", "120"]
         }
     ]
 
@@ -169,8 +167,8 @@ if __name__ == '__main__':
     # print(combinations)
 
     for c in combinations:
-        file_name = f"racecar_C:{c[0]['C']}_K:{c[0]['K']}_DISPATCHERS:{c[1]}_FAILURE_TIMEOUT:{c[2]}"
-        input_path = f"/Users/hamed/Desktop/racecar_reli/{file_name}/timeline.json"
+        file_name = f"chess_K{c[0]}_D{c[1]}_R{c[2]}_T{c[3]}"
+        input_path = f"/Users/hamed/Desktop/H2 2/{file_name}/timeline.json"
         filtered_events, length, width, height = read_point_cloud(input_path)
         fig, ax, _ = draw_figure()
         init(ax)
@@ -178,6 +176,6 @@ if __name__ == '__main__':
         ax.scatter(xs, ys, zs, c='blue', s=2, alpha=1)
         set_axis(ax, length, width, height)
         # plt.show()
-        plt.savefig('figs/racecar/' + file_name + '.png')
+        plt.savefig('figs/chess2/' + file_name + '.png')
         plt.close()
         # break
