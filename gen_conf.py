@@ -37,7 +37,7 @@ def_general_conf = {
     "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
     "DEBUG": "False",
     "FILE_NAME_KEYS": "['K']",
-    "SERVER_TIMEOUT": "120",
+    "SERVER_TIMEOUT": "3600",
     "PROCESS_JOIN_TIMEOUT": "120",
     "NUM_DISPATCHERS": "1",
     "MULTICAST": "True",
