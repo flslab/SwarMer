@@ -21,7 +21,7 @@ import utils
 import sys
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-
+from collections import Counter
 from utils import dict_hash
 
 # mpl.use('macosx')
@@ -478,7 +478,8 @@ if __name__ == '__main__':
                 ["avg max_dists", sum(max_distances) / num_cliques],
                 ["max max_dists", max(max_distances)],
                 ["number of cliques", num_cliques],
-                ["number of single nodes", num_singles]
+                ["number of single nodes", num_singles],
+                ["frequency of clique consensus", Counter(list(cliques.values()))]
                 ]
         utils.write_csv(results_directory, rows, 'metrics')
         utils.write_configs(results_directory, current_date_time)
