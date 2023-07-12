@@ -25,7 +25,7 @@ CONFIG = TestConfig if TestConfig.ENABLED else Config
 
 def join_config_properties(conf, props):
     return "_".join(
-        f"{k[1] if isinstance(k, tuple) else k}:{getattr(conf, k[0] if isinstance(k, tuple) else k)}" for k in
+        f"{k[1] if isinstance(k, tuple) else k}{getattr(conf, k[0] if isinstance(k, tuple) else k)}" for k in
         props)
 
 
