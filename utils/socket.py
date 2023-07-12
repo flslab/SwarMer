@@ -16,7 +16,7 @@ def recv_msg(sock):
         return None
     msglen = struct.unpack('>I', raw_msglen)[0]
     # Read the message data
-    return recvall(sock, msglen)
+    return pickle.loads(recvall(sock, msglen))
 
 
 def recvall(sock, n):
@@ -27,4 +27,4 @@ def recvall(sock, n):
         if not packet:
             return None
         data.extend(packet)
-    return pickle.loads(data)
+    return data
