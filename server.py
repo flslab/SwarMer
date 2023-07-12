@@ -483,7 +483,8 @@ if __name__ == '__main__':
                 ["max max_dists", max(max_distances)],
                 ["number of cliques", num_cliques],
                 ["number of single nodes", num_singles],
-                ["frequency of clique consensus", Counter(list(cliques.values()))]
+                ["frequency of clique consensus", str(Counter(list(cliques.values())))],
+                ["frequency of neighbors", str(neighbors)]
                 ]
         utils.write_csv(results_directory, rows, 'metrics')
         utils.write_configs(results_directory, current_date_time)
