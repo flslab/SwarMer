@@ -14,10 +14,10 @@ def_general_conf = {
     "MAX_SPEED": "3",
     "DISPLAY_CELL_SIZE": "0.05",
     "BUSY_WAITING": "False",
-    "DURATION": "60 * 1",
+    "DURATION": "60 * 60",
     "K": "20",
     "H": "2",
-    "SHAPE": "'racecar'",
+    "SHAPE": "'chess'",
     "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
     "DEBUG": "False",
     "FILE_NAME_KEYS": "['K', ('DISPATCHERS', 'D'), ('DISPATCH_RATE', 'R'), ('FAILURE_TIMEOUT', 'T')]",
@@ -45,13 +45,13 @@ def_test_conf = {
 general_props = [
     {
         "keys": ["DISPATCH_RATE"],
-        "values": ["'inf'", "50"]
+        "values": ["1"]
     },
     {
         "keys": ["K", "INPUT"],
         "values": [
-            {"K": "0", "INPUT": "'racecar_K3'"},
-            {"K": "3", "INPUT": "'racecar_K3'"},
+            {"K": "0", "INPUT": "'chess_K3'"},
+            {"K": "3", "INPUT": "'chess_K3'"},
             # {"K": "20", "INPUT": "'chess_K20'"},
         ]
     },
