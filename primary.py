@@ -167,8 +167,8 @@ class PrimaryNode:
 
     def _read_groups(self):
         self.groups, self.radio_ranges = read_cliques_xlsx(os.path.join(self.dir_experiment, f'{Config.INPUT}.xlsx'))
-        self.groups = self.groups[:10]
-        self.radio_ranges = self.radio_ranges[:10]
+        self.groups = self.groups[:2]
+        self.radio_ranges = self.radio_ranges[:2]
 
         single_members = []
         single_indexes = []
