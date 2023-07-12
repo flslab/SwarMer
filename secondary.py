@@ -99,8 +99,8 @@ class SecondaryNode:
 
     def stop_node(self):
         self._stop_failure_handler_thread()
-        self._ack_primary_node()
         self._stop_processes()
+        self._ack_primary_node()
 
 
 if __name__ == '__main__':

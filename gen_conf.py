@@ -42,7 +42,7 @@ def_general_conf = {
     "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "DISPATCHERS": "1",
-    "DISPATCH_RATE": "100",
+    "DISPATCH_RATE": "'inf'",
     "C": "1",
     "MULTICAST": "True",
     "INPUT": "'racecar_K:20'"

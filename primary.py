@@ -107,7 +107,7 @@ class PrimaryNode:
         self.sock.listen(N)
         for i in range(N):
             client, address = self.sock.accept()
-            logger.info(address)
+            logger.debug(address)
             self.client_sockets.append(client)
 
     def _setup_results_directory(self):
@@ -167,8 +167,8 @@ class PrimaryNode:
 
     def _read_groups(self):
         self.groups, self.radio_ranges = read_cliques_xlsx(os.path.join(self.dir_experiment, f'{Config.INPUT}.xlsx'))
-        self.groups = self.groups[:2]
-        self.radio_ranges = self.radio_ranges[:2]
+        # self.groups = self.groups[:2]
+        # self.radio_ranges = self.radio_ranges[:2]
 
         single_members = []
         single_indexes = []
