@@ -51,13 +51,13 @@ general_props = [
         "keys": ["K", "INPUT"],
         "values": [
             {"K": "0", "INPUT": "'chess_K3'"},
-            # {"K": "3", "INPUT": "'chess_K3'"},
+            {"K": "3", "INPUT": "'chess_K3'"},
             # {"K": "20", "INPUT": "'chess_K20'"},
         ]
     },
     {
         "keys": ["DISPATCHERS"],
-        "values": ["1", "5"]
+        "values": ["5"]
     },
     {
         "keys": ["FAILURE_TIMEOUT"],
