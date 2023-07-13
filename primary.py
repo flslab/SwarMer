@@ -156,10 +156,9 @@ class PrimaryNode:
     def _initialize_dispatchers(self):
         logger.info(f"Initializing {Config.DISPATCHERS} dispatchers")
 
-        r = Config.INITIAL_DISPATCH_RATE or Config.DISPATCH_RATE
         for coord in self.dispatchers_coords:
             q = queue.Queue()
-            d = Dispatcher(q, r, coord)
+            d = Dispatcher(q, Config.DISPATCH_RATE, coord)
             self.dispatchers.append(d)
 
     def _start_dispatchers(self):
@@ -167,10 +166,6 @@ class PrimaryNode:
 
         for d in self.dispatchers:
             d.start()
-
-    def _change_dispatch_rate(self, r):
-        for d in self.dispatchers:
-            d.q.put(r)
 
     def _send_msg_to_all_nodes(self, msg):
         for nid in range(len(self.client_sockets)):
@@ -369,7 +364,6 @@ class PrimaryNode:
         self._start_secondary_nodes()
         self._initialize_dispatchers()
         self._dispatch_initial_formation()
-        self._change_dispatch_rate(Config.DISPATCH_RATE)
         self._create_failure_handler_socket()
         self._start_dispatchers()
         self._handle_failures()

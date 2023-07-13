@@ -15,19 +15,13 @@ class Dispatcher(threading.Thread):
         self.coord = coord
         self.should_stop = False
 
-    def set_rate(self, r):
-        self.r = r
-        self.delay = 1 / r if isinstance(r, int) else 0
-
     def run(self):
         while not self.should_stop:
             try:
                 item = self.q.get(timeout=1)
             except queue.Empty:
                 continue
-            if isinstance(item, int) or isinstance(item, str):
-                self.set_rate(time)
-            elif isinstance(item, WorkerProcess):
+            if isinstance(item, WorkerProcess):
                 item.start()
             elif callable(item):
                 try:

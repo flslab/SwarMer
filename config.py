@@ -22,7 +22,6 @@ class Config:
     SERVER_TIMEOUT = 120
     PROCESS_JOIN_TIMEOUT = 120
     DISPATCHERS = 5  # valid values 1 3 5
-    INITIAL_DISPATCH_RATE = 'inf'  # valid values 'inf' or a non-zero number or zero to be equal to DISPATCH_RATE
     DISPATCH_RATE = 1  # valid values 'inf' or a non-zero number
     MULTICAST = True
     INPUT = 'racecar_K:5'
