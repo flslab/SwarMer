@@ -242,7 +242,7 @@ class PrimaryNode:
                 self.pid += 1
                 fls = {
                     "fid": self.pid,
-                    "el": member_coord, "gtl": member_coord,
+                    "el": None, "gtl": member_coord,
                     "radio_range": self.group_radio_range[group_id],
                     "standby_id": self.group_standby_id[group_id], "group_id": group_id,
                 }
@@ -254,7 +254,7 @@ class PrimaryNode:
                 self.pid += 1
                 fls = {
                     "fid": self.pid,
-                    "el": self.group_standby_coord[group_id], "gtl": self.group_standby_coord[group_id],
+                    "el": None, "gtl": self.group_standby_coord[group_id],
                     "radio_range": self.group_radio_range[group_id],
                     "is_standby": True, "group_id": group_id,
                 }
