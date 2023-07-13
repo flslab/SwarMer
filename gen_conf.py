@@ -25,6 +25,7 @@ def_general_conf = {
     "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "DISPATCHERS": "1",
+    "INITIAL_DISPATCH_RATE": "'inf'",
     "DISPATCH_RATE": "'inf'",
     "MULTICAST": "True",
     "INPUT": "'racecar_K20'"

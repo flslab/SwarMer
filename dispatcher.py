@@ -10,9 +10,14 @@ class Dispatcher(threading.Thread):
     def __init__(self, q, r, coord):
         super(Dispatcher, self).__init__()
         self.q = q
+        self.r = r
         self.delay = 1 / r if isinstance(r, int) else 0
         self.coord = coord
         self.should_stop = False
+
+    def set_rate(self, r):
+        self.r = r
+        self.delay = 1 / r if isinstance(r, int) else 0
 
     def run(self):
         while not self.should_stop:
@@ -20,7 +25,9 @@ class Dispatcher(threading.Thread):
                 item = self.q.get(timeout=1)
             except queue.Empty:
                 continue
-            if isinstance(item, WorkerProcess):
+            if isinstance(item, int) or isinstance(item, str):
+                self.set_rate(time)
+            elif isinstance(item, WorkerProcess):
                 item.start()
             elif callable(item):
                 try:
@@ -28,7 +35,8 @@ class Dispatcher(threading.Thread):
                 except BrokenPipeError:
                     continue
 
-            time.sleep(self.delay)
+            if self.delay:
+                time.sleep(self.delay)
 
     def stop(self):
         self.should_stop = True

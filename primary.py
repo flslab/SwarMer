@@ -74,6 +74,7 @@ class PrimaryNode:
         self.N = N  # number of secondary servers
         self.name = name
         self.sock = None
+        self.failure_handler_socket = None
         self.client_sockets = []
         self.result_name = None
         self.dir_experiment = None
@@ -152,14 +153,24 @@ class PrimaryNode:
         elif Config.DISPATCHERS == 5:
             self.dispatchers_coords = np.array([[l / 2, w / 2, 0], [l, 0, 0], [0, w, 0], [l, w, 0], [0, 0, 0]])
 
+    def _initialize_dispatchers(self):
+        logger.info(f"Initializing {Config.DISPATCHERS} dispatchers")
+
+        r = Config.INITIAL_DISPATCH_RATE or Config.DISPATCH_RATE
+        for coord in self.dispatchers_coords:
+            q = queue.Queue()
+            d = Dispatcher(q, r, coord)
+            self.dispatchers.append(d)
+
     def _start_dispatchers(self):
         logger.info(f"Starting {Config.DISPATCHERS} dispatchers")
 
-        for coord in self.dispatchers_coords:
-            q = queue.Queue()
-            d = Dispatcher(q, Config.DISPATCH_RATE, coord)
-            self.dispatchers.append(d)
+        for d in self.dispatchers:
             d.start()
+
+    def _change_dispatch_rate(self, r):
+        for d in self.dispatchers:
+            d.q.put(r)
 
     def _send_msg_to_all_nodes(self, msg):
         for nid in range(len(self.client_sockets)):
@@ -212,8 +223,9 @@ class PrimaryNode:
             properties["el"] = dispatcher.coord
         dispatcher.q.put(lambda: self._send_msg_to_node(nid, properties))
 
-    def _deploy_initial_formation(self):
-        logger.info("Deploying FLSs")
+    def _dispatch_initial_formation(self):
+        logger.info("Assigning FLSs to dispatchers")
+
         for i in range(len(self.groups)):
             group = self.groups[i]
             group_id = self.pid + 1
@@ -256,14 +268,16 @@ class PrimaryNode:
 
         logger.info(f"Assigned {self.pid} FLSs to dispatchers")
 
-    def _handle_failures(self):
-        logger.info("Started failure handler")
+    def _create_failure_handler_socket(self):
+        self.failure_handler_socket = worker.WorkerSocket()
+        self.failure_handler_socket.sock.settimeout(1)
 
-        failure_handling_socket = worker.WorkerSocket()
-        failure_handling_socket.sock.settimeout(1)
+    def _handle_failures(self):
+        logger.info("Handling Failures")
+
         while time.time() - self.start_time <= Config.DURATION:
             try:
-                msg, _ = failure_handling_socket.receive()
+                msg, _ = self.failure_handler_socket.receive()
             except socket.timeout:
                 continue
 
@@ -353,8 +367,11 @@ class PrimaryNode:
         self._read_groups()
         self._define_dispatcher_coords()
         self._start_secondary_nodes()
+        self._initialize_dispatchers()
+        self._dispatch_initial_formation()
+        self._change_dispatch_rate(Config.DISPATCH_RATE)
+        self._create_failure_handler_socket()
         self._start_dispatchers()
-        self._deploy_initial_formation()
         self._handle_failures()
 
 
