@@ -45,6 +45,8 @@ class StateMachine:
         self.context.metrics.log_failure_time(time.time(), self.context.is_standby)
         self.put_state_in_q(MessageTypes.STOP, args=(False,))  # False for not broadcasting stop msg
         if self.context.is_standby:
+            # notify group
+            self.broadcast(Message(MessageTypes.STANDBY_FAILED).to_swarm(self.context))
             # request a standby FLS from the hub, arg False is for standby FLS
             self.send_to_server(Message(MessageTypes.REPLICA_REQUEST_HUB, args=(False,)))
         elif self.context.standby_id is None:
@@ -72,10 +74,14 @@ class StateMachine:
         if self.context.is_standby:
             self.replace_failed_fls(msg)
         elif msg.fid not in self.handled_failure:
-            timestamp = time.time()
             self.context.standby_id = None
-            self.context.metrics.log_standby_id(timestamp, None)
+            self.context.metrics.log_standby_id(time.time(), self.context.standby_id)
         self.handled_failure[msg.fid] = True
+
+    def handle_standby_failure(self, msg):
+        if self.context.standby_id == msg.fid:
+            self.context.standby_id = None
+            self.context.metrics.log_standby_id(time.time(), self.context.standby_id)
 
     def set_timer_to_fail(self):
         self.timer_failure = threading.Timer(
@@ -111,6 +117,8 @@ class StateMachine:
             self.handle_replica_request(msg)
         elif event == MessageTypes.ASSIGN_STANDBY:
             self.assign_new_standby(msg)
+        elif event == MessageTypes.STANDBY_FAILED:
+            self.handle_standby_failure(msg)
         # elif event == MessageTypes.MOVE:
         #     self.handle_move(msg)
 

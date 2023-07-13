@@ -15,6 +15,7 @@ class MessageTypes(Enum):
     REPLICA_REQUEST = 10
     REPLICA_REQUEST_HUB = 13
     ASSIGN_STANDBY = 11
+    STANDBY_FAILED = 14
     MOVE = 12
 
     def get_cat(self):
