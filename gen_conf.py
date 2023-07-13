@@ -50,7 +50,7 @@ general_props = [
     {
         "keys": ["K", "INPUT"],
         "values": [
-            # {"K": "0", "INPUT": "'chess_K3'"},
+            {"K": "0", "INPUT": "'chess_K3'"},
             {"K": "3", "INPUT": "'chess_K3'"},
             # {"K": "20", "INPUT": "'chess_K20'"},
         ]
@@ -61,7 +61,7 @@ general_props = [
     },
     {
         "keys": ["FAILURE_TIMEOUT"],
-        "values": ["1", "30", "120"]
+        "values": ["30", "120"]
         # "values": ["1", "3", "6", "30", "60", "120", "600"]
     }
     # {
