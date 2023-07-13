@@ -14,7 +14,7 @@ def_general_conf = {
     "MAX_SPEED": "3",
     "DISPLAY_CELL_SIZE": "0.05",
     "BUSY_WAITING": "False",
-    "DURATION": "60 * 5",
+    "DURATION": "60 * 10",
     "K": "20",
     "H": "2",
     "SHAPE": "'chess'",
