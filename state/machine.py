@@ -25,6 +25,9 @@ class StateMachine:
 
     def start(self):
         dur, dest = self.context.deploy()
+        if self.context.is_standby:
+            # send the id of the new standby to group members
+            self.broadcast(Message(MessageTypes.ASSIGN_STANDBY).to_swarm(self.context))
         # threading.Timer(dur, self.put_state_in_q, (MessageTypes.MOVE, (dest,))).start()
         self.enter(StateTypes.SINGLE)
 
@@ -49,13 +52,13 @@ class StateMachine:
             self.send_to_server(Message(MessageTypes.REPLICA_REQUEST_HUB, args=(True,)))
         else:
             # notify group
-            self.broadcast(Message(MessageTypes.REPLICA_REQUEST, args=(False,)).to_swarm(self.context))
+            self.broadcast(Message(MessageTypes.REPLICA_REQUEST).to_swarm(self.context))
             # request standby from server
             self.send_to_server(Message(MessageTypes.REPLICA_REQUEST_HUB, args=(False,)))
 
     def assign_new_standby(self, msg):
         if not self.context.is_standby:
-            self.context.standby_id = msg.args[0]
+            self.context.standby_id = msg.fid
             self.context.metrics.log_standby_id(time.time(), self.context.standby_id)
 
     def replace_failed_fls(self, msg):

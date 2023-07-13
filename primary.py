@@ -92,6 +92,10 @@ class PrimaryNode:
         self.pid = 0
         self.dispatch_policy = PoDPolicy()
         self.num_handled_failures = 0
+        self.num_initial_flss = 0
+        self.num_initial_standbys = 0
+        self.num_replaced_flss = 0
+        self.num_replaced_standbys = 0
 
     def _create_server_socket(self):
         # Experimental artifact to gather theoretical stats for scientific publications.
@@ -236,6 +240,7 @@ class PrimaryNode:
                     "standby_id": self.group_standby_id[group_id], "group_id": group_id,
                 }
                 self._deploy_fls(fls)
+                self.num_initial_flss += 1
 
             # deploy standby
             if Config.K:
@@ -247,6 +252,7 @@ class PrimaryNode:
                     "is_standby": True, "group_id": group_id,
                 }
                 self._deploy_fls(fls)
+                self.num_initial_standbys += 1
 
         logger.info(f"Assigned {self.pid} FLSs to dispatchers")
 
@@ -275,6 +281,7 @@ class PrimaryNode:
                             "standby_id": self.group_standby_id[group_id], "group_id": group_id,
                         }
                         self._deploy_fls(fls)
+                        self.num_replaced_flss += 1
 
                     else:
                         self.group_standby_id[group_id] = self.pid
@@ -287,11 +294,7 @@ class PrimaryNode:
                             "is_standby": True, "group_id": group_id,
                         }
                         self._deploy_fls(fls)
-
-                        # send the id of the new standby to group members
-                        new_standby_msg = Message(MessageTypes.ASSIGN_STANDBY, args=(self.pid,)) \
-                            .from_server().to_fls_id("*", group_id)
-                        failure_handling_socket.broadcast(new_standby_msg)
+                        self.num_replaced_standbys += 1
 
                     self.num_handled_failures += 1
 
@@ -317,10 +320,20 @@ class PrimaryNode:
         for t in client_threads:
             t.join()
 
+    def _get_metrics(self):
+        return [
+            ["Metric", "Value"],
+            ["Initial illuminating FLSs", self.num_initial_flss],
+            ["Initial standby FLSs", self.num_initial_standbys],
+            ["Replaced illuminating FLSs", self.num_replaced_flss],
+            ["Replaced standby FLSs", self.num_replaced_standbys],
+            ["Handled failures", self.num_handled_failures],
+        ]
+
     def _write_results(self):
         logger.info("Writing results")
 
-        utils.write_csv(self.dir_meta, [["num_handled_failures", self.num_handled_failures]], 'metrics')
+        utils.write_csv(self.dir_meta, self._get_metrics(), 'metrics')
         utils.create_csv_from_json(self.dir_meta, os.path.join(self.dir_figure, f'{self.result_name}.jpg'))
         utils.write_configs(self.dir_meta, self.start_time)
         utils.combine_csvs(self.dir_meta, self.dir_experiment, "reli_" + self.result_name)
