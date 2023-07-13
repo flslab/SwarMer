@@ -244,7 +244,7 @@ class PrimaryNode:
                     "fid": self.pid,
                     "el": None, "gtl": member_coord,
                     "radio_range": self.group_radio_range[group_id],
-                    "standby_id": self.group_standby_id[group_id], "group_id": group_id,
+                    "group_id": group_id,
                 }
                 self._deploy_fls(fls)
                 self.num_initial_flss += 1
@@ -287,7 +287,7 @@ class PrimaryNode:
                             "fid": self.pid,
                             "el": None, "gtl": msg.gtl,
                             "radio_range": self.group_radio_range[group_id],
-                            "standby_id": self.group_standby_id[group_id], "group_id": group_id,
+                            "group_id": group_id,
                         }
                         self._deploy_fls(fls)
                         self.num_replaced_flss += 1

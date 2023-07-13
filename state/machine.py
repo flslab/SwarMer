@@ -73,10 +73,9 @@ class StateMachine:
     def handle_replica_request(self, msg):
         if self.context.is_standby:
             self.replace_failed_fls(msg)
-        elif msg.fid not in self.handled_failure:
+        else:
             self.context.standby_id = None
             self.context.metrics.log_standby_id(time.time(), self.context.standby_id)
-        self.handled_failure[msg.fid] = True
 
     def handle_standby_failure(self, msg):
         if self.context.standby_id == msg.fid:
