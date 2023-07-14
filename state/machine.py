@@ -9,7 +9,7 @@ from test_config import TestConfig
 from .types import StateTypes
 from worker.network import PrioritizedItem
 from itertools import combinations
-from utils import write_json, dict_hash
+from utils import write_json, dict_hash, logger
 
 
 class StateMachine:
@@ -30,6 +30,7 @@ class StateMachine:
             self.broadcast(Message(MessageTypes.ASSIGN_STANDBY).to_swarm(self.context))
         # threading.Timer(dur, self.put_state_in_q, (MessageTypes.MOVE, (dest,))).start()
         self.enter(StateTypes.SINGLE)
+        logger.debug(f"ARRIVED {self.context}")
 
     def handle_stop(self, msg):
         if msg.args is None or len(msg.args) == 0:
@@ -58,17 +59,25 @@ class StateMachine:
             # request standby from server
             self.send_to_server(Message(MessageTypes.REPLICA_REQUEST_HUB, args=(False,)))
 
+        logger.debug(f"FAILED {self.context}")
+
     def assign_new_standby(self, msg):
         if not self.context.is_standby:
             self.context.standby_id = msg.fid
             self.context.metrics.log_standby_id(time.time(), self.context.standby_id)
 
+            logger.debug(f"STANDBY CHANGED {self.context} standby={self.context.standby_id}")
+
     def replace_failed_fls(self, msg):
         self.context.is_standby = False
         v = msg.el - self.context.el
         timestamp, dur, dest = self.context.move(v)
+        self.context.gtl = msg.gtl
+        self.context.el = msg.el
         # threading.Timer(dur, self.put_state_in_q, (MessageTypes.MOVE, (dest,))).start()
         self.context.log_replacement(timestamp, dur, msg.fid, False, msg.el)
+
+        logger.debug(f"REPLACED {self.context} failed_fid={msg.fid} failed_el={msg.el}")
 
     def handle_replica_request(self, msg):
         if self.context.is_standby:
@@ -77,10 +86,14 @@ class StateMachine:
             self.context.standby_id = None
             self.context.metrics.log_standby_id(time.time(), self.context.standby_id)
 
+            logger.debug(f"STANDBY CHANGED {self.context} standby={self.context.standby_id}")
+
     def handle_standby_failure(self, msg):
         if self.context.standby_id == msg.fid:
             self.context.standby_id = None
             self.context.metrics.log_standby_id(time.time(), self.context.standby_id)
+
+            logger.debug(f"STANDBY CHANGED {self.context} standby={self.context.standby_id}")
 
     def set_timer_to_fail(self):
         self.timer_failure = threading.Timer(

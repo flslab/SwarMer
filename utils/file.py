@@ -11,7 +11,7 @@ import pandas as pd
 import glob
 import re
 
-from worker.metrics import merge_timelines, gen_charts
+from worker.metrics import merge_timelines, gen_charts, gen_point_metrics
 
 
 def write_json(fid, results, directory, is_clique):
@@ -80,9 +80,14 @@ def create_csv_from_json(directory, fig_dir):
     merged_timeline = merge_timelines(timelines)
     with open(os.path.join(directory, 'timeline.json'), "w") as f:
         json.dump(merged_timeline, f)
+
     chart_data = gen_charts(merged_timeline, fig_dir)
     with open(os.path.join(directory, 'charts.json'), "w") as f:
         json.dump(chart_data, f)
+
+    point_metrics, standby_metrics = gen_point_metrics(merged_timeline)
+    write_csv(directory, point_metrics, 'illuminating')
+    write_csv(directory, standby_metrics, 'standby')
 
     with open(os.path.join(directory, 'flss.csv'), 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)

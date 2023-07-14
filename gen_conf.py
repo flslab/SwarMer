@@ -14,7 +14,7 @@ def_general_conf = {
     "MAX_SPEED": "3",
     "DISPLAY_CELL_SIZE": "0.05",
     "BUSY_WAITING": "False",
-    "DURATION": "60 * 10",
+    "DURATION": "60 * 30",
     "K": "20",
     "H": "2",
     "SHAPE": "'chess'",
@@ -45,7 +45,7 @@ def_test_conf = {
 general_props = [
     {
         "keys": ["DISPATCH_RATE"],
-        "values": ["1"]
+        "values": ["1", "'inf'"]
     },
     {
         "keys": ["K", "INPUT"],

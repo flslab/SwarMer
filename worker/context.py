@@ -134,3 +134,6 @@ class WorkerContext:
     def log_replacement(self, timestamp, dur, failed_fls_id, is_stand_by, failed_fls_el):
         self.metrics.log_replacement(timestamp, dur, failed_fls_id, failed_fls_el)
         self.metrics.log_is_standby(timestamp, is_stand_by)
+
+    def __repr__(self):
+        return f"{'standby' if self.is_standby else 'normal'} fid={self.fid} gid={self.swarm_id}"

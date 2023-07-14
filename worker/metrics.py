@@ -16,12 +16,13 @@ class MetricTypes:
 
 
 class TimelineEvents:
-    DISPATCH = 0
-    ILLUMINATE = 1
-    STANDBY = 2
-    FAIL = 3
-    REPLACE = 4
-    STANDBY_FAIL = 5
+    DISPATCH = 0  # standby or illuminating is dispatched
+    ILLUMINATE = 1  # an illuminating FLS started to illuminate
+    ILLUMINATE_STANDBY = 6  # a standby FLS started to illuminate
+    STANDBY = 2  # a standby is arrived
+    FAIL = 3  # an illumination FLS is failed
+    REPLACE = 4  # a standby started to replace a failed FLS
+    STANDBY_FAIL = 5  # a standby is failed
 
 
 def update_dict_sum(obj, key):
@@ -57,6 +58,90 @@ def merge_timelines(timelines):
     return merged
 
 
+def point_to_id(point):
+    return '_'.join([str(p) for p in point])
+
+
+def gen_point_metrics(events):
+    fid_to_point = dict()
+    illuminating_events = dict()
+    standby_events = dict()
+
+    metric_keys = [
+        "point",
+        "failed",
+        "recovered by hub",
+        "recovered by standby",
+        "hub wait times",
+        "standby wait times"
+    ]
+
+    standby_metric_keys = [
+        "point",
+        "failed",
+        "replace",
+        "recovered by hub",
+        "hub wait times",
+    ]
+
+    illuminating_metrics = dict()
+    standby_metrics = dict()
+
+    for event in events:
+        t = event[0]
+        e = event[1]
+        fid = event[-1]
+
+        if e == TimelineEvents.FAIL:
+            pid = fid_to_point[fid]
+            illuminating_events[pid].append([t, e])
+            illuminating_metrics[pid][1] += 1
+
+        elif e == TimelineEvents.STANDBY_FAIL:
+            pid = fid_to_point[fid]
+            standby_events[pid].append([t, e])
+            standby_metrics[pid][1] += 1
+
+        elif e == TimelineEvents.ILLUMINATE:
+            pid = point_to_id(event[2])
+            fid_to_point[fid] = pid
+            if pid in illuminating_events:
+                illuminating_events[pid].append([t, e])
+                illuminating_metrics[pid][2] += 1
+                illuminating_metrics[pid][4].append(t - illuminating_events[pid][-2][0])
+            else:
+                illuminating_events[pid] = [[t, e]]
+                illuminating_metrics[pid] = [pid, 0, 0, 0, [], []]
+
+        elif e == TimelineEvents.ILLUMINATE_STANDBY:
+            pid = point_to_id(event[2])
+            fid_to_point[fid] = pid
+            illuminating_events[pid].append([t, e])
+            illuminating_metrics[pid][3] += 1
+            illuminating_metrics[pid][5].append(t - illuminating_events[pid][-2][0])
+
+        elif e == TimelineEvents.STANDBY:
+            pid = point_to_id(event[2])
+            fid_to_point[fid] = pid
+            if pid in standby_events:
+                standby_events[pid].append([t, e])
+                standby_metrics[pid][3] += 1
+                standby_metrics[pid][4].append(t - standby_events[pid][-2][0])
+            else:
+                standby_events[pid] = [[t, e]]
+                standby_metrics[pid] = [pid, 0, 0, 0, []]
+
+        elif e == TimelineEvents.REPLACE:
+            pid = fid_to_point[fid]
+            standby_events[pid].append([t, e])
+            standby_metrics[pid][2] += 1
+
+    # print(illuminating_events)
+    # print(standby_events)
+    return [metric_keys] + list(illuminating_metrics.values()),\
+        [standby_metric_keys] + list(standby_metrics.values())
+
+
 def gen_charts(events, fig_dir):
     dispatched = {"t": [0], "y": [0]}
     standby = {"t": [0], "y": [0]}
@@ -72,7 +157,7 @@ def gen_charts(events, fig_dir):
             dispatched["y"].append(dispatched["y"][-1] + 1)
             mid_flight["t"].append(t)
             mid_flight["y"].append(mid_flight["y"][-1] + 1)
-        elif e == TimelineEvents.ILLUMINATE:
+        elif e == TimelineEvents.ILLUMINATE or e == TimelineEvents.ILLUMINATE_STANDBY:
             illuminating["t"].append(t)
             illuminating["y"].append(illuminating["y"][-1] + 1)
             mid_flight["t"].append(t)
@@ -211,7 +296,7 @@ class Metrics:
         self.log_is_standby(timestamp, is_standby)
         self.timeline.append((t, TimelineEvents.DISPATCH))
         if is_standby:
-            self.timeline.append((t + dispatch_duration, TimelineEvents.STANDBY))
+            self.timeline.append((t + dispatch_duration, TimelineEvents.STANDBY, el.tolist()))
         else:
             self.timeline.append((t + dispatch_duration, TimelineEvents.ILLUMINATE, el.tolist()))
 
@@ -236,21 +321,26 @@ class Metrics:
         self.general_metrics["33_replacement_duration"] = replacement_duration
         self.general_metrics["34_failed_fls_id"] = failed_fls_id
         self.timeline.append((t, TimelineEvents.REPLACE))
-        self.timeline.append((t + replacement_duration, TimelineEvents.ILLUMINATE, failed_fls_el.tolist()))
+        self.timeline.append((t + replacement_duration, TimelineEvents.ILLUMINATE_STANDBY, failed_fls_el.tolist()))
 
 
 if __name__ == '__main__':
     mpl.use('macosx')
 
-    with open("/Users/hamed/Desktop/dragon_k10_1h_metric_fix/27-Jun-11_32_19/charts.json") as f:
+    with open("../results/racecar/H2/racecar_D5_H2/timeline.json") as f:
         data = json.load(f)
 
-        plt.step(data["dispatched"]["t"], data["dispatched"]["y"], where='post', label="Dispatched FLSs")
-        plt.step(data["standby"]["t"], data["standby"]["y"], where='post', label="Standby FLSs")
-        plt.step(data["illuminating"]["t"], data["illuminating"]["y"], where='post', label="Illuminating FLSs")
-        plt.step(data["failed"]["t"], data["failed"]["y"], where='post', label="Failed FLSs")
-        plt.step(data["mid_flight"]["t"], data["mid_flight"]["y"], where='post', label="Mid-flight FLSs")
-        plt.legend()
-        plt.grid()
-        # plt.yscale("log")
-        plt.show()
+        gen_point_metrics(data)
+
+    # with open("/Users/hamed/Desktop/chess_5min/chess_K3_D5_R1_T30/charts.json") as f:
+    #     data = json.load(f)
+    #
+    #     plt.step(data["dispatched"]["t"], data["dispatched"]["y"], where='post', label="Dispatched FLSs")
+    #     plt.step(data["standby"]["t"], data["standby"]["y"], where='post', label="Standby FLSs")
+    #     plt.step(data["illuminating"]["t"], data["illuminating"]["y"], where='post', label="Illuminating FLSs")
+    #     plt.step(data["failed"]["t"], data["failed"]["y"], where='post', label="Failed FLSs")
+    #     plt.step(data["mid_flight"]["t"], data["mid_flight"]["y"], where='post', label="Mid-flight FLSs")
+    #     plt.legend()
+    #     plt.grid()
+    #     # plt.yscale("log")
+    #     plt.show()

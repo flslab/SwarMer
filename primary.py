@@ -233,7 +233,11 @@ class PrimaryNode:
                 sum_x = np.sum(group[:, 0])
                 sum_y = np.sum(group[:, 1])
                 sum_z = np.sum(group[:, 2])
-                stand_by_coord = np.array([sum_x / member_count, sum_y / member_count, sum_z / member_count])
+                stand_by_coord = np.array([
+                    float(round(sum_x / member_count)),
+                    float(round(sum_y / member_count)),
+                    float(round(sum_z / member_count))
+                ])
                 self.group_standby_coord[group_id] = stand_by_coord
                 self.group_standby_id[group_id] = group_id + len(group)
 
@@ -292,6 +296,8 @@ class PrimaryNode:
                         self._deploy_fls(fls)
                         self.num_replaced_flss += 1
 
+                        logger.debug(f"fid={self.pid} normal failed_fid={msg.fid}")
+
                     else:
                         self.group_standby_id[group_id] = self.pid
 
@@ -304,6 +310,8 @@ class PrimaryNode:
                         }
                         self._deploy_fls(fls)
                         self.num_replaced_standbys += 1
+
+                        logger.debug(f"fid={self.pid} standby failed_fid={msg.fid}")
 
                     self.num_handled_failures += 1
 
