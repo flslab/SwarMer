@@ -21,7 +21,7 @@ class HandlerThread(threading.Thread):
             event = item.event
             # self.context.log_received_message(event, 0)
             self.state_machine.drive(event)
-            if event.type == MessageTypes.STOP:
+            if event.type == MessageTypes.STOP or event.type == MessageTypes.FAILURE_DETECTED:
                 break
 
             # self.flush_queue()

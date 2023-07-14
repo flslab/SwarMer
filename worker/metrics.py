@@ -58,6 +58,12 @@ def merge_timelines(timelines):
     return merged
 
 
+def avg(values):
+    if len(values):
+        return sum(values) / len(values)
+    return 0
+
+
 def point_to_id(point):
     return '_'.join([str(p) for p in point])
 
@@ -73,7 +79,13 @@ def gen_point_metrics(events):
         "recovered by hub",
         "recovered by standby",
         "hub wait times",
-        "standby wait times"
+        "standby wait times",
+        "hub min wait time",
+        "hub avg wait time",
+        "hub max wait time",
+        "standby min wait time",
+        "standby avg wait time",
+        "standby max wait time",
     ]
 
     standby_metric_keys = [
@@ -82,6 +94,9 @@ def gen_point_metrics(events):
         "replace",
         "recovered by hub",
         "hub wait times",
+        "hub min wait time",
+        "hub avg wait time",
+        "hub max wait time",
     ]
 
     illuminating_metrics = dict()
@@ -138,8 +153,26 @@ def gen_point_metrics(events):
 
     # print(illuminating_events)
     # print(standby_events)
-    return [metric_keys] + list(illuminating_metrics.values()),\
-        [standby_metric_keys] + list(standby_metrics.values())
+    i_rows = list(illuminating_metrics.values())
+    s_rows = list(standby_metrics.values())
+    for row in i_rows:
+        hub_w_t = row[4]
+        standby_w_t = row[5]
+        row.append(min(hub_w_t))
+        row.append(avg(hub_w_t))
+        row.append(max(hub_w_t))
+        row.append(min(standby_w_t))
+        row.append(avg(standby_w_t))
+        row.append(max(standby_w_t))
+
+    for row in i_rows:
+        hub_w_t = row[4]
+        row.append(min(hub_w_t))
+        row.append(avg(hub_w_t))
+        row.append(max(hub_w_t))
+
+    return [metric_keys] + i_rows,\
+        [standby_metric_keys] + s_rows
 
 
 def gen_charts(events, fig_dir):
@@ -314,14 +347,14 @@ class Metrics:
         else:
             self.timeline.append((t, TimelineEvents.FAIL))
 
-    def log_replacement(self, replacement_time, replacement_duration, failed_fls_id, failed_fls_el):
+    def log_replacement(self, replacement_time, replacement_duration, failed_fls_id, failed_fls_gtl):
         t = replacement_time - self.start_time
         self.general_metrics["31_replacement_start_time"] = t
         self.general_metrics["32_replacement_arrival_time"] = t + replacement_duration
         self.general_metrics["33_replacement_duration"] = replacement_duration
         self.general_metrics["34_failed_fls_id"] = failed_fls_id
         self.timeline.append((t, TimelineEvents.REPLACE))
-        self.timeline.append((t + replacement_duration, TimelineEvents.ILLUMINATE_STANDBY, failed_fls_el.tolist()))
+        self.timeline.append((t + replacement_duration, TimelineEvents.ILLUMINATE_STANDBY, failed_fls_gtl.tolist()))
 
 
 if __name__ == '__main__':

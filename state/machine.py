@@ -33,7 +33,7 @@ class StateMachine:
         logger.debug(f"ARRIVED {self.context}")
 
     def handle_stop(self, msg):
-        if msg.args is None or len(msg.args) == 0:
+        if msg is not None and (msg.args is None or len(msg.args) == 0):
             stop_msg = Message(MessageTypes.STOP).to_all()
             self.broadcast(stop_msg)
 
@@ -44,7 +44,7 @@ class StateMachine:
 
     def fail(self, msg):
         self.context.metrics.log_failure_time(time.time(), self.context.is_standby)
-        self.put_state_in_q(MessageTypes.STOP, args=(False,))  # False for not broadcasting stop msg
+        # self.put_state_in_q(MessageTypes.STOP, args=(False,))  # False for not broadcasting stop msg
         if self.context.is_standby:
             # notify group
             self.broadcast(Message(MessageTypes.STANDBY_FAILED).to_swarm(self.context))
@@ -59,6 +59,7 @@ class StateMachine:
             # request standby from server
             self.send_to_server(Message(MessageTypes.REPLICA_REQUEST_HUB, args=(False,)))
 
+        self.handle_stop(None)
         logger.debug(f"FAILED {self.context}")
 
     def assign_new_standby(self, msg):
@@ -70,12 +71,11 @@ class StateMachine:
 
     def replace_failed_fls(self, msg):
         self.context.is_standby = False
-        v = msg.el - self.context.el
-        timestamp, dur, dest = self.context.move(v)
+        v = msg.gtl - self.context.gtl
         self.context.gtl = msg.gtl
-        self.context.el = msg.el
+        timestamp, dur, dest = self.context.move(v)
         # threading.Timer(dur, self.put_state_in_q, (MessageTypes.MOVE, (dest,))).start()
-        self.context.log_replacement(timestamp, dur, msg.fid, False, msg.el)
+        self.context.log_replacement(timestamp, dur, msg.fid, msg.gtl)
 
         logger.debug(f"REPLACED {self.context} failed_fid={msg.fid} failed_el={msg.el}")
 

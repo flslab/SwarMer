@@ -342,9 +342,10 @@ class PrimaryNode:
             ["Metric", "Value"],
             ["Initial illuminating FLSs", self.num_initial_flss],
             ["Initial standby FLSs", self.num_initial_standbys],
-            ["Replaced illuminating FLSs", self.num_replaced_flss],
-            ["Replaced standby FLSs", self.num_replaced_standbys],
             ["Handled failures", self.num_handled_failures],
+            ["Dispatched replica illuminating FLSs", self.num_replaced_flss],
+            ["Dispatched replica standby FLSs", self.num_replaced_standbys],
+            ["Queued FLSs", sum([d.q.qsize() for d in self.dispatchers])],
         ]
 
     def _write_results(self):
