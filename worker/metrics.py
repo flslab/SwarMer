@@ -176,7 +176,7 @@ def gen_point_metrics(events):
         row.append(_avg(standby_w_t))
         row.append(_max(standby_w_t))
 
-    for row in i_rows:
+    for row in s_rows:
         hub_w_t = row[4]
         row.append(_min(hub_w_t))
         row.append(_avg(hub_w_t))
