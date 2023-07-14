@@ -17,7 +17,7 @@ def_general_conf = {
     "DURATION": "60 * 10",
     "K": "20",
     "H": "2",
-    "SHAPE": "'chess'",
+    "SHAPE": "'racecar'",
     "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
     "DEBUG": "False",
     "FILE_NAME_KEYS": "['K', ('DISPATCHERS', 'D'), ('DISPATCH_RATE', 'R'), ('FAILURE_TIMEOUT', 'T')]",
@@ -51,7 +51,7 @@ general_props = [
         "keys": ["K", "INPUT"],
         "values": [
             # {"K": "0", "INPUT": "'chess_K3'"},
-            {"K": "3", "INPUT": "'chess_K3'"},
+            {"K": "3", "INPUT": "'racecar_K3'"},
             # {"K": "20", "INPUT": "'chess_K20'"},
         ]
     },
