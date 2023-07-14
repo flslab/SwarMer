@@ -58,11 +58,22 @@ def merge_timelines(timelines):
     return merged
 
 
-def avg(values):
+def _avg(values):
     if len(values):
         return sum(values) / len(values)
     return 0
 
+
+def _min(values):
+    if len(values):
+        return min(values)
+    return 0
+
+
+def _max(values):
+    if len(values):
+        return max(values)
+    return 0
 
 def point_to_id(point):
     return '_'.join([str(p) for p in point])
@@ -158,18 +169,18 @@ def gen_point_metrics(events):
     for row in i_rows:
         hub_w_t = row[4]
         standby_w_t = row[5]
-        row.append(min(hub_w_t))
-        row.append(avg(hub_w_t))
-        row.append(max(hub_w_t))
-        row.append(min(standby_w_t))
-        row.append(avg(standby_w_t))
-        row.append(max(standby_w_t))
+        row.append(_min(hub_w_t))
+        row.append(_avg(hub_w_t))
+        row.append(_max(hub_w_t))
+        row.append(_min(standby_w_t))
+        row.append(_avg(standby_w_t))
+        row.append(_max(standby_w_t))
 
     for row in i_rows:
         hub_w_t = row[4]
-        row.append(min(hub_w_t))
-        row.append(avg(hub_w_t))
-        row.append(max(hub_w_t))
+        row.append(_min(hub_w_t))
+        row.append(_avg(hub_w_t))
+        row.append(_max(hub_w_t))
 
     return [metric_keys] + i_rows,\
         [standby_metric_keys] + s_rows
