@@ -13,7 +13,7 @@ from worker.metrics import TimelineEvents
 ticks_gap = 20
 
 start_time = 0
-duration = 20
+duration = 180
 fps = 30
 frame_rate = 1/fps
 total_points = 11888
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     configs = [
         {
             "keys": ["K"],
-            "values": ["3"]
+            "values": ["0", "3"]
         },
         {
             "keys": ["D"],
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         },
         {
             "keys": ["R"],
-            "values": ["inf", "50"]
+            "values": ["1"]
         },
         {
             "keys": ["T"],
@@ -166,16 +166,33 @@ if __name__ == '__main__':
     combinations = list(itertools.product(*props_values))
     # print(combinations)
 
+    exp_dir = "/Users/hamed/Desktop/chess_10min"
+
     for c in combinations:
-        file_name = f"chess_K{c[0]}_D{c[1]}_R{c[2]}_T{c[3]}"
-        input_path = f"/Users/hamed/Desktop/H2 2/{file_name}/timeline.json"
+        exp_name = f"chess_K{c[0]}_D{c[1]}_R{c[2]}_T{c[3]}"
+        input_path = f"{exp_dir}/{exp_name}/timeline.json"
         filtered_events, length, width, height = read_point_cloud(input_path)
         fig, ax, _ = draw_figure()
         init(ax)
-        xs, ys, zs = show_last_frame(filtered_events)
+        xs, ys, zs = show_last_frame(filtered_events, t=600)
         ax.scatter(xs, ys, zs, c='blue', s=2, alpha=1)
         set_axis(ax, length, width, height)
         # plt.show()
-        plt.savefig('figs/chess2/' + file_name + '.png')
+        plt.savefig(f"{exp_dir}/{exp_name}.png")
         plt.close()
         # break
+
+    for c in combinations:
+        exp_name = f"chess_K{c[0]}_D{c[1]}_R{c[2]}_T{c[3]}"
+        input_path = f"{exp_dir}/{exp_name}/timeline.json"
+        filtered_events, length, width, height = read_point_cloud(input_path)
+        fig, ax, tx = draw_figure()
+        points = dict()
+        ani = FuncAnimation(
+            fig, partial(update,),
+            frames=30 * duration,
+            init_func=partial(init, ax))
+        #
+        # plt.show()
+        writer = FFMpegWriter(fps=fps)
+        ani.save(f"{exp_dir}/{exp_name}.mp4", writer=writer)
