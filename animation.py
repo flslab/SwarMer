@@ -58,7 +58,7 @@ def read_point_cloud(input_path):
     length = 0
     filtered_events = []
     for e in events:
-        if e[1] == TimelineEvents.FAIL:
+        if e[1] == TimelineEvents.FAIL and e[2] is False:
             filtered_events.append(e)
         elif e[1] == TimelineEvents.ILLUMINATE or e[1] == TimelineEvents.ILLUMINATE_STANDBY:
             filtered_events.append(e)

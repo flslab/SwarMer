@@ -6,6 +6,7 @@ import threading
 from message import Message, MessageTypes
 from config import Config
 from test_config import TestConfig
+from worker.metrics import TimelineEvents
 from .types import StateTypes
 from worker.network import PrioritizedItem
 from itertools import combinations
@@ -22,15 +23,28 @@ class StateMachine:
         self.event_queue = event_queue
         self.is_neighbors_processed = False
         self.handled_failure = dict()
+        self.move_thread = None
+        self.is_mid_flight = False
 
     def start(self):
+        self.enter(StateTypes.SINGLE)
         dur, dest = self.context.deploy()
+        self.move(dur, dest, TimelineEvents.STANDBY if self.context.is_standby else TimelineEvents.ILLUMINATE)
+
         if self.context.is_standby:
             # send the id of the new standby to group members
             self.broadcast(Message(MessageTypes.ASSIGN_STANDBY).to_swarm(self.context))
-        # threading.Timer(dur, self.put_state_in_q, (MessageTypes.MOVE, (dest,))).start()
-        self.enter(StateTypes.SINGLE)
-        logger.debug(f"ARRIVED {self.context}")
+
+        logger.debug(f"STARTED {self.context}")
+
+    def move(self, dur, dest, arrival_event):
+        if self.move_thread is not None:
+            self.move_thread.cancel()
+            self.move_thread = None
+            self.is_mid_flight = False
+        self.move_thread = threading.Timer(dur, self.put_state_in_q, (MessageTypes.MOVE, (dest, arrival_event)))
+        self.move_thread.start()
+        self.is_mid_flight = True
 
     def handle_stop(self, msg):
         if msg is not None and (msg.args is None or len(msg.args) == 0):
@@ -43,7 +57,7 @@ class StateMachine:
                        False)
 
     def fail(self, msg):
-        self.context.metrics.log_failure_time(time.time(), self.context.is_standby)
+        self.context.metrics.log_failure_time(time.time(), self.context.is_standby, self.is_mid_flight)
         # self.put_state_in_q(MessageTypes.STOP, args=(False,))  # False for not broadcasting stop msg
         if self.context.is_standby:
             # notify group
@@ -74,7 +88,7 @@ class StateMachine:
         v = msg.gtl - self.context.gtl
         self.context.gtl = msg.gtl
         timestamp, dur, dest = self.context.move(v)
-        # threading.Timer(dur, self.put_state_in_q, (MessageTypes.MOVE, (dest,))).start()
+        self.move(dur, dest, TimelineEvents.ILLUMINATE_STANDBY)
         self.context.log_replacement(timestamp, dur, msg.fid, msg.gtl)
 
         logger.debug(f"REPLACED {self.context} failed_fid={msg.fid} failed_el={msg.el}")
@@ -101,7 +115,10 @@ class StateMachine:
         self.timer_failure.start()
 
     def handle_move(self, msg):
-        self.context.set_el(msg.args[0])
+        self.context.el = msg.args[0]
+        self.context.metrics.log_arrival(time.time(), msg.args[1], self.context.gtl)
+        self.move_thread = None
+        self.is_mid_flight = False
 
     def enter(self, state):
         self.leave(self.state)
@@ -131,8 +148,8 @@ class StateMachine:
             self.assign_new_standby(msg)
         elif event == MessageTypes.STANDBY_FAILED:
             self.handle_standby_failure(msg)
-        # elif event == MessageTypes.MOVE:
-        #     self.handle_move(msg)
+        elif event == MessageTypes.MOVE:
+            self.handle_move(msg)
 
     def drive(self, msg):
         self.drive_failure_handling(msg)

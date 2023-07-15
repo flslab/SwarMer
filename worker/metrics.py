@@ -118,7 +118,7 @@ def gen_point_metrics(events):
         e = event[1]
         fid = event[-1]
 
-        if e == TimelineEvents.FAIL:
+        if e == TimelineEvents.FAIL and event[2] is False:
             pid = fid_to_point[fid]
             illuminating_events[pid].append([t, e])
             illuminating_metrics[pid][1] += 1
@@ -214,13 +214,21 @@ def gen_charts(events, fig_dir):
         elif e == TimelineEvents.FAIL:
             failed["t"].append(t)
             failed["y"].append(failed["y"][-1] + 1)
-            illuminating["t"].append(t)
-            illuminating["y"].append(illuminating["y"][-1] - 1)
+            if event[2]:  # is mid-flight
+                mid_flight["t"].append(t)
+                mid_flight["y"].append(mid_flight["y"][-1] - 1)
+            else:
+                illuminating["t"].append(t)
+                illuminating["y"].append(illuminating["y"][-1] - 1)
         elif e == TimelineEvents.STANDBY_FAIL:
             failed["t"].append(t)
             failed["y"].append(failed["y"][-1] + 1)
-            standby["t"].append(t)
-            standby["y"].append(standby["y"][-1] - 1)
+            if event[2]:  # is mid-flight
+                mid_flight["t"].append(t)
+                mid_flight["y"].append(mid_flight["y"][-1] - 1)
+            else:
+                standby["t"].append(t)
+                standby["y"].append(standby["y"][-1] - 1)
         elif e == TimelineEvents.REPLACE:
             mid_flight["t"].append(t)
             mid_flight["y"].append(mid_flight["y"][-1] + 1)
@@ -339,10 +347,14 @@ class Metrics:
         self.log_standby_id(timestamp, standby_id)
         self.log_is_standby(timestamp, is_standby)
         self.timeline.append((t, TimelineEvents.DISPATCH))
-        if is_standby:
-            self.timeline.append((t + dispatch_duration, TimelineEvents.STANDBY, el.tolist()))
-        else:
-            self.timeline.append((t + dispatch_duration, TimelineEvents.ILLUMINATE, el.tolist()))
+        # if is_standby:
+        #     self.timeline.append((t + dispatch_duration, TimelineEvents.STANDBY, el.tolist()))
+        # else:
+        #     self.timeline.append((t + dispatch_duration, TimelineEvents.ILLUMINATE, el.tolist()))
+
+    def log_arrival(self, timestamp, event, coord):
+        t = timestamp - self.start_time
+        self.timeline.append((timestamp, event, coord.tolist()))
 
     def log_standby_id(self, timestamp, standby_id):
         self.general_metrics["05_standby_id"].append((timestamp - self.start_time, standby_id))
@@ -350,13 +362,13 @@ class Metrics:
     def log_is_standby(self, timestamp, is_standby):
         self.general_metrics["01_is_standby"].append((timestamp - self.start_time, is_standby))
 
-    def log_failure_time(self, timestamp, is_standby):
+    def log_failure_time(self, timestamp, is_standby, is_mid_flight):
         t = timestamp - self.start_time
         self.general_metrics["30_failure_time"] = t
         if is_standby:
-            self.timeline.append((t, TimelineEvents.STANDBY_FAIL))
+            self.timeline.append((t, TimelineEvents.STANDBY_FAIL, is_mid_flight))
         else:
-            self.timeline.append((t, TimelineEvents.FAIL))
+            self.timeline.append((t, TimelineEvents.FAIL, is_mid_flight))
 
     def log_replacement(self, replacement_time, replacement_duration, failed_fls_id, failed_fls_gtl):
         t = replacement_time - self.start_time
@@ -365,7 +377,7 @@ class Metrics:
         self.general_metrics["33_replacement_duration"] = replacement_duration
         self.general_metrics["34_failed_fls_id"] = failed_fls_id
         self.timeline.append((t, TimelineEvents.REPLACE))
-        self.timeline.append((t + replacement_duration, TimelineEvents.ILLUMINATE_STANDBY, failed_fls_gtl.tolist()))
+        # self.timeline.append((t + replacement_duration, TimelineEvents.ILLUMINATE_STANDBY, failed_fls_gtl.tolist()))
 
 
 if __name__ == '__main__':
