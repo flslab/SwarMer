@@ -3,12 +3,12 @@
 bash gen_conf_cluster_aws.sh
 sleep 10
 
-for i in {0..4}
+for i in {0..71}
 do
   for j in {0..9}
   do
+     echo "$i" "$j"
      bash start_cluster_aws.sh "$i"
-#     echo "$i" "$j"
      sleep 10
      pkill python3
   done
