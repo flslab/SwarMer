@@ -4,6 +4,7 @@ import threading
 import numpy as np
 from config import Config
 import message
+from test_config import TestConfig
 
 
 class NetworkThread(threading.Thread):
@@ -33,8 +34,8 @@ class NetworkThread(threading.Thread):
             return False
         if msg.type == message.MessageTypes.STOP:
             return True
-        if Config.DROP_PROB_RECEIVER:
-            if np.random.random() <= Config.DROP_PROB_RECEIVER:
+        if TestConfig.DROP_PROB_RECEIVER:
+            if np.random.random() <= TestConfig.DROP_PROB_RECEIVER:
                 self.context.log_dropped_messages()
                 return False
         if msg.fid == self.context.fid:

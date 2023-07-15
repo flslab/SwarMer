@@ -49,10 +49,12 @@ def_test_conf = {
     "K": "3",
     "R": "1000",
     "H": "2",
+    "DROP_PROB_SENDER": "0",
+    "DROP_PROB_RECEIVER": "0",
     "ETA": "K-1",
     "ETA_STR": "'K-1'",
     "FILE_NAME_KEYS": "['K', 'R']",
-    "DIR_KEYS": "['H']"
+    "DIR_KEYS": "['DROP_PROB_SENDER', 'DROP_PROB_RECEIVER']"
 }
 
 general_props = [
@@ -89,8 +91,22 @@ general_props = [
 
 test_props = [
     {
+        "keys": ["DROP_PROB_SENDER", "DROP_PROB_RECEIVER"],
+        "values": [
+            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
+            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.01"},  # 1%
+            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.1"},  # 10%
+            {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0"},  # 0.1%
+            {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0"},  # 1%
+            {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0"},  # 10%
+            {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
+            {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0.01"},  # 1%
+            {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0.1"},  # 10%
+        ]
+    },
+    {
         "keys": ["R"],
-        "values": ["1"]
+        "values": ["1000", "100", "10", "1"]
     },
     {
         "keys": ["K"],

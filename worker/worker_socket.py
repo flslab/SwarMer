@@ -5,6 +5,7 @@ import struct
 import numpy as np
 from constants import Constants
 from config import Config
+from test_config import TestConfig
 
 
 class WorkerSocket:
@@ -47,8 +48,8 @@ class WorkerSocket:
             return None, 0
 
     def broadcast(self, msg, retry=2):
-        if Config.DROP_PROB_SENDER:
-            if np.random.random() <= Config.DROP_PROB_SENDER:
+        if TestConfig.DROP_PROB_SENDER:
+            if np.random.random() <= TestConfig.DROP_PROB_SENDER:
                 return 0
 
         data = pickle.dumps(msg)
