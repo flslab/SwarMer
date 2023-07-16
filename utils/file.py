@@ -2,9 +2,11 @@ import itertools
 import os
 import json
 import csv
+import subprocess
 import sys
 
 import numpy as np
+import xlsxwriter as xlsxwriter
 
 from config import Config
 from test_config import TestConfig
@@ -202,22 +204,51 @@ def combine_csvs(directory, xslx_dir, file_name):
     # shutil.rmtree(os.path.join(directory))
 
 
-def combine_xlsx(directory, name):
+def combine_xlsx(directory, rs):
+    rdfs = dict()
+    for r in rs:
+        rdfs[str(r)] = []
+
     xlsx_files = glob.glob(f"{directory}/*.xlsx")
+    for file in sorted(xlsx_files):
+        print(file)
+        df = pd.read_excel(file, sheet_name='metrics')
+        m = re.search(r'K:(\d+)_R:(\d+)', file)
+        k = m.group(1)
+        r = m.group(2)
 
-    with pd.ExcelWriter(os.path.join(directory, f'{name}.xlsx')) as writer:
-        dfs = []
-        for file in sorted(xlsx_files):
-            print(file)
-            df = pd.read_excel(file, sheet_name='metrics')
-            m = re.search(r'K:(\d+)_R:(\d+)', file)
-            k = m.group(1)
-            r = m.group(2)
+        df2 = pd.DataFrame([k, r])
+        df3 = pd.concat([df2, df.value])
+        rdfs[r].append(df3)
 
-            df2 = pd.DataFrame([k, r])
-            df3 = pd.concat([df2, df.value])
-            dfs.append(df3)
-        pd.concat([pd.concat([pd.DataFrame(['G', 'R']), df.metric])] + dfs, axis=1).to_excel(writer, index=False)
+    data_frames = []
+    for dfs_r in rdfs.values():
+        if len(dfs_r):
+            data_frames.append(pd.concat([pd.concat([pd.DataFrame(['G', 'R']), df.metric])] + dfs_r[:10], axis=1))
+
+    return pd.concat(data_frames)
+
+
+def combine_groups(directory, name, df_list, sheet_names, rs):
+    with pd.ExcelWriter(os.path.join(directory, f'{name}.xlsx'), engine='xlsxwriter',
+                        engine_kwargs={'options': {'strings_to_numbers': True}}) as writer:
+
+        for df, g in zip(df_list, sheet_names):
+            sheet_name = f'G{g}'
+            df.to_excel(writer, index=False, sheet_name=sheet_name)
+
+            worksheet = writer.sheets[sheet_name]
+
+            worksheet.write('L1', 'Min')
+            worksheet.write('M1', 'Avg')
+            worksheet.write('N1', 'Max')
+
+            for j in range(len(rs)):
+                for i in range(12):
+                    row = j * 16 + i + 4
+                    worksheet.write_formula(f'L{row}', f'=MIN(B{row}:K{row})')
+                    worksheet.write_formula(f'M{row}', f'=AVERAGE(B{row}:K{row})')
+                    worksheet.write_formula(f'N{row}', f'=MAX(B{row}:K{row})')
 
 
 def read_cliques_xlsx(path):
@@ -234,12 +265,23 @@ if __name__ == "__main__":
     #     dir_in, dir_out, name = "../results/20-Jun-09_37_32/results/racecar/H:2/20-Jun-08_52_06", "../results/20-Jun-09_37_32/results/racecar/H:2", "agg"
     # create_csv_from_json(dir_in, 0)
     # combine_csvs(dir_in, dir_out, name)
-
-    props_values = [[3, 5, 6, 10, 15], [1, 10, 100, 1000]]
+    groups = [3, 5, 10, 15]
+    rs = [1, 100]
+    props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
-    for name in combinations:
-        fn = f"test_K{name[0]}_R{name[1]}"
-        combine_xlsx(f"/Users/hamed/Desktop/test2/{fn}", fn)
+
+    dfs = []
+    sl = 0.001
+    rl = 0.001
+    path = f"/Users/hamed/Desktop/test90_packet_loss/DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
+    for g in groups:
+        dir_name = f"K{g}"
+        subprocess.call(["mkdir", "-p", f"{path}/{dir_name}"])
+        subprocess.call(f"mv {path}/*_K:{g}_*.xlsx {path}/{dir_name}", shell=True)
+        dfs.append(combine_xlsx(f"{path}/{dir_name}", rs))
+        # break
+
+    combine_groups(path, f'summary_S{sl}_R{rl}', dfs, groups, rs)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
     # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")

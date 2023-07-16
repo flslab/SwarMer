@@ -204,6 +204,40 @@ class StateMachine:
             return tuple(candidates), last_idx
         return (), last_idx
 
+    def heuristic_2_1(self, c):
+        candidates = []
+        last_idx = 0
+
+        if len(self.context.neighbors) < self.context.k - 1:
+            return (), last_idx
+
+        sorted_neighbors = sorted(self.context.neighbors.items(),
+                                  key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
+
+        for i in range(len(sorted_neighbors)):
+            fid = sorted_neighbors[i][0]
+            c_n = sorted_neighbors[i][1].c
+            if len(c_n):
+                if self.context.fid in c_n:
+                    candidates.append(fid)
+                else:
+                    for n in c_n:
+                        new_c = tuple(nc for nc in c_n if nc != n) + (fid,)
+                        if all(nc in self.context.neighbors for nc in new_c):
+                            if self.attr_v(new_c) > self.attr_v(c):
+                                candidates.append(fid)
+                                break
+            else:
+                candidates.append(fid)
+
+            if len(candidates) == self.context.k - 1:
+                last_idx = i
+                break
+
+        if len(candidates) == self.context.k - 1:
+            return tuple(candidates), last_idx
+        return (), last_idx
+
     def enter_single_state_with_heuristic(self):
         c = ()
         if self.is_proper_v(self.get_c()):
@@ -223,6 +257,8 @@ class StateMachine:
                 c_prime, last_idx = self.heuristic_1(c)
             elif TestConfig.H == 2:
                 c_prime, last_idx = self.heuristic_2(c)
+            elif TestConfig.H == 2.1:
+                c_prime, last_idx = self.heuristic_2_1(c)
             elif TestConfig.H == 'vns':
                 c_prime, last_idx = self.heuristic_vns(c)
             elif TestConfig.H == 'rs':

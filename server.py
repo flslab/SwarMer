@@ -136,6 +136,7 @@ def wait_for_client(sock):
 
 
 if __name__ == '__main__':
+    CONFIG = TestConfig if TestConfig.ENABLED else Config
     N = 1
     nid = 0
     experiment_name = str(int(time.time()))
@@ -186,7 +187,6 @@ if __name__ == '__main__':
 
         current_date_time = datetime.now().strftime("%H:%M:%S_%m:%d:%Y")
         if len(FILE_NAME_KEYS):
-            CONFIG = TestConfig if TestConfig.ENABLED else Config
             keys = "_".join(f"{k}:{CONFIG.__getattribute__(CONFIG, k)}" for k in FILE_NAME_KEYS)
         else:
             keys = current_date_time
@@ -271,7 +271,8 @@ if __name__ == '__main__':
     # np.random.shuffle(pidx)
     # print(pidx)
 
-    knn_idx, knn_dists = utils.knn(gtl_point_cloud)
+    if TestConfig.H == 2:
+        knn_idx, knn_dists = utils.knn(gtl_point_cloud)
 
     # print(gtl_point_cloud)
     # print(knn_idx[0])
@@ -292,14 +293,20 @@ if __name__ == '__main__':
             shared_memories[i] = shm
             local_gtl_point_cloud.append(gtl_point_cloud[i])
 
-            sorted_neighbors = knn_idx[i][1:] + 1
+            if TestConfig.H == 2:
+                sorted_neighbors = knn_idx[i][1:] + 1
+                sorted_neighbors = sorted_neighbors.tolist()
+                dists = knn_dists[i][1:]
+            else:
+                sorted_neighbors = []
+                dists = []
             # fid_to_dist = dict(zip(sorted_neighbors, knn_dists[i][1:]))
 
             # dispatcher = assign_dispatcher(i+1, dispatchers)
             dispatcher = gtl_point_cloud[i]
             p = worker.WorkerProcess(
                 count, i + 1, gtl_point_cloud[i], dispatcher, shm.name, results_directory,
-                K, sorted_neighbors.tolist(), knn_dists[i][1:])
+                K, sorted_neighbors, dists)
             p.start()
             processes.append(p)
     except OSError as e:
