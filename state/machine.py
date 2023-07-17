@@ -25,8 +25,9 @@ class StateMachine:
         self.is_neighbors_processed = False
         self.solution_eta_idx = -1
         self.max_eta_idx = -1
-        self.range_discovered_neighbors = dict()
         self.num_heuristic_invoked = 0
+        self.last_expanded_time = 0
+        self.solution_range = 0
 
     def get_w(self):
         return self.context.w
@@ -90,6 +91,13 @@ class StateMachine:
                 dists = [0]
                 count = 1
                 els = [self.context.el]
+
+            if TestConfig.H == 2.1:
+                m_range = self.context.radio_range
+                s_range = self.solution_range
+            else:
+                m_range = self.context.sorted_dist[self.max_eta_idx] if self.max_eta_idx != -1 else 0
+                s_range = self.context.sorted_dist[self.solution_eta_idx] if self.solution_eta_idx != -1 else 0
             results = {
                 # "5 weight": self.get_w()[0],
                 "0 clique members": self.get_w()[1:],
@@ -101,10 +109,12 @@ class StateMachine:
                 # "4 total dist": sum(dists),
                 "2 max eta": self.max_eta_idx + 1,
                 "2 solution eta": self.solution_eta_idx + 1,
-                "3 max range": self.context.sorted_dist[self.max_eta_idx] if self.max_eta_idx != -1 else 0,
-                "3 solution range": self.context.sorted_dist[self.solution_eta_idx] if self.solution_eta_idx != -1 else 0,
+                "3 max range": m_range,
+                "3 solution range": s_range,
+                "3 number of requested expansions": self.context.num_expansions,
+                "3 number of neighbor driven expansions": self.context.num_neighbor_expansions,
                 "4 h invoked": self.num_heuristic_invoked,
-                "5 queue size": self.event_queue.qsize()
+                "5 queue size": self.event_queue.qsize(),
             }
             results.update(self.metrics.get_final_report_())
             write_json(self.context.fid, results, self.metrics.results_directory, self.context.fid == min_fid)
@@ -120,9 +130,11 @@ class StateMachine:
                 print(f"{self.context.fid} is single num_heuristic_invoked={self.num_heuristic_invoked}")
                 # print(self.context.neighbors)
 
-    def request_range_expansion(self, current_range):
-        if len(self.range_discovered_neighbors[current_range]):
-            pass
+    def expand_range(self):
+        timestamp = time.time()
+        if timestamp - self.last_expanded_time > TestConfig.EXPANSION_TIMEOUT:
+            self.context.double_range()
+            self.last_expanded_time = timestamp
 
     def vns_shake(self, c, d):
         u = set(random.sample(c, d))
@@ -204,6 +216,8 @@ class StateMachine:
 
         if len(candidates) == self.context.k - 1:
             return tuple(candidates), last_idx
+
+        self.expand_range()
         return (), last_idx
 
     def heuristic_2_1(self, c):
@@ -211,6 +225,7 @@ class StateMachine:
         last_idx = 0
 
         if len(self.context.neighbors) < self.context.k - 1:
+            self.expand_range()
             return (), last_idx
 
         sorted_neighbors = sorted(self.context.neighbors.items(),
@@ -270,6 +285,7 @@ class StateMachine:
             if self.attr_v(c_prime) > self.attr_v(c):
                 c = c_prime
                 self.solution_eta_idx = last_idx
+                self.solution_range = self.context.radio_range
 
             self.set_pair(c)
 

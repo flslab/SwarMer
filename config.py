@@ -1,6 +1,6 @@
 class Config:
     THAW_SWARMS = False
-    INITIAL_RANGE = 2000
+    INITIAL_RANGE = 1
     MAX_RANGE = 2000
     DROP_PROB_SENDER = 0
     DROP_PROB_RECEIVER = 0

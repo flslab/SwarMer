@@ -22,6 +22,8 @@ class WorkerContext:
         self.sorted_neighbors = sorted_neighbors
         self.radio_range = Config.INITIAL_RANGE
         self.max_range = Config.MAX_RANGE
+        self.num_expansions = 0
+        self.num_neighbor_expansions = 0
         self.size = 1
         self.anchor = None
         self.query_id = None
@@ -141,15 +143,18 @@ class WorkerContext:
         if ctx.fid:
             self.neighbors[ctx.fid] = ctx
             self.fid_to_w[ctx.fid] = ctx.w
+            if ctx.range > self.radio_range:
+                self.radio_range = ctx.range
+                self.num_neighbor_expansions += 1
             self.set_num_neighbors()
 
-    def increment_range(self):
-        if self.radio_range < self.max_range:
-            self.set_radio_range(self.radio_range + 1)
-            # logger.critical(f"{self.fid} range incremented to {self.radio_range}")
-            return True
-        else:
-            return False
+    def double_range(self):
+        if self.radio_range * 2 <= self.max_range:
+            self.radio_range *= 2
+            self.num_expansions += 1
+        elif self.radio_range < self.max_range:
+            self.radio_range = self.max_range
+            self.num_expansions += 1
 
     def reset_range(self):
         self.set_radio_range(Config.INITIAL_RANGE)
