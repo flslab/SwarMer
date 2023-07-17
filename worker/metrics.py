@@ -51,23 +51,12 @@ class Metrics:
         self.results_directory = results_directory
         self.history = history
         self.general_metrics = {
-            "A0_total_distance": 0,
-            "A1_num_moved": 0,
-            "A1_min_wait(s)": math.inf,
-            "A1_max_wait(s)": 0,
-            "A1_total_wait(s)": 0,
-            "A2_num_granted_leases": 0,
-            "A2_num_expired_leases": 0,
-            "A2_num_canceled_leases": 0,
-            "A2_num_released_leases": 0,
-            "A3_num_anchor": 0,
-            "A3_num_localize": 0,
-            "A4_bytes_sent": 0,
-            "A4_bytes_received": 0,
-            "A4_num_messages_sent": 0,
-            "A4_num_messages_received": 0,
-            "A4_num_dropped_messages": 0,
-            "A5_num_failures": 0
+            "B_bytes_sent": 0,
+            "B_bytes_received": 0,
+            "N_num_messages_sent": 0,
+            "N_num_messages_received": 0,
+            "N_num_dropped_send": 0,
+            "N_num_dropped_receive": 0,
         }
         self.sent_msg_hist = {}
         self.received_msg_hist = {}
@@ -83,13 +72,13 @@ class Metrics:
 
     def log_received_msg(self, msg_type, length):
         log_msg_hist(self.received_msg_hist, msg_type, 'received', 'C')
-        self.log_sum("A4_num_messages_received", 1)
-        self.log_sum("A4_bytes_received", length)
+        self.log_sum("N_num_messages_received", 1)
+        self.log_sum("B_bytes_received", length)
 
     def log_sent_msg(self, msg_type, length):
         log_msg_hist(self.sent_msg_hist, msg_type, 'sent', 'B')
-        self.log_sum("A4_num_messages_sent", 1)
-        self.log_sum("A4_bytes_sent", length)
+        self.log_sum("N_num_messages_sent", 1)
+        self.log_sum("B_bytes_sent", length)
 
     def get_total_distance(self):
         way_points = self.get_location_history()
@@ -145,8 +134,8 @@ class Metrics:
     def get_final_report_(self):
         report = {}
         report.update(self.general_metrics)
-        report.update(self.sent_msg_hist)
-        report.update(self.received_msg_hist)
+        # report.update(self.sent_msg_hist)
+        # report.update(self.received_msg_hist)
         return report
 
     def get_final_report(self):

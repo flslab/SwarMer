@@ -47,7 +47,7 @@ def create_csv_from_json(directory, duration):
     rows.append(['fid'] + headers)
     node_rows.append(['fid'] + headers)
 
-    weights = []
+    # weights = []
     min_dists = []
     avg_dists = []
     max_dists = []
@@ -61,10 +61,10 @@ def create_csv_from_json(directory, duration):
                     node_rows.append(row)
                     if filename.endswith('.c.json'):
                         rows.append(row)
-                        weights.append(data['5 weight'])
-                        min_dists.append(data['1 min dist'])
-                        avg_dists.append(data['2 avg dist'])
-                        max_dists.append(data['3 max dist'])
+                        # weights.append(data['5 weight'])
+                        # min_dists.append(data['1 min dist'])
+                        # avg_dists.append(data['2 avg dist'])
+                        # max_dists.append(data['3 max dist'])
                 except json.decoder.JSONDecodeError:
                     print(filename)
 
@@ -266,14 +266,14 @@ if __name__ == "__main__":
     # create_csv_from_json(dir_in, 0)
     # combine_csvs(dir_in, dir_out, name)
     groups = [3, 5, 10, 15]
-    rs = [1, 100]
+    rs = [1, 10, 100, 1000]
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
     dfs = []
     sl = 0.001
     rl = 0.001
-    path = f"/Users/hamed/Desktop/test90_packet_loss/DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
+    path = f"/Users/hamed/Desktop/H2_1"
     for g in groups:
         dir_name = f"K{g}"
         subprocess.call(["mkdir", "-p", f"{path}/{dir_name}"])

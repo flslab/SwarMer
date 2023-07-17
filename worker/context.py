@@ -97,11 +97,11 @@ class WorkerContext:
         erred_v = self.add_dead_reckoning_error(vector)
         dest = self.el + erred_v
         # self.history.log(MetricTypes.LOCATION, self.el)
-        self.metrics.log_sum("A0_total_distance", np.linalg.norm(vector))
+        # self.metrics.log_sum("A0_total_distance", np.linalg.norm(vector))
         vm = velocity.VelocityModel(self.el, dest)
         vm.solve()
         dur = vm.total_time
-        self.log_wait_time(dur)
+        # self.log_wait_time(dur)
 
         if Config.BUSY_WAITING:
             fin_time = time.time() + dur
@@ -160,9 +160,11 @@ class WorkerContext:
         # self.history.log(MetricTypes.RECEIVED_MASSAGES, msg, meta)
         self.metrics.log_received_msg(msg_type, length)
 
-    def log_dropped_messages(self):
-        # self.history.log_sum(MetricTypes.DROPPED_MESSAGES)
-        self.metrics.log_sum("A4_num_dropped_messages", 1)
+    def log_dropped_send(self):
+        self.metrics.log_sum("N_num_dropped_send", 1)
+
+    def log_dropped_receive(self):
+        self.metrics.log_sum("N_num_dropped_receive", 1)
 
     def log_sent_message(self, msg, length):
         meta = {"length": length}
@@ -170,10 +172,3 @@ class WorkerContext:
         # self.history.log(MetricTypes.SENT_MESSAGES, msg, meta)
         self.metrics.log_sent_msg(msg_type, length)
         self.message_id += 1
-
-    def log_wait_time(self, dur):
-        # self.history.log(MetricTypes.WAITS, dur)
-        self.metrics.log_sum("A1_num_moved", 1)
-        self.metrics.log_sum("A1_total_wait(s)", dur)
-        self.metrics.log_max("A1_max_wait(s)", dur)
-        self.metrics.log_min("A1_min_wait(s)", dur)
