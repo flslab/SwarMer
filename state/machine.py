@@ -27,6 +27,7 @@ class StateMachine:
         self.max_eta_idx = -1
         self.num_heuristic_invoked = 0
         self.last_expanded_time = 0
+        self.last_h_ran_time = 0
         self.solution_range = 0
 
     def get_w(self):
@@ -261,8 +262,10 @@ class StateMachine:
             c = self.get_c()
 
         n_hash = dict_hash(self.context.fid_to_w)
-        if n_hash != self.last_neighbors_hash:
+        # timestamp = time.time()
+        if n_hash != self.last_neighbors_hash or random.random() < 0.2:
             self.last_neighbors_hash = n_hash
+            # self.last_h_ran_time = timestamp
 
             for n in self.context.neighbors.values():
                 if self.context.fid in n.c:
