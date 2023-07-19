@@ -5,7 +5,7 @@ sleep 10
 
 for i in {0..23}
 do
-  for j in {0..9}
+  for j in {0..19}
   do
      echo "$i" "$j"
      bash start_cluster_aws.sh "$i"
