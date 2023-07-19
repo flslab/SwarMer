@@ -39,4 +39,4 @@ class Config:
     PROCESS_JOIN_TIMEOUT = 120
     NUM_DISPATCHERS = 1
     MULTICAST = True
-    TIMELINE_LOG = False
+    TIMELINE_LOG = True

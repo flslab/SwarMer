@@ -31,8 +31,8 @@ def_general_conf = {
     "SAMPLE_SIZE": "0",
     "DURATION": "600",
     "READ_FROM_NPY": "0",
-    "K": "10",
-    "H": "2",
+    "K": "15",
+    "H": "2.2",
     "MAX_NEIGHBORS": "0",
     "SHAPE": "'chess'",
     "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
@@ -43,22 +43,22 @@ def_general_conf = {
     "PROCESS_JOIN_TIMEOUT": "120",
     "NUM_DISPATCHERS": "1",
     "MULTICAST": "True",
-    "TIMELINE_LOG": "False",
+    "TIMELINE_LOG": "True",
 }
 
 def_test_conf = {
     "ENABLED": "True",
     "NUMBER_OF_FLSS": "90",
-    "K": "3",
-    "R": "1000",
-    "H": "2.1",
+    "K": "15",
+    "R": "1",
+    "H": "2.2",
     "DROP_PROB_SENDER": "0",
     "DROP_PROB_RECEIVER": "0",
     "EXPANSION_TIMEOUT": "0.05",
     "ETA": "K-1",
     "ETA_STR": "'K-1'",
     "FILE_NAME_KEYS": "['K', 'R']",
-    "DIR_KEYS": "['H', 'DROP_PROB_SENDER', 'DROP_PROB_RECEIVER']"
+    "DIR_KEYS": "['H']"
 }
 
 general_props = [
@@ -98,33 +98,33 @@ general_props = [
 
 
 test_props = [
-    {
-        "keys": ["DROP_PROB_SENDER", "DROP_PROB_RECEIVER"],
-        "values": [
-            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0"},  # 0%
-            # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
-            # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.01"},  # 1%
-            # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.1"},  # 10%
-            # {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0"},  # 0.1%
-            # {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0"},  # 1%
-            # {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0"},  # 10%
-            {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
-            # {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0.01"},  # 1%
-            {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0.1"},  # 10%
-        ]
-    },
+    # {
+    #     "keys": ["DROP_PROB_SENDER", "DROP_PROB_RECEIVER"],
+    #     "values": [
+    #         {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0"},  # 0%
+    #         # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
+    #         # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.01"},  # 1%
+    #         # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.1"},  # 10%
+    #         # {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0"},  # 0.1%
+    #         # {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0"},  # 1%
+    #         # {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0"},  # 10%
+    #         {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
+    #         # {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0.01"},  # 1%
+    #         {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0.1"},  # 10%
+    #     ]
+    # },
     {
         "keys": ["H"],
-        "values": ["2", "2.1"]
+        "values": ["2.2", "2.1"]
     },
-    {
-        "keys": ["R"],
-        "values": ["100", "1"]
-    },
-    {
-        "keys": ["K"],
-        "values": ["3", "15"]
-    },
+    # {
+    #     "keys": ["R"],
+    #     "values": ["100", "1"]
+    # },
+    # {
+    #     "keys": ["K"],
+    #     "values": ["3", "15"]
+    # },
 ]
 
 if __name__ == '__main__':
