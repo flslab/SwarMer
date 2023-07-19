@@ -51,7 +51,7 @@ def_test_conf = {
     "NUMBER_OF_FLSS": "90",
     "K": "3",
     "R": "100",
-    "H": "2.2",
+    "H": "2",
     "DROP_PROB_SENDER": "0",
     "DROP_PROB_RECEIVER": "0",
     "EXPANSION_TIMEOUT": "0.05",
