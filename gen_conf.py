@@ -115,7 +115,7 @@ test_props = [
     # },
     {
         "keys": ["H"],
-        "values": ["2.2"]
+        "values": ["2"]
     },
     # {
     #     "keys": ["R"],
