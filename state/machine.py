@@ -124,11 +124,12 @@ class StateMachine:
             results.update(self.metrics.get_final_report_())
             write_json(self.context.fid, results, self.metrics.results_directory, self.context.fid == min_fid)
 
-            with open(os.path.join(self.metrics.results_directory, f'nt_{self.context.fid}.n.json'), "w") as f:
-                json.dump(self.metrics.network_timeline, f)
+            if Config.TIMELINE_LOG:
+                with open(os.path.join(self.metrics.results_directory, f'nt_{self.context.fid}.n.json'), "w") as f:
+                    json.dump(self.metrics.network_timeline, f)
 
-            with open(os.path.join(self.metrics.results_directory, f'ht_{self.context.fid}.h.json'), "w") as f:
-                json.dump(self.metrics.heuristic_timeline, f)
+                with open(os.path.join(self.metrics.results_directory, f'ht_{self.context.fid}.h.json'), "w") as f:
+                    json.dump(self.metrics.heuristic_timeline, f)
 
         if Config.DEBUG:
             if len(self.get_c()):

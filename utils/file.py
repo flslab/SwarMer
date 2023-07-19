@@ -331,6 +331,83 @@ def combine_xlsx_with_formula(directory, rs):
 
     return pd.concat(data_frames)
 
+
+def combine_xlsx_with_formula_static(directory, rs):
+    rdfs = dict()
+    for r in rs:
+        rdfs[str(r)] = []
+
+    metric_titles = [
+        'min radio range',
+        'avg radio range',
+        'max radio range',
+        'min solution radio range',
+        'avg solution radio range',
+        'max solution radio range',
+        'num lazy nodes',
+        'total sent bytes',
+        'total received bytes',
+        'min num heuristic ran',
+        'avg num heuristic ran',
+        'max num heuristic ran',
+    ]
+
+    xlsx_files = glob.glob(f"{directory}/*.xlsx")
+    for file in sorted(xlsx_files):
+        print(file)
+        df = pd.read_excel(file, sheet_name=['metrics', 'nodes'])
+        nodes_df = df['nodes']
+        min_radio_range = nodes_df['3 max range'].loc[nodes_df['3 max range'].idxmin()]
+        avg_radio_range = nodes_df['3 max range'].mean()
+        max_radio_range = nodes_df['3 max range'].loc[nodes_df['3 max range'].idxmax()]
+        min_solution_radio_range = nodes_df['3 solution range'].loc[nodes_df['3 solution range'].idxmin()]
+        avg_solution_radio_range = nodes_df['3 solution range'].mean()
+        max_solution_radio_range = nodes_df['3 solution range'].loc[nodes_df['3 solution range'].idxmax()]
+        num_lazy_nodes = (nodes_df['3 solution range'] == 0).sum()
+        total_sent_bytes = nodes_df['B_bytes_sent'].sum()
+        total_received_bytes = nodes_df['B_bytes_received'].sum()
+        min_num_h_ran = nodes_df['4 h invoked'].loc[nodes_df['4 h invoked'].idxmin()]
+        avg_num_h_ran = nodes_df['4 h invoked'].mean()
+        max_num_h_ran = nodes_df['4 h invoked'].loc[nodes_df['4 h invoked'].idxmax()]
+
+        node_metrics = pd.DataFrame([
+            min_radio_range,
+            avg_radio_range,
+            max_radio_range,
+            min_solution_radio_range,
+            avg_solution_radio_range,
+            max_solution_radio_range,
+            num_lazy_nodes,
+            total_sent_bytes,
+            total_received_bytes,
+            min_num_h_ran,
+            avg_num_h_ran,
+            max_num_h_ran,
+        ])
+
+        df = df['metrics']
+        m = re.search(r'K:(\d+)_R:(\d+)', file)
+        k = m.group(1)
+        r = m.group(2)
+        df2 = pd.DataFrame([k, r])
+        df3 = pd.concat([df2, df.value, node_metrics])
+        rdfs[r].append(df3)
+
+    data_frames = []
+    for dfs_r in rdfs.values():
+        if len(dfs_r):
+            data_frames.append(
+                pd.concat(
+                    [
+                        pd.concat([pd.DataFrame(['G', 'R']),
+                                   df.metric,
+                                   pd.DataFrame(metric_titles)])] + dfs_r[:20],
+                    axis=1)
+            )
+
+    return pd.concat(data_frames)
+
+
 def combine_groups(directory, name, df_list, sheet_names, rs, num_exp):
 
     with pd.ExcelWriter(os.path.join(directory, f'{name}.xlsx'), engine='xlsxwriter',
@@ -356,11 +433,11 @@ def combine_groups(directory, name, df_list, sheet_names, rs, num_exp):
             worksheet.write(f'{cols[4]}1', 'Median', cell_format_bold)
 
             for row in range(4, len(df)+2):
-                if row % 31 == 16 or row % 31 == 17:
+                if row % 28 == 16 or row % 28 == 17:
                     continue
 
                 cell_format_bordered = workbook.add_format()
-                cell_format_bordered.set_bottom(row % 31 == 1)
+                cell_format_bordered.set_bottom(row % 28 == 1)
                 worksheet.write_formula(f'{cols[1]}{row}', f'=MIN(B{row}:{cols[0]}{row})', cell_format_bordered)
                 worksheet.write_formula(f'{cols[2]}{row}', f'=TRIMMEAN(B{row}:{cols[0]}{row}, 0.1)', cell_format_bordered)
                 worksheet.write_formula(f'{cols[3]}{row}', f'=MAX(B{row}:{cols[0]}{row})', cell_format_bordered)
@@ -382,7 +459,7 @@ def elastic_post_process(path):
         exp_path = f"{path}/{datetime}"
         create_csv_from_json(exp_path)
 
-    time.sleep(5)
+    time.sleep(1)
 
     for f in xlsx_files:
         m = re.search(r'(\d+_Jul_\d+_\d+_\d+)', f)
@@ -473,12 +550,14 @@ def gen_sw_charts(path, fid):
 
 
 if __name__ == "__main__":
-    gen_sw_charts('/Users/hamed/Documents/Holodeck/SwarMerPy/results/test90/H:2.2/1689785673', '3')
+    # gen_sw_charts('/Users/hamed/Documents/Holodeck/SwarMerPy/results/test90/H:2.2/1689785673', '3')
 
-    exit()
+    # exit()
 
     t = '0.5'
-    path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/elastic/results/test90/EXPANSION_TIMEOUT:{t}"
+    sl = 0.001
+    rl = 0
+    path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/20cluster1/results/test90/DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
     elastic_post_process(path)
     # exit()
 
@@ -494,24 +573,24 @@ if __name__ == "__main__":
 
     # exit()
 
-    groups = [3, 5, 10, 15]
+    groups = [3, 15]
     rs = [1, 100]
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
     dfs = []
-    sl = 0
-    rl = 0.001
+
     # path = f"/Users/hamed/Desktop/receiver20/DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
     path = f"{path}/processed"
     for g in groups:
         dir_name = f"K{g}"
         subprocess.call(["mkdir", "-p", f"{path}/{dir_name}"])
         subprocess.call(f"mv {path}/*_K:{g}_*.xlsx {path}/{dir_name}", shell=True)
-        dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs))
+        # dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs))
+        dfs.append(combine_xlsx_with_formula_static(f"{path}/{dir_name}", rs))
         # break
 
-    combine_groups(path, f'summary_fixed_T{t}', dfs, groups, rs, 10)
+    combine_groups(path, f'summary_S{sl}_R{rl}', dfs, groups, rs, 20)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
     # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")

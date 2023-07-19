@@ -43,6 +43,7 @@ def_general_conf = {
     "PROCESS_JOIN_TIMEOUT": "120",
     "NUM_DISPATCHERS": "1",
     "MULTICAST": "True",
+    "TIMELINE_LOG": "False",
 }
 
 def_test_conf = {

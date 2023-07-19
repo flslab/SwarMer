@@ -72,19 +72,22 @@ class Metrics:
         self.general_metrics[key] = min(self.general_metrics[key], value)
 
     def log_received_msg(self, msg_type, length):
-        self.network_timeline.append([time.time(), 'r', length])
+        if Config.TIMELINE_LOG:
+            self.network_timeline.append([time.time(), 'r', length])
         log_msg_hist(self.received_msg_hist, msg_type, 'received', 'C')
         self.log_sum("N_num_messages_received", 1)
         self.log_sum("B_bytes_received", length)
 
     def log_sent_msg(self, msg_type, length):
-        self.network_timeline.append([time.time(), 's', length])
+        if Config.TIMELINE_LOG:
+            self.network_timeline.append([time.time(), 's', length])
         log_msg_hist(self.sent_msg_hist, msg_type, 'sent', 'B')
         self.log_sum("N_num_messages_sent", 1)
         self.log_sum("B_bytes_sent", length)
 
     def log_heuristic_ran(self):
-        self.heuristic_timeline.append([time.time()])
+        if Config.TIMELINE_LOG:
+            self.heuristic_timeline.append([time.time()])
 
     def get_total_distance(self):
         way_points = self.get_location_history()
