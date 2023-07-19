@@ -93,7 +93,7 @@ class StateMachine:
                 count = 1
                 els = [self.context.el]
 
-            if TestConfig.H == 2.1:
+            if TestConfig.H == 2.1 or TestConfig.H == 2.2:
                 m_range = self.context.radio_range
                 s_range = self.solution_range
             else:
@@ -277,7 +277,7 @@ class StateMachine:
                 c_prime, last_idx = self.heuristic_1(c)
             elif TestConfig.H == 2:
                 c_prime, last_idx = self.heuristic_2(c)
-            elif TestConfig.H == 2.1:
+            elif TestConfig.H == 2.1 or TestConfig.H == 2.2:
                 c_prime, last_idx = self.heuristic_2_1(c)
             elif TestConfig.H == 'vns':
                 c_prime, last_idx = self.heuristic_vns(c)
