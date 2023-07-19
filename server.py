@@ -192,8 +192,8 @@ if __name__ == '__main__':
             keys = current_date_time
         file_name = f"{Config.SHAPE}_{keys}_{experiment_name}"
 
-        if len(TestConfig.DIR_KEYS):
-            dir_name = "_".join(f"{k}:{TestConfig.__getattribute__(TestConfig, k)}" for k in TestConfig.DIR_KEYS)
+        if len(CONFIG.DIR_KEYS):
+            dir_name = "_".join(f"{k}:{CONFIG.__getattribute__(CONFIG, k)}" for k in CONFIG.DIR_KEYS)
 
     main_dir = Config.RESULTS_PATH if dir_name is None else os.path.join(Config.RESULTS_PATH, Config.SHAPE, dir_name)
     results_directory = os.path.join(main_dir, experiment_name)

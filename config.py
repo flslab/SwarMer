@@ -34,6 +34,7 @@ class Config:
     RESULTS_PATH = 'results'
     DEBUG = False
     FILE_NAME_KEYS = ['K']
+    DIR_KEYS = ['H']
     SERVER_TIMEOUT = 120
     PROCESS_JOIN_TIMEOUT = 120
     NUM_DISPATCHERS = 1
