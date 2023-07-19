@@ -1,10 +1,13 @@
+import heapq
 import itertools
 import os
 import json
 import csv
 import subprocess
 import sys
+import time
 
+import matplotlib.pyplot as plt
 import numpy as np
 import xlsxwriter as xlsxwriter
 
@@ -21,7 +24,7 @@ def write_json(fid, results, directory, is_clique):
         json.dump(results, f)
 
 
-def create_csv_from_json(directory, duration):
+def create_csv_from_json(directory, duration=0):
     if not os.path.exists(directory):
         return
 
@@ -201,7 +204,22 @@ def combine_csvs(directory, xslx_dir, file_name):
             df = pd.read_csv(csv_file)
             sheet_name = csv_file.split('/')[-1][:-4]
             df.to_excel(writer, sheet_name=sheet_name, index=False)
-    # shutil.rmtree(os.path.join(directory))
+
+
+def combine_csvs_with_formula(directory, xslx_dir, file_name):
+    csv_files = glob.glob(f"{directory}/*.csv")
+
+    with pd.ExcelWriter(os.path.join(xslx_dir, f'{file_name}.xlsx'), engine='xlsxwriter',
+                        engine_kwargs={'options': {'strings_to_numbers': True}}) as writer:
+        for csv_file in csv_files:
+            df = pd.read_csv(csv_file)
+            sheet_name = csv_file.split('/')[-1][:-4]
+            df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+            if sheet_name == 'metrics':
+                worksheet = writer.sheets['metrics']
+                worksheet.write('A16', 'min radio range')
+                worksheet.write_formula(f'B16', f'=MIN(nodes!H:H)')
 
 
 def combine_xlsx(directory, rs):
@@ -224,12 +242,97 @@ def combine_xlsx(directory, rs):
     data_frames = []
     for dfs_r in rdfs.values():
         if len(dfs_r):
-            data_frames.append(pd.concat([pd.concat([pd.DataFrame(['G', 'R']), df.metric])] + dfs_r[:10], axis=1))
+            data_frames.append(pd.concat([pd.concat([pd.DataFrame(['G', 'R']), df.metric])] + dfs_r[:20], axis=1))
 
     return pd.concat(data_frames)
 
 
-def combine_groups(directory, name, df_list, sheet_names, rs):
+def combine_xlsx_with_formula(directory, rs):
+    rdfs = dict()
+    for r in rs:
+        rdfs[str(r)] = []
+
+    metric_titles = [
+        'min radio range',
+        'avg radio range',
+        'max radio range',
+        'min requested expansion',
+        'avg requested expansion',
+        'max requested expansion',
+        'min neighbor driven expansion',
+        'avg neighbor driven expansion',
+        'max neighbor driven expansion',
+        'num lazy nodes',
+        'total sent bytes',
+        'total received bytes',
+        'min num heuristic ran',
+        'avg num heuristic ran',
+        'max num heuristic ran',
+    ]
+
+    xlsx_files = glob.glob(f"{directory}/*.xlsx")
+    for file in sorted(xlsx_files):
+        print(file)
+        df = pd.read_excel(file, sheet_name=['metrics', 'nodes'])
+        nodes_df = df['nodes']
+        min_radio_range = nodes_df['3 max range'].loc[nodes_df['3 max range'].idxmin()]
+        avg_radio_range = nodes_df['3 max range'].mean()
+        max_radio_range = nodes_df['3 max range'].loc[nodes_df['3 max range'].idxmax()]
+        min_requested_expansion = nodes_df['3 number of requested expansions'].loc[nodes_df['3 number of requested expansions'].idxmin()]
+        avg_requested_expansion = nodes_df['3 number of requested expansions'].mean()
+        max_requested_expansion = nodes_df['3 number of requested expansions'].loc[nodes_df['3 number of requested expansions'].idxmax()]
+        min_nd_expansion = nodes_df['3 number of neighbor driven expansions'].loc[nodes_df['3 number of neighbor driven expansions'].idxmin()]
+        avg_nd_expansion = nodes_df['3 number of neighbor driven expansions'].mean()
+        max_nd_expansion = nodes_df['3 number of neighbor driven expansions'].loc[nodes_df['3 number of neighbor driven expansions'].idxmax()]
+        num_lazy_nodes = (nodes_df['3 solution range'] == 0).sum()
+        total_sent_bytes = nodes_df['B_bytes_sent'].sum()
+        total_received_bytes = nodes_df['B_bytes_received'].sum()
+        min_num_h_ran = nodes_df['4 h invoked'].loc[nodes_df['4 h invoked'].idxmin()]
+        avg_num_h_ran = nodes_df['4 h invoked'].mean()
+        max_num_h_ran = nodes_df['4 h invoked'].loc[nodes_df['4 h invoked'].idxmax()]
+
+        node_metrics = pd.DataFrame([
+            min_radio_range,
+            avg_radio_range,
+            max_radio_range,
+            min_requested_expansion,
+            avg_requested_expansion,
+            max_requested_expansion,
+            min_nd_expansion,
+            avg_nd_expansion,
+            max_nd_expansion,
+            num_lazy_nodes,
+            total_sent_bytes,
+            total_received_bytes,
+            min_num_h_ran,
+            avg_num_h_ran,
+            max_num_h_ran,
+        ])
+
+        df = df['metrics']
+        m = re.search(r'K:(\d+)_R:(\d+)', file)
+        k = m.group(1)
+        r = m.group(2)
+        df2 = pd.DataFrame([k, r])
+        df3 = pd.concat([df2, df.value, node_metrics])
+        rdfs[r].append(df3)
+
+    data_frames = []
+    for dfs_r in rdfs.values():
+        if len(dfs_r):
+            data_frames.append(
+                pd.concat(
+                    [
+                        pd.concat([pd.DataFrame(['G', 'R']),
+                                   df.metric,
+                                   pd.DataFrame(metric_titles)])] + dfs_r[:20],
+                    axis=1)
+            )
+
+    return pd.concat(data_frames)
+
+def combine_groups(directory, name, df_list, sheet_names, rs, num_exp):
+
     with pd.ExcelWriter(os.path.join(directory, f'{name}.xlsx'), engine='xlsxwriter',
                         engine_kwargs={'options': {'strings_to_numbers': True}}) as writer:
 
@@ -238,17 +341,31 @@ def combine_groups(directory, name, df_list, sheet_names, rs):
             df.to_excel(writer, index=False, sheet_name=sheet_name)
 
             worksheet = writer.sheets[sheet_name]
+            workbook = writer.book
+            cell_format_bold = workbook.add_format()
+            cell_format_bold.set_bold()
 
-            worksheet.write('L1', 'Min')
-            worksheet.write('M1', 'Avg')
-            worksheet.write('N1', 'Max')
+            if num_exp == 10:
+                cols = ['K', 'L', 'M', 'N', 'O']
+            else:
+                cols = ['U', 'V', 'W', 'X', 'Y']
 
-            for j in range(len(rs)):
-                for i in range(12):
-                    row = j * 16 + i + 4
-                    worksheet.write_formula(f'L{row}', f'=MIN(B{row}:K{row})')
-                    worksheet.write_formula(f'M{row}', f'=AVERAGE(B{row}:K{row})')
-                    worksheet.write_formula(f'N{row}', f'=MAX(B{row}:K{row})')
+            worksheet.write(f'{cols[1]}1', 'Min', cell_format_bold)
+            worksheet.write(f'{cols[2]}1', 'Avg', cell_format_bold)
+            worksheet.write(f'{cols[3]}1', 'Max', cell_format_bold)
+            worksheet.write(f'{cols[4]}1', 'Median', cell_format_bold)
+
+            for row in range(4, len(df)+2):
+                if row % 31 == 16 or row % 31 == 17:
+                    continue
+
+                cell_format_bordered = workbook.add_format()
+                cell_format_bordered.set_bottom(row % 31 == 1)
+                worksheet.write_formula(f'{cols[1]}{row}', f'=MIN(B{row}:{cols[0]}{row})', cell_format_bordered)
+                worksheet.write_formula(f'{cols[2]}{row}', f'=TRIMMEAN(B{row}:{cols[0]}{row}, 0.1)', cell_format_bordered)
+                worksheet.write_formula(f'{cols[3]}{row}', f'=MAX(B{row}:{cols[0]}{row})', cell_format_bordered)
+                worksheet.write_formula(f'{cols[4]}{row}', f'=MEDIAN(B{row}:{cols[0]}{row})', cell_format_bordered)
+
 
 
 def read_cliques_xlsx(path):
@@ -256,32 +373,145 @@ def read_cliques_xlsx(path):
     return [np.array(eval(c)) for c in df["7 coordinates"]]
 
 
+def elastic_post_process(path):
+    xlsx_files = glob.glob(f"{path}/*.xlsx")
+
+    for f in xlsx_files:
+        m = re.search(r'(\d+_Jul_\d+_\d+_\d+)', f)
+        datetime = m.group(1)
+        exp_path = f"{path}/{datetime}"
+        create_csv_from_json(exp_path)
+
+    time.sleep(5)
+
+    for f in xlsx_files:
+        m = re.search(r'(\d+_Jul_\d+_\d+_\d+)', f)
+        datetime = m.group(1)
+        exp_path = f"{path}/{datetime}"
+        out_path = f"{path}/processed"
+        combine_csvs(exp_path, out_path, f.split('/')[-1][:-5])
+
+
+def merge_network_heuristic_timelines(path, fid='*'):
+    network_files = glob.glob(f"{path}/nt_{fid}.n.json")
+    heuristic_files = glob.glob(f"{path}/ht_{fid}.h.json")
+    network_timelines = []
+    heuristic_timelines = []
+
+    for f in network_files:
+        with open(f) as jf:
+            network_timelines.append(json.load(jf))
+
+    for f in heuristic_files:
+        with open(f) as jf:
+            heuristic_timelines.append(json.load(jf))
+
+    start_time = min([tl[0][0] for tl in network_timelines + heuristic_timelines if len(tl)])
+
+    if len(network_timelines) > 1:
+        network_timelines = merge_timelines(network_timelines)
+        heuristic_timelines = merge_timelines(heuristic_timelines)
+    else:
+        network_timelines = network_timelines[0]
+        heuristic_timelines = heuristic_timelines[0]
+
+    return {
+        "start_time": start_time,
+        "sent_bytes": list(filter(lambda x: x[1] == 's', network_timelines)),
+        "received_bytes": list(filter(lambda x: x[1] == 'r', network_timelines)),
+        "heuristic": heuristic_timelines
+    }
+
+
+def gen_sliding_window_chart_data(timeline, start_time, value_fn, sw=0.01):
+    xs = [0]
+    ys = [0]
+
+    while len(timeline):
+        event = timeline[0]
+        t = event[0] - start_time
+        if xs[-1] <= t < xs[-1] + sw:
+            ys[-1] += value_fn(event)
+            timeline.pop(0)
+        else:
+            xs.append(xs[-1] + sw)
+            ys.append(0)
+
+    return xs, ys
+
+
+def merge_timelines(timelines):
+    lists = timelines
+    heap = []
+    for i, lst in enumerate(lists):
+        if lst:
+            heap.append((lst[0][0], i, 0))
+    heapq.heapify(heap)
+
+    merged = []
+    while heap:
+        val, lst_idx, elem_idx = heapq.heappop(heap)
+        merged.append(lists[lst_idx][elem_idx] + [lst_idx])
+        if elem_idx + 1 < len(lists[lst_idx]):
+            next_elem = lists[lst_idx][elem_idx + 1][0]
+            heapq.heappush(heap, (next_elem, lst_idx, elem_idx + 1))
+    return merged
+
+
+def gen_sw_charts(path, fid):
+    data = merge_network_heuristic_timelines(path, fid)
+
+    r_xs, r_ys = gen_sliding_window_chart_data(data['received_bytes'], data['start_time'], lambda x: x[2])
+    s_xs, s_ys = gen_sliding_window_chart_data(data['sent_bytes'], data['start_time'], lambda x: x[2])
+    # h_xs, h_ys = gen_sliding_window_chart_data(data['heuristic'], data['start_time'], lambda x: 1)
+    plt.step(r_xs, r_ys, where='post', label="Received Bytes")
+    plt.step(s_xs, s_ys, where='post', label="Sent bytes")
+    # plt.step(h_xs, h_ys, where='post', label="Heuristic invoked")
+    plt.legend()
+    plt.yscale('log')
+    plt.show()
+
+
 if __name__ == "__main__":
+    gen_sw_charts('/Users/hamed/Documents/Holodeck/SwarMerPy/results/test90/H:2.2/1689785673', '3')
+
+    exit()
+
+    t = '0.5'
+    path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/elastic/results/test90/EXPANSION_TIMEOUT:{t}"
+    elastic_post_process(path)
+    # exit()
+
+
     # if len(sys.argv) == 4:
     #     dir_in = sys.argv[1]
     #     dir_out = sys.argv[2]
     #     name = sys.argv[3]
     # else:
-    #     dir_in, dir_out, name = "../results/20-Jun-09_37_32/results/racecar/H:2/20-Jun-08_52_06", "../results/20-Jun-09_37_32/results/racecar/H:2", "agg"
+    # dir_in = "/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/17-Jul-14_31_22/results/test90/EXPANSION_TIMEOUT:0.05/17_Jul_21_31_51"
     # create_csv_from_json(dir_in, 0)
     # combine_csvs(dir_in, dir_out, name)
+
+    # exit()
+
     groups = [3, 5, 10, 15]
-    rs = [1, 10, 100, 1000]
+    rs = [1, 100]
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
     dfs = []
-    sl = 0.001
+    sl = 0
     rl = 0.001
-    path = f"/Users/hamed/Desktop/H2_1"
+    # path = f"/Users/hamed/Desktop/receiver20/DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
+    path = f"{path}/processed"
     for g in groups:
         dir_name = f"K{g}"
         subprocess.call(["mkdir", "-p", f"{path}/{dir_name}"])
         subprocess.call(f"mv {path}/*_K:{g}_*.xlsx {path}/{dir_name}", shell=True)
-        dfs.append(combine_xlsx(f"{path}/{dir_name}", rs))
+        dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs))
         # break
 
-    combine_groups(path, f'summary_S{sl}_R{rl}', dfs, groups, rs)
+    combine_groups(path, f'summary_fixed_T{t}', dfs, groups, rs, 10)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
     # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")

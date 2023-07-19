@@ -1,3 +1,5 @@
+import json
+import os
 import random
 import time
 
@@ -10,6 +12,8 @@ from .types import StateTypes
 from worker.network import PrioritizedItem
 from itertools import combinations
 from utils import write_json, dict_hash
+
+CONFIG = TestConfig if TestConfig.ENABLED else Config
 
 
 class StateMachine:
@@ -93,7 +97,7 @@ class StateMachine:
                 count = 1
                 els = [self.context.el]
 
-            if TestConfig.H == 2.1 or TestConfig.H == 2.2:
+            if CONFIG.H == 2.1 or CONFIG.H == 2.2:
                 m_range = self.context.radio_range
                 s_range = self.solution_range
             else:
@@ -119,6 +123,12 @@ class StateMachine:
             }
             results.update(self.metrics.get_final_report_())
             write_json(self.context.fid, results, self.metrics.results_directory, self.context.fid == min_fid)
+
+            with open(os.path.join(self.metrics.results_directory, f'nt_{self.context.fid}.n.json'), "w") as f:
+                json.dump(self.metrics.network_timeline, f)
+
+            with open(os.path.join(self.metrics.results_directory, f'ht_{self.context.fid}.h.json'), "w") as f:
+                json.dump(self.metrics.heuristic_timeline, f)
 
         if Config.DEBUG:
             if len(self.get_c()):
@@ -273,17 +283,18 @@ class StateMachine:
                     if all(nc in self.context.neighbors for nc in new_c):
                         if self.attr_v(new_c) > self.attr_v(c):
                             c = new_c
-            if TestConfig.H == 1:
+            if CONFIG.H == 1:
                 c_prime, last_idx = self.heuristic_1(c)
-            elif TestConfig.H == 2:
+            elif CONFIG.H == 2:
                 c_prime, last_idx = self.heuristic_2(c)
-            elif TestConfig.H == 2.1 or TestConfig.H == 2.2:
+            elif CONFIG.H == 2.1 or CONFIG.H == 2.2:
                 c_prime, last_idx = self.heuristic_2_1(c)
-            elif TestConfig.H == 'vns':
+            elif CONFIG.H == 'vns':
                 c_prime, last_idx = self.heuristic_vns(c)
-            elif TestConfig.H == 'rs':
+            elif CONFIG.H == 'rs':
                 c_prime, last_idx = self.heuristic_rs(c)
             self.num_heuristic_invoked += 1
+            self.metrics.log_heuristic_ran()
             self.max_eta_idx = max(self.max_eta_idx, last_idx)
             if self.attr_v(c_prime) > self.attr_v(c):
                 c = c_prime

@@ -32,12 +32,13 @@ def_general_conf = {
     "DURATION": "600",
     "READ_FROM_NPY": "0",
     "K": "10",
+    "H": "2",
     "MAX_NEIGHBORS": "0",
-    "SHAPE": "'racecar'",
+    "SHAPE": "'chess'",
     "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
     "DEBUG": "False",
-    "FILE_NAME_KEYS": "['K']",
-    "SERVER_TIMEOUT": "3600",
+    "FILE_NAME_KEYS": "['K', 'H']",
+    "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "NUM_DISPATCHERS": "1",
     "MULTICAST": "True",
@@ -60,13 +61,17 @@ def_test_conf = {
 
 general_props = [
     {
-        "keys": ["K"],
-        "values": ["10", "3", "5", "20"]
+        "keys": ["H"],
+        "values": ["2", "2.1", "2.2"]
     },
     {
-        "keys": ["SHAPE"],
-        "values": ["'skateboard'", "'racecar'", "'chess'", "'dragon'"]
+        "keys": ["K"],
+        "values": ["3", "5", "10", "20"]
     },
+    # {
+    #     "keys": ["SHAPE"],
+    #     "values": ["'skateboard'", "'racecar'", "'chess'", "'dragon'"]
+    # },
 ]
 #
 # test_props = [

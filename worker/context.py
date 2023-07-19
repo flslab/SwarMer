@@ -7,6 +7,7 @@ from config import Config
 from test_config import TestConfig
 from .metrics import MetricTypes
 from .history import History
+CONFIG = TestConfig if TestConfig.ENABLED else Config
 
 
 class WorkerContext:
@@ -21,7 +22,7 @@ class WorkerContext:
         self.fid_to_w = dict()
         self.sorted_dist = sorted_dist
         self.sorted_neighbors = sorted_neighbors
-        self.radio_range = 1 if TestConfig.H == 2.2 else Config.MAX_RANGE
+        self.radio_range = 1 if CONFIG.H == 2.2 else Config.MAX_RANGE
         self.max_range = Config.MAX_RANGE
         self.num_expansions = 0
         self.num_neighbor_expansions = 0

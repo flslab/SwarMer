@@ -271,7 +271,7 @@ if __name__ == '__main__':
     # np.random.shuffle(pidx)
     # print(pidx)
 
-    if TestConfig.H == 2:
+    if CONFIG.H == 2:
         knn_idx, knn_dists = utils.knn(gtl_point_cloud)
 
     # print(gtl_point_cloud)
@@ -293,7 +293,7 @@ if __name__ == '__main__':
             shared_memories[i] = shm
             local_gtl_point_cloud.append(gtl_point_cloud[i])
 
-            if TestConfig.H == 2:
+            if CONFIG.H == 2:
                 sorted_neighbors = knn_idx[i][1:] + 1
                 sorted_neighbors = sorted_neighbors.tolist()
                 dists = knn_dists[i][1:]
@@ -473,7 +473,8 @@ if __name__ == '__main__':
             plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
 
     if not Config.DEBUG and nid == 0:  # and not is_failed:
-        # utils.create_csv_from_json(results_directory, end_time-start_time)
+        # if N == 1:
+        utils.create_csv_from_json(results_directory, end_time-start_time)
         min_distances = [-1] if len(min_distances) == 0 else min_distances
         avg_distances = [-1] if len(avg_distances) == 0 else avg_distances
         max_distances = [-1] if len(max_distances) == 0 else max_distances
