@@ -50,7 +50,7 @@ def_test_conf = {
     "ENABLED": "True",
     "NUMBER_OF_FLSS": "90",
     "K": "3",
-    "R": "1",
+    "R": "100",
     "H": "2.2",
     "DROP_PROB_SENDER": "0",
     "DROP_PROB_RECEIVER": "0",
