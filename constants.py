@@ -12,11 +12,11 @@ class Constants:
     # MULTICAST_GROUP_ADDRESS = ('224.3.29.71', 5000)  # cluster 1
     # MULTICAST_GROUP = '224.3.29.71'  # cluster 1
 
-    # MULTICAST_GROUP_ADDRESS = ('224.3.29.25', 5000)  # cluster 2 & cloudlab
-    # MULTICAST_GROUP = '224.3.29.25'  # cluster 2 & cloudlab
+    MULTICAST_GROUP_ADDRESS = ('224.3.29.25', 5000)  # cluster 2 & cloudlab
+    MULTICAST_GROUP = '224.3.29.25'  # cluster 2 & cloudlab
 
-    MULTICAST_GROUP_ADDRESS = ('224.3.29.35', 5000)  # server 1
-    MULTICAST_GROUP = '224.3.29.35'  # server 1
+    # MULTICAST_GROUP_ADDRESS = ('224.3.29.35', 5000)  # server 1
+    # MULTICAST_GROUP = '224.3.29.35'  # server 1
 
     # MULTICAST_GROUP_ADDRESS = ('224.3.29.45', 5000)  # server 2
     # MULTICAST_GROUP = '224.3.29.45'  # server 2
