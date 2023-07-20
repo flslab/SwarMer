@@ -401,7 +401,7 @@ if __name__ == '__main__':
                 # print(connections)
                 break
 
-            time.sleep(.05)
+            time.sleep(1)
 
     if nid == 0:
         stop.stop_all()
