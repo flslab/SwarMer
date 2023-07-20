@@ -58,7 +58,7 @@ def_test_conf = {
     "ETA": "K-1",
     "ETA_STR": "'K-1'",
     "FILE_NAME_KEYS": "['K', 'R']",
-    "DIR_KEYS": "['H']"
+    "DIR_KEYS": "['H', 'ETA_STR']"
 }
 
 general_props = [
@@ -119,11 +119,19 @@ test_props = [
     },
     {
         "keys": ["K"],
-        "values": ["15"]
+        "values": ["3", "15"]
     },
     {
         "keys": ["H"],
-        "values": ["2.1", "2.2"]
+        "values": ["1"]
+    },
+    {
+        "keys": ["ETA", "ETA_STR"],
+        "values": [
+            {"ETA": "K-1", "ETA_STR": "'K-1'"},
+            {"ETA": "K", "ETA_STR": "'K'"},
+            {"ETA": "3*K//2", "ETA_STR": "'1.5K'"},
+        ]
     },
 ]
 

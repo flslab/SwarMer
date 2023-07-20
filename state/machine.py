@@ -25,7 +25,6 @@ class StateMachine:
         self.event_queue = event_queue
         self.last_neighbors_hash = None
         self.eta = TestConfig.ETA
-        self.knn = self.context.sorted_neighbors[:self.eta]
         self.is_neighbors_processed = False
         self.solution_eta_idx = -1
         self.max_eta_idx = -1
@@ -101,8 +100,8 @@ class StateMachine:
                 m_range = self.context.radio_range
                 s_range = self.solution_range
             else:
-                m_range = self.context.sorted_dist[self.max_eta_idx] if self.max_eta_idx != -1 else 0
-                s_range = self.context.sorted_dist[self.solution_eta_idx] if self.solution_eta_idx != -1 else 0
+                m_range = -1
+                s_range = -1
             results = {
                 # "5 weight": self.get_w()[0],
                 "0 clique members": self.get_w()[1:],
@@ -196,10 +195,13 @@ class StateMachine:
         return c, -1
 
     def heuristic_1(self, c):
-        if all(n in self.context.neighbors for n in self.knn):
-            return tuple(random.sample(self.knn, self.context.k - 1)), self.eta - 1
+        sorted_neighbors = sorted(self.context.neighbors.items(),
+                                  key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
+        if len(sorted_neighbors) < self.eta:
+            return (), -1
 
-        return (), self.eta - 1
+        sorted_neighbors_fids = [n[0] for n in sorted_neighbors[: self.eta]]
+        return tuple(random.sample(sorted_neighbors_fids, self.context.k - 1)), self.eta - 1
 
     def heuristic_2(self, c):
         candidates = []
@@ -306,29 +308,6 @@ class StateMachine:
 
             discover_msg = Message(MessageTypes.DISCOVER).to_all()
             self.broadcast(discover_msg)
-
-    def enter_single_state(self):
-        c = ()
-        # n_hash = hash(str([self.context.fid_to_w[n] for n in self.knn if n in self.context.fid_to_w]))
-        n_hash = dict_hash(self.context.fid_to_w)
-
-        if n_hash != self.last_neighbors_hash:
-            self.last_neighbors_hash = n_hash
-            self.knn = self.context.sorted_neighbors[:self.eta]
-            if all(n in self.context.neighbors for n in self.knn):
-                for u in combinations(self.knn, self.context.k - 1):
-                    attr_v_u = self.attr_v(u)
-                    attr_v_c = self.attr_v(c)
-                    if attr_v_u > attr_v_c:
-                        c = u
-                self.set_pair(c)
-                self.is_neighbors_processed = True
-        elif self.is_neighbors_processed:
-            self.eta += 1
-            self.is_neighbors_processed = False
-
-        discover_msg = Message(MessageTypes.DISCOVER).to_all()
-        self.broadcast(discover_msg)
 
     def enter(self, state):
         self.state = state
