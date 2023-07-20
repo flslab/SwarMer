@@ -350,7 +350,7 @@ if __name__ == '__main__':
     #     if count - sum(is_paired.values()) * K == count % K:
     #         break
 
-    freeze_counter = 0
+    freeze_timer = start_time
     last_hash = None
 
     if IS_CLUSTER_CLIENT:
@@ -367,6 +367,7 @@ if __name__ == '__main__':
                 break
     else:
         while True:
+            cur_time = time.time()
             cliques, connections, neighbors = aggregate_cliques(node_point_idx, shared_arrays)
 
             if IS_CLUSTER_SERVER:
@@ -384,12 +385,10 @@ if __name__ == '__main__':
             clique_sizes = filter(lambda x: x == K, cliques.values())
             single_sizes = filter(lambda x: x == 1, cliques.values())
             d_hash = dict_hash(cliques)
-            if d_hash == last_hash:
-                freeze_counter += 1
-            else:
-                freeze_counter = 0
+            if d_hash != last_hash:
+                freeze_timer = cur_time
 
-            if freeze_counter == Config.SERVER_TIMEOUT:
+            if cur_time - freeze_timer >= Config.SERVER_TIMEOUT:
                 is_failed = True
                 print("__TIMEOUT__")
                 print(cliques)
@@ -400,9 +399,9 @@ if __name__ == '__main__':
                 # print(connections)
                 break
 
-            time.sleep(1)
+            time.sleep(.05)
 
-    end_time = time.time()
+    end_time = cur_time
 
     if nid == 0:
         stop.stop_all()
