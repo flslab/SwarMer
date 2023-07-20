@@ -49,7 +49,7 @@ def_general_conf = {
 def_test_conf = {
     "ENABLED": "True",
     "NUMBER_OF_FLSS": "90",
-    "K": "3",
+    "K": "15",
     "R": "100",
     "H": "2",
     "DROP_PROB_SENDER": "0",
@@ -119,7 +119,7 @@ test_props = [
     },
     {
         "keys": ["K"],
-        "values": ["3"]
+        "values": ["15"]
     },
     {
         "keys": ["H"],
