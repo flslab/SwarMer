@@ -35,7 +35,7 @@ def_general_conf = {
     "H": "2.2",
     "MAX_NEIGHBORS": "0",
     "SHAPE": "'chess'",
-    "RESULTS_PATH": "'/proj/nova-PG0/hamed/results'",
+    "RESULTS_PATH": "'/proj/nova-PG0/hamed/kresults'",
     "DEBUG": "False",
     "FILE_NAME_KEYS": "['K']",
     "DIR_KEYS": "['H']",
