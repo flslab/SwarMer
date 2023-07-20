@@ -42,6 +42,9 @@ def set_stop():
 def query_cliques_client(connection):
     query_msg = Message(MessageTypes.QUERY_CLIQUES)
     connection.send(pickle.dumps(query_msg))
+
+
+def pull_cliques_client(connection):
     data = recv_msg(connection)
     message = pickle.loads(data)
     # print(message.args[0], message.args[1])
@@ -271,8 +274,8 @@ if __name__ == '__main__':
     # np.random.shuffle(pidx)
     # print(pidx)
 
-    if CONFIG.H == 2:
-        knn_idx, knn_dists = utils.knn(gtl_point_cloud)
+    # if CONFIG.H == 2:
+    #     knn_idx, knn_dists = utils.knn(gtl_point_cloud)
 
     # print(gtl_point_cloud)
     # print(knn_idx[0])
@@ -293,13 +296,13 @@ if __name__ == '__main__':
             shared_memories[i] = shm
             local_gtl_point_cloud.append(gtl_point_cloud[i])
 
-            if CONFIG.H == 2:
-                sorted_neighbors = knn_idx[i][1:] + 1
-                sorted_neighbors = sorted_neighbors.tolist()
-                dists = knn_dists[i][1:]
-            else:
-                sorted_neighbors = []
-                dists = []
+            # if CONFIG.H == 2:
+            #     sorted_neighbors = knn_idx[i][1:] + 1
+            #     sorted_neighbors = sorted_neighbors.tolist()
+            #     dists = knn_dists[i][1:]
+            # else:
+            sorted_neighbors = []
+            dists = []
             # fid_to_dist = dict(zip(sorted_neighbors, knn_dists[i][1:]))
 
             # dispatcher = assign_dispatcher(i+1, dispatchers)
@@ -372,7 +375,11 @@ if __name__ == '__main__':
 
             if IS_CLUSTER_SERVER:
                 for i in range(N-1):
-                    client_clique, client_connection, client_neighbors = query_cliques_client(clients[i])
+                    query_cliques_client(clients[i])
+
+            if IS_CLUSTER_SERVER:
+                for i in range(N-1):
+                    client_clique, client_connection, client_neighbors = pull_cliques_client(clients[i])
                     neighbors += client_neighbors
                     for key, con in client_connection.items():
                         connections[key] = con
@@ -399,9 +406,10 @@ if __name__ == '__main__':
                 # print(connections)
                 break
 
-            time.sleep(.05)
+            time.sleep(.04)
 
-    end_time = cur_time
+    if nid == 0:
+        end_time = cur_time
 
     if nid == 0:
         stop.stop_all()

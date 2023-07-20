@@ -16,6 +16,10 @@ from test_config import TestConfig
 import pandas as pd
 import glob
 import re
+import matplotlib as mpl
+
+mpl.use('macosx')
+
 
 
 def write_json(fid, results, directory, is_clique):
@@ -536,28 +540,33 @@ def merge_timelines(timelines):
 
 
 def gen_sw_charts(path, fid):
+    fig = plt.figure()
+    ax = fig.add_subplot()
     data = merge_network_heuristic_timelines(path, fid)
 
     r_xs, r_ys = gen_sliding_window_chart_data(data['received_bytes'], data['start_time'], lambda x: x[2])
     s_xs, s_ys = gen_sliding_window_chart_data(data['sent_bytes'], data['start_time'], lambda x: x[2])
     # h_xs, h_ys = gen_sliding_window_chart_data(data['heuristic'], data['start_time'], lambda x: 1)
-    plt.step(r_xs, r_ys, where='post', label="Received Bytes")
-    plt.step(s_xs, s_ys, where='post', label="Sent bytes")
-    # plt.step(h_xs, h_ys, where='post', label="Heuristic invoked")
-    plt.legend()
+    ax.step(r_xs, r_ys, where='post', label="Received Bytes", color="#00d5ff")
+    ax.step(s_xs, s_ys, where='post', label="Sent bytes", color="black")
+    # ax.step(h_xs, h_ys, where='post', label="Heuristic invoked")
+    ax.legend()
+    plt.ylim([1, 100000])
     plt.yscale('log')
     plt.show()
+    # plt.savefig(f'{path}/{fid}.png')
 
 
 if __name__ == "__main__":
-    # gen_sw_charts('/Users/hamed/Documents/Holodeck/SwarMerPy/results/test90/H:2.2/1689785673', '3')
-
+    # for i in range(1):
+    #     gen_sw_charts('/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/network_stat/results/test90/H:2.2/19_Jul_21_18_28', i+1)
+    #
     # exit()
 
     t = '0.5'
     sl = 0.001
     rl = 0
-    path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/20cluster1/results/test90/DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
+    path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/g3_r100_static/results/test90/H:2/2"
     elastic_post_process(path)
     # exit()
 
@@ -573,8 +582,8 @@ if __name__ == "__main__":
 
     # exit()
 
-    groups = [3, 15]
-    rs = [1, 100]
+    groups = [3]
+    rs = [100]
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
@@ -590,7 +599,7 @@ if __name__ == "__main__":
         dfs.append(combine_xlsx_with_formula_static(f"{path}/{dir_name}", rs))
         # break
 
-    combine_groups(path, f'summary_S{sl}_R{rl}', dfs, groups, rs, 20)
+    combine_groups(path, f'summary', dfs, groups, rs, 20)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
     # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")
