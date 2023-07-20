@@ -18,7 +18,7 @@ import glob
 import re
 import matplotlib as mpl
 
-mpl.use('macosx')
+# mpl.use('macosx')
 
 
 
