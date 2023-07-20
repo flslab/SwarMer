@@ -43,7 +43,7 @@ def_general_conf = {
     "PROCESS_JOIN_TIMEOUT": "120",
     "NUM_DISPATCHERS": "1",
     "MULTICAST": "True",
-    "TIMELINE_LOG": "True",
+    "TIMELINE_LOG": "False",
 }
 
 def_test_conf = {
@@ -63,17 +63,17 @@ def_test_conf = {
 
 general_props = [
     {
+        "keys": ["SHAPE"],
+        "values": ["'chess'", "'dragon'", "'skateboard'", "'racecar'"]
+    },
+    {
         "keys": ["H"],
-        "values": ["2", "2.1", "2.2"]
+        "values": ["2.2"]
     },
     {
         "keys": ["K"],
         "values": ["3", "5", "10", "20"]
     },
-    # {
-    #     "keys": ["SHAPE"],
-    #     "values": ["'skateboard'", "'racecar'", "'chess'", "'dragon'"]
-    # },
 ]
 #
 # test_props = [

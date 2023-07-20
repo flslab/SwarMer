@@ -3,9 +3,9 @@
 bash gen_conf_cluster.sh
 sleep 10
 
-for i in {0..5}
+for i in {0..15}
 do
-  for j in {0..9}
+  for j in {0..2}
   do
      echo "$i" "$j"
      bash start_cluster.sh "$i"

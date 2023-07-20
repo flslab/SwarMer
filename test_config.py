@@ -1,9 +1,9 @@
 class TestConfig:
-    ENABLED = True
-    NUMBER_OF_FLSS = 30
+    ENABLED = False
+    NUMBER_OF_FLSS = 40
     K = 3
-    R = 100  # ratio of r2 to r1
-    H = 1  # heuristic 1, 2, 2.1, 2.2, vns, rs
+    R = 1  # ratio of r2 to r1
+    H = 2.2  # heuristic 1, 2, 2.1, 2.2, vns, rs
     DROP_PROB_SENDER = 0
     DROP_PROB_RECEIVER = 0
     EXPANSION_TIMEOUT = 0.05
