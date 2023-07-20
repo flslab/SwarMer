@@ -367,7 +367,6 @@ if __name__ == '__main__':
                 break
     else:
         while True:
-            end_time = time.time()
             cliques, connections, neighbors = aggregate_cliques(node_point_idx, shared_arrays)
 
             if IS_CLUSTER_SERVER:
@@ -402,6 +401,8 @@ if __name__ == '__main__':
                 break
 
             time.sleep(1)
+
+    end_time = time.time()
 
     if nid == 0:
         stop.stop_all()
