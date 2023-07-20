@@ -172,7 +172,7 @@ class StateMachine:
         if not len(c_opt):
             c_opt = tuple(random.sample(self.context.neighbors.keys(), self.context.k - 1))
 
-        while time.time() - start_time < 5:
+        while time.time() - start_time < 0.01:
             d = 1
             while d < self.context.k:
                 c = self.vns_shake(c_opt, d)
