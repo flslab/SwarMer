@@ -58,7 +58,7 @@ def_test_conf = {
     "ETA": "K-1",
     "ETA_STR": "'K-1'",
     "FILE_NAME_KEYS": "['K', 'R']",
-    "DIR_KEYS": "['H'']"
+    "DIR_KEYS": "['H']"
 }
 
 general_props = [
