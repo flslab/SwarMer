@@ -6,6 +6,6 @@ class Constants:
     SERVER_PORT = 6000
     WORKER_ADDRESS = ("", 5000)
 
-    SERVER_ADDRESS = ("10.0.1.1", 6000)  # cloudlab
-    MULTICAST_GROUP_ADDRESS = ('224.3.29.25', 5000)  # cloudlab
-    MULTICAST_GROUP = '224.3.29.25'  # cloudlab
+    SERVER_ADDRESS = ("10.0.1.1", 6000)
+    MULTICAST_GROUP_ADDRESS = ('224.3.29.35', 5000)  # server 1
+    MULTICAST_GROUP = '224.3.29.35'  # server 1
