@@ -40,3 +40,4 @@ class Config:
     NUM_DISPATCHERS = 1
     MULTICAST = True
     TIMELINE_LOG = False
+    OPT_SORT = True

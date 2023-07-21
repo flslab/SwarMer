@@ -32,6 +32,7 @@ class StateMachine:
         self.last_expanded_time = 0
         self.last_h_ran_time = 0
         self.solution_range = 0
+        self.sorted_neighbors = []
 
     def get_w(self):
         return self.context.w
@@ -242,12 +243,17 @@ class StateMachine:
             self.expand_range()
             return (), last_idx
 
-        sorted_neighbors = sorted(self.context.neighbors.items(),
-                                  key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
+        if Config.OPT_SORT:
+            if len(self.context.neighbors) != len(self.sorted_neighbors):
+                self.sorted_neighbors = sorted(self.context.neighbors.items(),
+                                               key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
+        else:
+            self.sorted_neighbors = sorted(self.context.neighbors.items(),
+                                           key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
 
-        for i in range(len(sorted_neighbors)):
-            fid = sorted_neighbors[i][0]
-            c_n = sorted_neighbors[i][1].c
+        for i in range(len(self.sorted_neighbors)):
+            fid = self.sorted_neighbors[i][0]
+            c_n = self.sorted_neighbors[i][1].c
             if len(c_n):
                 if self.context.fid in c_n:
                     candidates.append(fid)
