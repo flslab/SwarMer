@@ -101,16 +101,16 @@ test_props = [
     {
         "keys": ["DROP_PROB_SENDER", "DROP_PROB_RECEIVER"],
         "values": [
-            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0"},  # 0%
-            # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
-            # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.01"},  # 1%
-            # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.1"},  # 10%
-            # {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0"},  # 0.1%
-            # {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0"},  # 1%
-            # {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0"},  # 10%
-            {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
-            {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0.01"},  # 1%
-            {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0.1"},  # 10%
+            # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0"},  # 0%
+            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
+            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.01"},  # 1%
+            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.1"},  # 10%
+            {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0"},  # 0.1%
+            {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0"},  # 1%
+            {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0"},  # 10%
+            # {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
+            # {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0.01"},  # 1%
+            # {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0.1"},  # 10%
         ]
     },
     {
@@ -119,7 +119,7 @@ test_props = [
     },
     {
         "keys": ["K"],
-        "values": ["10"]
+        "values": ["3", "10"]
     },
     {
         "keys": ["H"],
