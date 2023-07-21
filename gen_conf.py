@@ -58,7 +58,7 @@ def_test_conf = {
     "ETA": "K-1",
     "ETA_STR": "'K-1'",
     "FILE_NAME_KEYS": "['K', 'R']",
-    "DIR_KEYS": "['H', 'ETA_STR']"
+    "DIR_KEYS": "['H'']"
 }
 
 general_props = [
@@ -113,27 +113,27 @@ test_props = [
     #         # {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0.1"},  # 10%
     #     ]
     # },
-    {
-        "keys": ["H", "ETA", "ETA_STR"],
-        "values": [
-            {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'K-1'"},
-            {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'K-1'"},
-            {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
-            {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
-        ]
-    },
+    # {
+    #     "keys": ["H", "ETA", "ETA_STR"],
+    #     "values": [
+    #         {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'K-1'"},
+    #         {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'K-1'"},
+    #         {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
+    #         {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
+    #     ]
+    # },
     {
         "keys": ["R"],
         "values": ["100", "1"]
     },
     {
         "keys": ["K"],
-        "values": ["3", "15"]
+        "values": ["5", "10"]
     },
-    # {
-    #     "keys": ["H"],
-    #     "values": ["'vns'"]
-    # },
+    {
+        "keys": ["H"],
+        "values": ["'2.1'"]
+    },
 ]
 
 if __name__ == '__main__':
