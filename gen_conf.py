@@ -44,6 +44,7 @@ def_general_conf = {
     "NUM_DISPATCHERS": "1",
     "MULTICAST": "True",
     "TIMELINE_LOG": "False",
+    "OPT_SORT": "True",
 }
 
 def_test_conf = {
