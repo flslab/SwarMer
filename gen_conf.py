@@ -119,7 +119,7 @@ test_props = [
     },
     {
         "keys": ["K"],
-        "values": ["3", "10"]
+        "values": ["5", "15"]
     },
     {
         "keys": ["H"],
