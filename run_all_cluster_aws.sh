@@ -3,7 +3,7 @@
 bash gen_conf_cluster_aws.sh
 sleep 10
 
-for i in {0..3}
+for i in {0..7}
 do
   for j in {0..9}
   do
