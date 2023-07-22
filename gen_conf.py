@@ -59,7 +59,7 @@ def_test_conf = {
     "ETA": "K-1",
     "ETA_STR": "'K-1'",
     "FILE_NAME_KEYS": "['K', 'R']",
-    "DIR_KEYS": "['H', 'ETA_STR']"
+    "DIR_KEYS": "['H', 'DROP_PROB_SENDER', 'DROP_PROB_RECEIVER']"
 }
 
 general_props = [
@@ -99,42 +99,42 @@ general_props = [
 
 
 test_props = [
+    {
+        "keys": ["DROP_PROB_SENDER", "DROP_PROB_RECEIVER"],
+        "values": [
+            # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0"},  # 0%
+            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
+            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.01"},  # 1%
+            {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.1"},  # 10%
+            # {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0"},  # 0.1%
+            # {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0"},  # 1%
+            # {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0"},  # 10%
+            # {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
+            # {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0.01"},  # 1%
+            # {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0.1"},  # 10%
+        ]
+    },
     # {
-    #     "keys": ["DROP_PROB_SENDER", "DROP_PROB_RECEIVER"],
+    #     "keys": ["H", "ETA", "ETA_STR"],
     #     "values": [
-    #         # {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0"},  # 0%
-    #         {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
-    #         {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.01"},  # 1%
-    #         {"DROP_PROB_SENDER": "0", "DROP_PROB_RECEIVER": "0.1"},  # 10%
-    #         {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0"},  # 0.1%
-    #         {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0"},  # 1%
-    #         {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0"},  # 10%
-    #         # {"DROP_PROB_SENDER": "0.001", "DROP_PROB_RECEIVER": "0.001"},  # 0.1%
-    #         # {"DROP_PROB_SENDER": "0.01", "DROP_PROB_RECEIVER": "0.01"},  # 1%
-    #         # {"DROP_PROB_SENDER": "0.1", "DROP_PROB_RECEIVER": "0.1"},  # 10%
+    #         {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'K-1'"},
+    #         {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'K-1'"},
+    #         {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
+    #         {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
     #     ]
     # },
     {
-        "keys": ["H", "ETA", "ETA_STR"],
-        "values": [
-            {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'K-1'"},
-            {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'K-1'"},
-            {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
-            {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
-        ]
-    },
-    {
         "keys": ["K"],
-        "values": ["5", "10", "15"]
+        "values": ["3", "5", "10", "15"]
     },
     {
         "keys": ["R"],
         "values": ["100", "1"]
     },
-    # {
-    #     "keys": ["H"],
-    #     "values": ["'vns'"]
-    # },
+    {
+        "keys": ["H"],
+        "values": ["2.2"]
+    },
 ]
 
 if __name__ == '__main__':
