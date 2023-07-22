@@ -32,7 +32,7 @@ class StateMachine:
         self.last_expanded_time = 0
         self.last_h_ran_time = 0
         self.solution_range = 0
-        self.sorted_neighbors = []
+        self.sorted_neighbor_fids = []
 
     def get_w(self):
         return self.context.w
@@ -147,12 +147,14 @@ class StateMachine:
 
     def sort_neighbors(self):
         if Config.OPT_SORT:
-            if len(self.context.neighbors) != len(self.sorted_neighbors):
-                self.sorted_neighbors = sorted(self.context.neighbors.items(),
-                                               key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
+            if len(self.context.neighbors) != len(self.sorted_neighbor_fids):
+                self.sorted_neighbor_fids = sorted(self.context.neighbors.keys(),
+                                                   key=lambda x: np.linalg.norm(
+                                                       self.context.neighbors[x].gtl - self.context.gtl))
         else:
-            self.sorted_neighbors = sorted(self.context.neighbors.items(),
-                                           key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
+            self.sorted_neighbor_fids = sorted(self.context.neighbors.keys(),
+                                               key=lambda x: np.linalg.norm(
+                                                   self.context.neighbors[x].gtl - self.context.gtl))
 
     def expand_range(self):
         timestamp = time.time()
@@ -210,41 +212,41 @@ class StateMachine:
     def heuristic_1(self, c):
         self.sort_neighbors()
 
-        if len(self.sorted_neighbors) < self.eta:
+        if len(self.sorted_neighbor_fids) < self.eta:
             return (), -1
 
-        sorted_neighbors_fids = [n[0] for n in self.sorted_neighbors[: self.eta]]
-        return tuple(random.sample(sorted_neighbors_fids, self.context.k - 1)), self.eta - 1
+        return tuple(random.sample(self.sorted_neighbor_fids, self.context.k - 1)), self.eta - 1
 
-    def heuristic_2(self, c):
-        candidates = []
-        last_idx = 0
-
-        for i in range(len(self.context.sorted_neighbors)):
-            fid = self.context.sorted_neighbors[i]
-            if fid in self.context.neighbors:
-                c_n = self.context.neighbors[fid].c
-                if len(c_n):
-                    if self.context.fid in c_n:
-                        candidates.append(fid)
-                    else:
-                        for n in c_n:
-                            new_c = tuple(nc for nc in c_n if nc != n) + (fid,)
-                            if all(nc in self.context.neighbors for nc in new_c):
-                                if self.attr_v(new_c) > self.attr_v(c):
-                                    candidates.append(fid)
-                                    break
-                else:
-                    candidates.append(fid)
-
-            if len(candidates) == self.context.k - 1:
-                last_idx = i
-                break
-
-        if len(candidates) == self.context.k - 1:
-            return tuple(candidates), last_idx
-
-        return (), last_idx
+    # def heuristic_2(self, c):
+    #     candidates = []
+    #     last_idx = 0
+    #
+    #     # centrally sorted neighbor not used anymore
+    #     for i in range(len(self.context.sorted_neighbors)):
+    #         fid = self.context.sorted_neighbors[i]
+    #         if fid in self.context.neighbors:
+    #             c_n = self.context.neighbors[fid].c
+    #             if len(c_n):
+    #                 if self.context.fid in c_n:
+    #                     candidates.append(fid)
+    #                 else:
+    #                     for n in c_n:
+    #                         new_c = tuple(nc for nc in c_n if nc != n) + (fid,)
+    #                         if all(nc in self.context.neighbors for nc in new_c):
+    #                             if self.attr_v(new_c) > self.attr_v(c):
+    #                                 candidates.append(fid)
+    #                                 break
+    #             else:
+    #                 candidates.append(fid)
+    #
+    #         if len(candidates) == self.context.k - 1:
+    #             last_idx = i
+    #             break
+    #
+    #     if len(candidates) == self.context.k - 1:
+    #         return tuple(candidates), last_idx
+    #
+    #     return (), last_idx
 
     def heuristic_2_1(self, c):
         candidates = []
@@ -256,9 +258,8 @@ class StateMachine:
 
         self.sort_neighbors()
 
-        for i in range(len(self.sorted_neighbors)):
-            fid = self.sorted_neighbors[i][0]
-            c_n = self.sorted_neighbors[i][1].c
+        for i, fid in enumerate(self.sorted_neighbor_fids):
+            c_n = self.context.neighbors[fid].c
             if len(c_n):
                 if self.context.fid in c_n:
                     candidates.append(fid)
@@ -301,8 +302,8 @@ class StateMachine:
                             c = new_c
             if CONFIG.H == 1:
                 c_prime, last_idx = self.heuristic_1(c)
-            elif CONFIG.H == 2:
-                c_prime, last_idx = self.heuristic_2(c)
+            # elif CONFIG.H == 2:
+            #     c_prime, last_idx = self.heuristic_2(c)
             elif CONFIG.H == 2.1 or CONFIG.H == 2.2:
                 c_prime, last_idx = self.heuristic_2_1(c)
             elif CONFIG.H == 'vns':
