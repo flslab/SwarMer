@@ -51,7 +51,10 @@ class StateMachine:
             w = 0
             els = [self.context.el] + [self.context.neighbors[i].el for i in c]
             for el_i, el_j in combinations(els, 2):
-                w += round(1 / np.linalg.norm(el_i - el_j), 4)
+                dist = np.linalg.norm(el_i - el_j)
+                if dist == 0:
+                    dist = 1e-10
+                w += round(1 / dist, 4)
             return (round(w, 4),) + tuple(sorted((self.context.fid,) + c))
         return -1,
 
@@ -142,6 +145,15 @@ class StateMachine:
                 print(f"{self.context.fid} is single num_heuristic_invoked={self.num_heuristic_invoked}")
                 # print(self.context.neighbors)
 
+    def sort_neighbors(self):
+        if Config.OPT_SORT:
+            if len(self.context.neighbors) != len(self.sorted_neighbors):
+                self.sorted_neighbors = sorted(self.context.neighbors.items(),
+                                               key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
+        else:
+            self.sorted_neighbors = sorted(self.context.neighbors.items(),
+                                           key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
+
     def expand_range(self):
         timestamp = time.time()
         if timestamp - self.last_expanded_time > TestConfig.EXPANSION_TIMEOUT:
@@ -196,12 +208,12 @@ class StateMachine:
         return c, -1
 
     def heuristic_1(self, c):
-        sorted_neighbors = sorted(self.context.neighbors.items(),
-                                  key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
-        if len(sorted_neighbors) < self.eta:
+        self.sort_neighbors()
+
+        if len(self.sorted_neighbors) < self.eta:
             return (), -1
 
-        sorted_neighbors_fids = [n[0] for n in sorted_neighbors[: self.eta]]
+        sorted_neighbors_fids = [n[0] for n in self.sorted_neighbors[: self.eta]]
         return tuple(random.sample(sorted_neighbors_fids, self.context.k - 1)), self.eta - 1
 
     def heuristic_2(self, c):
@@ -232,7 +244,6 @@ class StateMachine:
         if len(candidates) == self.context.k - 1:
             return tuple(candidates), last_idx
 
-        self.expand_range()
         return (), last_idx
 
     def heuristic_2_1(self, c):
@@ -243,13 +254,7 @@ class StateMachine:
             self.expand_range()
             return (), last_idx
 
-        if Config.OPT_SORT:
-            if len(self.context.neighbors) != len(self.sorted_neighbors):
-                self.sorted_neighbors = sorted(self.context.neighbors.items(),
-                                               key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
-        else:
-            self.sorted_neighbors = sorted(self.context.neighbors.items(),
-                                           key=lambda x: np.linalg.norm(x[1].gtl - self.context.gtl))
+        self.sort_neighbors()
 
         for i in range(len(self.sorted_neighbors)):
             fid = self.sorted_neighbors[i][0]
@@ -273,6 +278,8 @@ class StateMachine:
 
         if len(candidates) == self.context.k - 1:
             return tuple(candidates), last_idx
+
+        self.expand_range()
         return (), last_idx
 
     def enter_single_state_with_heuristic(self):

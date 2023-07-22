@@ -482,6 +482,7 @@ if __name__ == '__main__':
 
     if not Config.DEBUG and nid == 0:  # and not is_failed:
         # if N == 1:
+        num_cliques_d = 1 if num_cliques == 0 else num_cliques
         utils.create_csv_from_json(results_directory, end_time-start_time)
         min_distances = [-1] if len(min_distances) == 0 else min_distances
         avg_distances = [-1] if len(avg_distances) == 0 else avg_distances
@@ -489,13 +490,13 @@ if __name__ == '__main__':
         rows = [["metric", "value"],
                 ["duration", end_time-start_time],
                 ["min min_dists", min(min_distances)],
-                ["avg min_dists", sum(min_distances) / num_cliques],
+                ["avg min_dists", sum(min_distances) / num_cliques_d],
                 ["max min_dists", max(min_distances)],
                 ["min avg_dists", min(avg_distances)],
-                ["avg avg_dists", sum(avg_distances) / num_cliques],
+                ["avg avg_dists", sum(avg_distances) / num_cliques_d],
                 ["max avg_dists", max(avg_distances)],
                 ["min max_dists", min(max_distances)],
-                ["avg max_dists", sum(max_distances) / num_cliques],
+                ["avg max_dists", sum(max_distances) / num_cliques_d],
                 ["max max_dists", max(max_distances)],
                 ["number of cliques", num_cliques],
                 ["number of single nodes", num_singles],
