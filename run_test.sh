@@ -4,9 +4,9 @@ mkdir -p experiments
 python3 gen_conf.py -t
 sleep 1
 
-for i in {0..23}
+for i in {0..39}
 do
-  for j in {0..2}
+  for j in {0..9}
   do
      echo "$i" "$j"
      cp "./experiments/test_config$i.py" test_config.py
