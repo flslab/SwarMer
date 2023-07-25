@@ -187,7 +187,7 @@ class StateMachine:
         if not len(c_opt):
             c_opt = tuple(random.sample(self.context.neighbors.keys(), self.context.k - 1))
 
-        while time.time() - start_time < 1:
+        while time.time() - start_time < TestConfig.VNS_TIMEOUT:
             d = 1
             while d < self.context.k:
                 c = self.vns_shake(c_opt, d)
