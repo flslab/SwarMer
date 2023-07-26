@@ -40,14 +40,15 @@ def create_csv_from_json(directory, duration=0):
     filenames = os.listdir(json_dir)
     filenames.sort()
 
-    for filename in filenames:
-        if filename.endswith('.c.json'):
-            with open(os.path.join(json_dir, filename)) as f:
-                try:
-                    data = json.load(f)
-                    headers_set = headers_set.union(set(list(data.keys())))
-                except json.decoder.JSONDecodeError:
-                    print(filename)
+    # for filename in filenames:
+    #     if filename.endswith('.c.json'):
+    print(directory)
+    with open(os.path.join(json_dir, filenames[0])) as f:
+        try:
+            data = json.load(f)
+            headers_set = headers_set.union(set(list(data.keys())))
+        except json.decoder.JSONDecodeError:
+            print(filenames[0])
 
     headers = list(headers_set)
     headers.sort()
@@ -251,7 +252,7 @@ def combine_xlsx(directory, rs):
     return pd.concat(data_frames)
 
 
-def combine_xlsx_with_formula(directory, rs):
+def combine_xlsx_with_formula(directory, rs, shape=False):
     rdfs = dict()
     for r in rs:
         rdfs[str(r)] = []
@@ -314,12 +315,19 @@ def combine_xlsx_with_formula(directory, rs):
         ])
 
         df = df['metrics']
-        m = re.search(r'K:(\d+)_R:(\d+)', file)
-        k = m.group(1)
-        r = m.group(2)
+        if shape:
+            m = re.search(r'(\w+)_K:(\d+)', file)
+            r = m.group(1)
+            k = m.group(2)
+        else:
+            m = re.search(r'K:(\d+)_R:(\d+)', file)
+            k = m.group(1)
+            r = m.group(2)
+
         df2 = pd.DataFrame([k, r])
         df3 = pd.concat([df2, df.value, node_metrics])
-        rdfs[r].append(df3)
+        if r in rdfs:
+            rdfs[r].append(df3)
 
     data_frames = []
     for dfs_r in rdfs.values():
@@ -329,7 +337,7 @@ def combine_xlsx_with_formula(directory, rs):
                     [
                         pd.concat([pd.DataFrame(['G', 'R']),
                                    df.metric,
-                                   pd.DataFrame(metric_titles)])] + dfs_r[:20],
+                                   pd.DataFrame(metric_titles)])] + dfs_r[:10],
                     axis=1)
             )
 
@@ -405,7 +413,7 @@ def combine_xlsx_with_formula_static(directory, rs):
                     [
                         pd.concat([pd.DataFrame(['G', 'R']),
                                    df.metric,
-                                   pd.DataFrame(metric_titles)])] + dfs_r[:20],
+                                   pd.DataFrame(metric_titles)])] + dfs_r[:10],
                     axis=1)
             )
 
@@ -428,6 +436,8 @@ def combine_groups(directory, name, df_list, sheet_names, rs, num_exp):
 
             if num_exp == 10:
                 cols = ['K', 'L', 'M', 'N', 'O']
+            elif num_exp == 3:
+                cols = ['D', 'E', 'F', 'G', 'H']
             else:
                 cols = ['U', 'V', 'W', 'X', 'Y']
 
@@ -437,13 +447,13 @@ def combine_groups(directory, name, df_list, sheet_names, rs, num_exp):
             worksheet.write(f'{cols[4]}1', 'Median', cell_format_bold)
 
             for row in range(4, len(df)+2):
-                if row % 28 == 16 or row % 28 == 17:
+                if row % 31 == 16 or row % 31 == 17:
                     continue
 
                 cell_format_bordered = workbook.add_format()
-                cell_format_bordered.set_bottom(row % 28 == 1)
+                cell_format_bordered.set_bottom(row % 31 == 1)
                 worksheet.write_formula(f'{cols[1]}{row}', f'=MIN(B{row}:{cols[0]}{row})', cell_format_bordered)
-                worksheet.write_formula(f'{cols[2]}{row}', f'=TRIMMEAN(B{row}:{cols[0]}{row}, 0.1)', cell_format_bordered)
+                worksheet.write_formula(f'{cols[2]}{row}', f'=(SUM(B{row}:{cols[0]}{row})-{cols[1]}{row}-{cols[3]}{row})/{num_exp-2}', cell_format_bordered)
                 worksheet.write_formula(f'{cols[3]}{row}', f'=MAX(B{row}:{cols[0]}{row})', cell_format_bordered)
                 worksheet.write_formula(f'{cols[4]}{row}', f'=MEDIAN(B{row}:{cols[0]}{row})', cell_format_bordered)
 
@@ -458,7 +468,8 @@ def elastic_post_process(path):
     xlsx_files = glob.glob(f"{path}/*.xlsx")
 
     for f in xlsx_files:
-        m = re.search(r'(\d+_Jul_\d+_\d+_\d+)', f)
+        # m = re.search(r'(\d+_Jul_\d+_\d+_\d+)', f)
+        m = re.search(r'_(\d+).xlsx$', f)
         datetime = m.group(1)
         exp_path = f"{path}/{datetime}"
         create_csv_from_json(exp_path)
@@ -466,7 +477,8 @@ def elastic_post_process(path):
     time.sleep(1)
 
     for f in xlsx_files:
-        m = re.search(r'(\d+_Jul_\d+_\d+_\d+)', f)
+        # m = re.search(r'(\d+_Jul_\d+_\d+_\d+)', f)
+        m = re.search(r'_(\d+).xlsx$', f)
         datetime = m.group(1)
         exp_path = f"{path}/{datetime}"
         out_path = f"{path}/processed"
@@ -564,10 +576,14 @@ if __name__ == "__main__":
     # exit()
 
     t = '0.5'
-    sl = 0.001
+    sl = 0.1
     rl = 0
-    path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/g3_r100_static/results/test90/H:2/2"
-    elastic_post_process(path)
+    h = 'rs'
+    eta = 'K'
+    # path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/c2_elastic_sender/results/test90/H:2.2_DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
+    path = f"/Users/hamed/Desktop/vns_40ms"
+    os.makedirs(os.path.join(path, 'processed'), exist_ok=True)
+    # elastic_post_process(path)
     # exit()
 
 
@@ -582,8 +598,8 @@ if __name__ == "__main__":
 
     # exit()
 
-    groups = [3]
-    rs = [100]
+    groups = [3, 5, 10]
+    rs = [100, 1]
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
@@ -595,11 +611,11 @@ if __name__ == "__main__":
         dir_name = f"K{g}"
         subprocess.call(["mkdir", "-p", f"{path}/{dir_name}"])
         subprocess.call(f"mv {path}/*_K:{g}_*.xlsx {path}/{dir_name}", shell=True)
-        # dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs))
-        dfs.append(combine_xlsx_with_formula_static(f"{path}/{dir_name}", rs))
+        dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs, shape=False))
+        # dfs.append(combine_xlsx_with_formula_static(f"{path}/{dir_name}", rs))
         # break
 
-    combine_groups(path, f'summary', dfs, groups, rs, 20)
+    combine_groups(path, f'summary_vns_40ms', dfs, groups, rs, 10)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
     # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")
