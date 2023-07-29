@@ -60,7 +60,7 @@ def_test_conf = {
     "ETA": "K-1",
     "ETA_STR": "'K-1'",
     "FILE_NAME_KEYS": "['K', 'R']",
-    "DIR_KEYS": "['H', 'VNS_TIMEOUT']"
+    "DIR_KEYS": "['H', 'ETA_STR']"
 }
 
 general_props = [
@@ -77,27 +77,6 @@ general_props = [
         "values": ["3", "5", "10", "20"]
     },
 ]
-#
-# test_props = [
-#     {
-#         "keys": ["H", "ETA", "ETA_STR"],
-#         "values": [
-#             {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'K-1'"},
-#             {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'K-1'"},
-#             {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
-#             {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
-#                    ]
-#     },
-#     {
-#         "keys": ["K"],
-#         "values": ["3", "5", "11"]
-#     },
-#     {
-#         "keys": ["R"],
-#         "values": ["1000", "100", "10", "1"]
-#     },
-# ]
-
 
 test_props = [
     # {
@@ -116,14 +95,14 @@ test_props = [
     #     ]
     # },
     {
-        "keys": ["H", "VNS_TIMEOUT"],
+        "keys": ["H", "ETA", "ETA_STR"],
         "values": [
-            {"H": "'vns'", "VNS_TIMEOUT": "0.04"},
-            {"H": "'vns'", "VNS_TIMEOUT": "0.1"},
+            # {"H": "'vns'", "VNS_TIMEOUT": "0.04"},
+            # {"H": "'vns'", "VNS_TIMEOUT": "0.1"},
             # {"H": "2.2", "VNS_TIMEOUT": "0.1", "ETA": "K-1", "ETA_STR": "'_'"},
-            # {"H": "'rs'", "VNS_TIMEOUT": "0.1", "ETA": "K-1", "ETA_STR": "'K-1'"},
-            # {"H": "'rs'", "VNS_TIMEOUT": "0.1", "ETA": "K", "ETA_STR": "'K'"},
-            # {"H": "'rs'", "VNS_TIMEOUT": "0.1", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
+            {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'K-1'"},
+            {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
+            {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
         ]
     },
     {
@@ -132,7 +111,7 @@ test_props = [
     },
     {
         "keys": ["R"],
-        "values": ["100", "1"]
+        "values": ["1"]
     },
     # {
     #     "keys": ["H"],
