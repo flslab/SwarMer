@@ -30,7 +30,7 @@ class NetworkThread(threading.Thread):
 
     def is_message_valid(self, msg):
         if msg is None:
-            self.context.log_dropped_messages()
+            self.context.log_dropped_receive()
             return False
         if msg.type == message.MessageTypes.STOP:
             return True
