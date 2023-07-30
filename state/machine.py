@@ -24,7 +24,7 @@ class StateMachine:
         self.sock = sock
         self.event_queue = event_queue
         self.last_neighbors_hash = None
-        self.eta = TestConfig.ETA
+        self.eta = CONFIG.ETA
         self.is_neighbors_processed = False
         self.solution_eta_idx = -1
         self.max_eta_idx = -1
@@ -187,7 +187,7 @@ class StateMachine:
         if not len(c_opt):
             c_opt = tuple(random.sample(self.context.neighbors.keys(), self.context.k - 1))
 
-        while time.time() - start_time < TestConfig.VNS_TIMEOUT:
+        while time.time() - start_time < CONFIG.VNS_TIMEOUT:
             d = 1
             while d < self.context.k:
                 c = self.vns_shake(c_opt, d)

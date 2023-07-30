@@ -12,7 +12,3 @@ class TestConfig:
     ETA_STR = "k-1"
     FILE_NAME_KEYS = ['K', 'R']
     DIR_KEYS = ['H']
-
-
-if __name__ == "__main__":
-    print(TestConfig.ETA)
