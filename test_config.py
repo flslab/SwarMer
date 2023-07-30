@@ -1,5 +1,5 @@
 class TestConfig:
-    ENABLED = True
+    ENABLED = False
     NUMBER_OF_FLSS = 12
     K = 3
     R = 1  # ratio of r2 to r1
