@@ -139,6 +139,7 @@ def wait_for_client(sock):
 
 
 if __name__ == '__main__':
+    print('multicast' if Config.MULTICAST else 'broadcast')
     CONFIG = TestConfig if TestConfig.ENABLED else Config
     N = 1
     nid = 0

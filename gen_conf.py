@@ -45,7 +45,7 @@ def_general_conf = {
     "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "NUM_DISPATCHERS": "1",
-    "MULTICAST": "True",
+    "MULTICAST": "False",
     "TIMELINE_LOG": "False",
     "OPT_SORT": "True",
 }

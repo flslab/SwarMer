@@ -7,5 +7,5 @@ class Constants:
     WORKER_ADDRESS = ("", 5000)
 
     SERVER_ADDRESS = ("10.0.1.1", 6000)  # cloudlab
-    MULTICAST_GROUP_ADDRESS = ('224.3.29.25', 5000)  # cloudlab
-    MULTICAST_GROUP = '224.3.29.25'  # cloudlab
+    MULTICAST_GROUP_ADDRESS = ('224.3.29.25', 5000)
+    MULTICAST_GROUP = '224.3.29.25'
