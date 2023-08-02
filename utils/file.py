@@ -468,8 +468,8 @@ def elastic_post_process(path):
     xlsx_files = glob.glob(f"{path}/*.xlsx")
 
     for f in xlsx_files:
-        m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
-        # m = re.search(r'_(\d+).xlsx$', f)
+        # m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
+        m = re.search(r'_(\d+).xlsx$', f)
         datetime = m.group(1)
         exp_path = f"{path}/{datetime}"
         create_csv_from_json(exp_path)
@@ -477,8 +477,8 @@ def elastic_post_process(path):
     time.sleep(1)
 
     for f in xlsx_files:
-        m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
-        # m = re.search(r'_(\d+).xlsx$', f)
+        # m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
+        m = re.search(r'_(\d+).xlsx$', f)
         datetime = m.group(1)
         print(datetime)
         exp_path = f"{path}/{datetime}"
@@ -582,7 +582,7 @@ if __name__ == "__main__":
     h = 'rs'
     eta = 'K'
     # path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/c2_elastic_sender/results/test90/H:2.2_DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
-    path = f"/Users/hamed/Desktop/chess_h1"
+    path = f"/Users/hamed/Desktop/rsg-1"
     os.makedirs(os.path.join(path, 'processed'), exist_ok=True)
     elastic_post_process(path)
     # exit()
@@ -599,8 +599,8 @@ if __name__ == "__main__":
 
     # exit()
 
-    groups = [3, 20]
-    rs = ['chess']
+    groups = [3, 15]
+    rs = [1]
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
@@ -612,11 +612,11 @@ if __name__ == "__main__":
         dir_name = f"K{g}"
         subprocess.call(["mkdir", "-p", f"{path}/{dir_name}"])
         subprocess.call(f"mv {path}/*_K:{g}_*.xlsx {path}/{dir_name}", shell=True)
-        dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs, shape=True))
+        dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs, shape=False))
         # dfs.append(combine_xlsx_with_formula_static(f"{path}/{dir_name}", rs))
         # break
 
-    combine_groups(path, f'summary_chess_simpler_etaG', dfs, groups, rs, 10)
+    combine_groups(path, f'summary_rs_g3_g15_r1_etaG-1', dfs, groups, rs, 10)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
     # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")
