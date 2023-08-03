@@ -4,7 +4,7 @@ mkdir -p experiments
 python3 gen_conf.py -t
 sleep 1
 
-for i in {0..15}
+for i in {0..5}
 do
   for j in {0..9}
   do

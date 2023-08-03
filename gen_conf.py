@@ -54,7 +54,7 @@ def_test_conf = {
     "ENABLED": "True",
     "NUMBER_OF_FLSS": "90",
     "K": "15",
-    "R": "100",
+    "R": "1",
     "H": "2",
     "VNS_TIMEOUT": "0.1",
     "DROP_PROB_SENDER": "0",
@@ -118,7 +118,7 @@ test_props = [
     },
     {
         "keys": ["K"],
-        "values": ["3", "5", "10", "15"]
+        "values": ["5", "10"]
     },
     {
         "keys": ["R"],
