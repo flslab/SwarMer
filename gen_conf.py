@@ -76,10 +76,11 @@ general_props = [
         "values": [
             # {"H": "'vns'", "VNS_TIMEOUT": "0.04"},
             # {"H": "1", "ETA": "K", "ETA_STR": "'G'", "VNS_TIMEOUT": "0.1"},
-            {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "3"},
-            {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "20"},
+            # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "3"},
+            # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "20"},
             # {"H": "2.2", "VNS_TIMEOUT": "0.1", "ETA": "K-1", "ETA_STR": "'_'"},
             {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'", "VNS_TIMEOUT": "0.1", "K": "3"},
+            {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'", "VNS_TIMEOUT": "0.1", "K": "20"},
             # {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
             # {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
         ]
