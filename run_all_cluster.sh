@@ -5,7 +5,7 @@ sleep 10
 
 for i in {0..1}
 do
-  for j in {0..9}
+  for j in {0..0}
   do
      echo "$i" "$j"
      bash start_cluster.sh "$i"

@@ -41,12 +41,12 @@ def_general_conf = {
     "RESULTS_PATH": "'/proj/nova-PG0/hamed/kresults'",
     "DEBUG": "False",
     "FILE_NAME_KEYS": "['K']",
-    "DIR_KEYS": "['H', 'ETA_STR', 'VNS_TIMEOUT']",
+    "DIR_KEYS": "['H']",
     "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "NUM_DISPATCHERS": "1",
     "MULTICAST": "False",
-    "TIMELINE_LOG": "False",
+    "TIMELINE_LOG": "True",
     "OPT_SORT": "True",
 }
 
@@ -67,28 +67,32 @@ def_test_conf = {
 }
 
 general_props = [
-    # {
-    #     "keys": ["SHAPE"],
-    #     "values": ["'chess'", "'dragon'", "'skateboard'", "'racecar'"]
-    # },
     {
-        "keys": ["H", "ETA", "ETA_STR", "VNS_TIMEOUT", "K"],
-        "values": [
-            # {"H": "'vns'", "VNS_TIMEOUT": "0.04"},
-            # {"H": "1", "ETA": "K", "ETA_STR": "'G'", "VNS_TIMEOUT": "0.1"},
-            # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "3"},
-            # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "20"},
-            # {"H": "2.2", "VNS_TIMEOUT": "0.1", "ETA": "K-1", "ETA_STR": "'_'"},
-            {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'", "VNS_TIMEOUT": "0.1", "K": "3"},
-            {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'", "VNS_TIMEOUT": "0.1", "K": "20"},
-            # {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
-            # {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
-        ]
+        "keys": ["SHAPE"],
+        "values": ["'chess'"]
+    },
+    {
+        "keys": ["H"],
+        "values": ["2.2"]
     },
     # {
-    #     "keys": ["K"],
-    #     "values": ["3", "20"]
+    #     "keys": ["H", "ETA", "ETA_STR", "VNS_TIMEOUT", "K"],
+    #     "values": [
+    #         # {"H": "'vns'", "VNS_TIMEOUT": "0.04"},
+    #         # {"H": "1", "ETA": "K", "ETA_STR": "'G'", "VNS_TIMEOUT": "0.1"},
+    #         # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "3"},
+    #         # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "20"},
+    #         # {"H": "2.2", "VNS_TIMEOUT": "0.1", "ETA": "K-1", "ETA_STR": "'_'"},
+    #         {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'", "VNS_TIMEOUT": "0.1", "K": "3"},
+    #         {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'", "VNS_TIMEOUT": "0.1", "K": "20"},
+    #         # {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
+    #         # {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
+    #     ]
     # },
+    {
+        "keys": ["K"],
+        "values": ["3", "20"]
+    },
 ]
 
 test_props = [
