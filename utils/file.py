@@ -18,7 +18,6 @@ import glob
 import re
 import matplotlib as mpl
 
-# mpl.use('macosx')
 
 
 
@@ -517,7 +516,7 @@ def merge_network_heuristic_timelines(path, fid='*'):
     }
 
 
-def gen_sliding_window_chart_data(timeline, start_time, value_fn, sw=0.01):
+def gen_sliding_window_chart_data(timeline, start_time, value_fn, sw=0.00025):  # 250 micro second
     xs = [0]
     ys = [0]
 
@@ -552,29 +551,52 @@ def merge_timelines(timelines):
     return merged
 
 
-def gen_sw_charts(path, fid):
-    fig = plt.figure()
-    ax = fig.add_subplot()
-    data = merge_network_heuristic_timelines(path, fid)
+def gen_sw_charts(path_1, path_2, fid):
+    fig, [ax0, ax1] = plt.subplots(2, 1)
+    data_1 = merge_network_heuristic_timelines(path_1, fid)
+    data_2 = merge_network_heuristic_timelines(path_2, fid)
 
-    r_xs, r_ys = gen_sliding_window_chart_data(data['received_bytes'], data['start_time'], lambda x: x[2])
-    s_xs, s_ys = gen_sliding_window_chart_data(data['sent_bytes'], data['start_time'], lambda x: x[2])
+    r_xs_1, r_ys_1 = gen_sliding_window_chart_data(data_1['received_bytes'], data_1['start_time'], lambda x: x[2])
+    s_xs_1, s_ys_1 = gen_sliding_window_chart_data(data_1['sent_bytes'], data_1['start_time'], lambda x: x[2])
+    r_xs_2, r_ys_2 = gen_sliding_window_chart_data(data_2['received_bytes'], data_2['start_time'], lambda x: x[2])
+    s_xs_2, s_ys_2 = gen_sliding_window_chart_data(data_2['sent_bytes'], data_2['start_time'], lambda x: x[2])
     # h_xs, h_ys = gen_sliding_window_chart_data(data['heuristic'], data['start_time'], lambda x: 1)
-    ax.step(r_xs, r_ys, where='post', label="Received Bytes", color="#00d5ff")
-    ax.step(s_xs, s_ys, where='post', label="Sent bytes", color="black")
+    ax0.step(s_xs_2, s_ys_2, where='post', label="RS", color="#ffa600")
+    ax0.step(s_xs_1, s_ys_1, where='post', label="CANF", color="#004a6c")
+    ax1.step(r_xs_2, r_ys_2, where='post', label="RS", color="#ffa600")
+    ax1.step(r_xs_1, r_ys_1, where='post', label="CANF", color="#004a6c")
     # ax.step(h_xs, h_ys, where='post', label="Heuristic invoked")
-    ax.legend()
-    plt.ylim([1, 100000])
-    plt.yscale('log')
+    ax0.legend(loc='upper right')
+    ax0.set_ylabel('Transmitted data (Byte)', loc='top', rotation=0, labelpad=-115)
+    ax0.set_xlabel('Time (Second)', loc='right')
+    ax0.set_xlim([1, 1.05])
+    # ax0.set_ylim([0, 600])
+    ax0.spines['top'].set_color('white')
+    ax0.spines['right'].set_color('white')
+    # ax0.set_yscale('log')
+
+    ax1.legend(loc='upper right')
+    ax1.set_ylabel('Received data (Byte)', loc='top', rotation=0, labelpad=-105)
+    ax1.set_xlabel('Time (Second)', loc='right')
+    ax1.set_xlim([1, 1.05])
+    ax1.spines['top'].set_color('white')
+    ax1.spines['right'].set_color('white')
+    # ax1.set_yscale('log')
+    # plt.ylim([1, 100000])
+    # plt.yscale('log')
+    fig.tight_layout()
+    # plt.xlabel('Time (Second)')
     plt.show()
     # plt.savefig(f'{path}/{fid}.png')
 
 
 if __name__ == "__main__":
+    mpl.use('macosx')
     # for i in range(1):
-    #     gen_sw_charts('/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/network_stat/results/test90/H:2.2/19_Jul_21_18_28', i+1)
-    #
-    # exit()
+
+    gen_sw_charts('/Users/hamed/Desktop/chess_bw/08_Aug_11_18_08', '/Users/hamed/Desktop/chess_rs_bw/08_Aug_12_39_53', 1)
+
+    exit()
 
     t = '0.5'
     sl = 0.1
