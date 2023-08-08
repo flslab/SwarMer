@@ -73,7 +73,7 @@ general_props = [
     },
     {
         "keys": ["H"],
-        "values": ["2.2"]
+        "values": ["'rs'"]
     },
     # {
     #     "keys": ["H", "ETA", "ETA_STR", "VNS_TIMEOUT", "K"],
@@ -91,7 +91,7 @@ general_props = [
     # },
     {
         "keys": ["K"],
-        "values": ["3", "20"]
+        "values": ["3"]
     },
 ]
 
