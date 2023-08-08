@@ -17,7 +17,8 @@ import pandas as pd
 import glob
 import re
 import matplotlib as mpl
-
+from matplotlib import rcParams
+rcParams['font.family'] = 'Times New Roman'
 
 
 
@@ -567,7 +568,7 @@ def gen_sw_charts(path_1, path_2, fid):
     ax1.step(r_xs_1, r_ys_1, where='post', label="CANF", color="#004a6c")
     # ax.step(h_xs, h_ys, where='post', label="Heuristic invoked")
     ax0.legend(loc='upper right')
-    ax0.set_ylabel('Transmitted data (Byte)', loc='top', rotation=0, labelpad=-115)
+    ax0.set_ylabel('Transmitted data (Byte)', loc='top', rotation=0, labelpad=-95)
     ax0.set_xlabel('Time (Second)', loc='right')
     ax0.set_xlim([1, 1.05])
     # ax0.set_ylim([0, 600])
@@ -576,7 +577,7 @@ def gen_sw_charts(path_1, path_2, fid):
     # ax0.set_yscale('log')
 
     ax1.legend(loc='upper right')
-    ax1.set_ylabel('Received data (Byte)', loc='top', rotation=0, labelpad=-105)
+    ax1.set_ylabel('Received data (Byte)', loc='top', rotation=0, labelpad=-85)
     ax1.set_xlabel('Time (Second)', loc='right')
     ax1.set_xlim([1, 1.05])
     ax1.spines['top'].set_color('white')
@@ -586,8 +587,8 @@ def gen_sw_charts(path_1, path_2, fid):
     # plt.yscale('log')
     fig.tight_layout()
     # plt.xlabel('Time (Second)')
-    plt.show()
-    # plt.savefig(f'{path}/{fid}.png')
+    # plt.show()
+    plt.savefig(f'/Users/hamed/Desktop/bw_comp_canf_rs.png', dpi=300)
 
 
 if __name__ == "__main__":
