@@ -41,7 +41,7 @@ def_general_conf = {
     "RESULTS_PATH": "'/proj/nova-PG0/hamed/kresults'",
     "DEBUG": "False",
     "FILE_NAME_KEYS": "['K']",
-    "DIR_KEYS": "['H']",
+    "DIR_KEYS": "['H', 'TIMELINE_LOG']",
     "SERVER_TIMEOUT": "120",
     "PROCESS_JOIN_TIMEOUT": "120",
     "NUM_DISPATCHERS": "1",
