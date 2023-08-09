@@ -1,4 +1,5 @@
 import copy
+import json
 import select
 import socket
 import pickle
@@ -479,7 +480,7 @@ if __name__ == '__main__':
         if Config.DEBUG:
             plt.show()
         else:
-            plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'))
+            plt.savefig(os.path.join(figure_directory, f'{file_name}.jpg'), dpi=300)
 
     if not Config.DEBUG and nid == 0:  # and not is_failed:
         # if N == 1:
