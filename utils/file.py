@@ -18,6 +18,8 @@ import glob
 import re
 import matplotlib as mpl
 from matplotlib import rcParams
+from matplotlib import ticker
+
 rcParams['font.family'] = 'Times New Roman'
 
 
@@ -517,7 +519,7 @@ def merge_network_heuristic_timelines(path, fid='*'):
     }
 
 
-def gen_sliding_window_chart_data(timeline, start_time, value_fn, sw=0.00025):  # 250 micro second
+def gen_sliding_window_chart_data(timeline, start_time, value_fn, sw=0.0005):  # 500 micro second
     xs = [0]
     ys = [0]
 
@@ -569,8 +571,13 @@ def gen_sw_charts(path_1, path_2, fid):
     # ax.step(h_xs, h_ys, where='post', label="Heuristic invoked")
     ax0.legend(loc='upper right')
     ax0.set_ylabel('Transmitted data (Byte)', loc='top', rotation=0, labelpad=-95)
-    ax0.set_xlabel('Time (Second)', loc='right')
-    ax0.set_xlim([1, 1.05])
+    ax0.set_xlabel('Time (Millisecond)', loc='right')
+    ax0.set_xlim([7.45, 7.55])
+    ax0.set_ylim([0, 700])
+    ax0.xaxis.set_major_formatter(lambda x, pos: str(int(x*1000)))
+    ax0.xaxis.set_major_locator(ticker.MultipleLocator(0.01))
+    ax0.yaxis.set_major_locator(ticker.MultipleLocator(200))
+    ax0.margins(y=0)
     # ax0.set_ylim([0, 600])
     ax0.spines['top'].set_color('white')
     ax0.spines['right'].set_color('white')
@@ -578,8 +585,13 @@ def gen_sw_charts(path_1, path_2, fid):
 
     ax1.legend(loc='upper right')
     ax1.set_ylabel('Received data (Byte)', loc='top', rotation=0, labelpad=-85)
-    ax1.set_xlabel('Time (Second)', loc='right')
-    ax1.set_xlim([1, 1.05])
+    ax1.set_xlabel('Time (Millisecond)', loc='right')
+    ax1.set_xlim([7.45, 7.55])
+    ax1.set_ylim([0, 9000])
+    ax1.xaxis.set_major_formatter(lambda x, pos: str(int(x*1000)))
+    ax1.xaxis.set_major_locator(ticker.MultipleLocator(0.01))
+    ax1.yaxis.set_major_locator(ticker.MultipleLocator(2000))
+    ax1.margins(y=0)
     ax1.spines['top'].set_color('white')
     ax1.spines['right'].set_color('white')
     # ax1.set_yscale('log')
@@ -587,8 +599,8 @@ def gen_sw_charts(path_1, path_2, fid):
     # plt.yscale('log')
     fig.tight_layout()
     # plt.xlabel('Time (Second)')
-    # plt.show()
-    plt.savefig(f'/Users/hamed/Desktop/bw_comp_canf_rs.png', dpi=300)
+    plt.show()
+    # plt.savefig(f'/Users/hamed/Desktop/bw_comp_canf_rs.png', dpi=300)
 
 
 if __name__ == "__main__":
