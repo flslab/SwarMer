@@ -20,9 +20,6 @@ import matplotlib as mpl
 from matplotlib import rcParams
 from matplotlib import ticker
 
-rcParams['font.family'] = 'Times New Roman'
-
-
 
 def write_json(fid, results, directory, is_clique):
     file_name = f"{fid:05}.c.json" if is_clique else f"{fid:05}.json"
@@ -604,6 +601,7 @@ def gen_sw_charts(path_1, path_2, fid):
 
 
 if __name__ == "__main__":
+    rcParams['font.family'] = 'Times New Roman'
     mpl.use('macosx')
     # for i in range(1):
 
