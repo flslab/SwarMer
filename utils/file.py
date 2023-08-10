@@ -601,13 +601,13 @@ def gen_sw_charts(path_1, path_2, fid):
 
 
 if __name__ == "__main__":
-    rcParams['font.family'] = 'Times New Roman'
-    mpl.use('macosx')
-    # for i in range(1):
+    # rcParams['font.family'] = 'Times New Roman'
+    # mpl.use('macosx')
+    # # for i in range(1):
+    #
+    # gen_sw_charts('/Users/hamed/Desktop/chess_bw/08_Aug_11_18_08', '/Users/hamed/Desktop/chess_rs_bw/08_Aug_12_39_53', 1)
 
-    gen_sw_charts('/Users/hamed/Desktop/chess_bw/08_Aug_11_18_08', '/Users/hamed/Desktop/chess_rs_bw/08_Aug_12_39_53', 1)
-
-    exit()
+    # exit()
 
     t = '0.5'
     sl = 0.1
@@ -615,7 +615,7 @@ if __name__ == "__main__":
     h = 'rs'
     eta = 'K'
     # path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/c2_elastic_sender/results/test90/H:2.2_DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
-    path = f"/Users/hamed/Desktop/chess_rs_g-1"
+    path = f"/Users/hamed/Desktop/chess_simpler_g5_etaG"
     os.makedirs(os.path.join(path, 'processed'), exist_ok=True)
     elastic_post_process(path)
     # exit()
@@ -632,7 +632,7 @@ if __name__ == "__main__":
 
     # exit()
 
-    groups = [3, 20]
+    groups = [5]
     rs = ['chess']
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
@@ -649,7 +649,7 @@ if __name__ == "__main__":
         # dfs.append(combine_xlsx_with_formula_static(f"{path}/{dir_name}", rs))
         # break
 
-    combine_groups(path, f'summary_chess_rs_g3_g20_etaG-1', dfs, groups, rs, 10)
+    combine_groups(path, f'summary_chess_simpler_g5_etaG', dfs, groups, rs, 10)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
     # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")
