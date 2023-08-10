@@ -215,7 +215,7 @@ class StateMachine:
         if len(self.sorted_neighbor_fids) < self.eta:
             return (), -1
 
-        return tuple(random.sample(self.sorted_neighbor_fids, self.context.k - 1)), self.eta - 1
+        return tuple(random.sample(self.sorted_neighbor_fids[:self.eta], self.context.k - 1)), self.eta - 1
 
     # def heuristic_2(self, c):
     #     candidates = []
