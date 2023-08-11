@@ -467,8 +467,8 @@ def elastic_post_process(path):
     xlsx_files = glob.glob(f"{path}/*.xlsx")
 
     for f in xlsx_files:
-        m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
-        # m = re.search(r'_(\d+).xlsx$', f)
+        # m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
+        m = re.search(r'_(\d+).xlsx$', f)
         datetime = m.group(1)
         exp_path = f"{path}/{datetime}"
         create_csv_from_json(exp_path)
@@ -476,8 +476,8 @@ def elastic_post_process(path):
     time.sleep(1)
 
     for f in xlsx_files:
-        m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
-        # m = re.search(r'_(\d+).xlsx$', f)
+        # m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
+        m = re.search(r'_(\d+).xlsx$', f)
         datetime = m.group(1)
         print(datetime)
         exp_path = f"{path}/{datetime}"
@@ -552,7 +552,7 @@ def merge_timelines(timelines):
 
 
 def gen_sw_charts(path_1, path_2, fid):
-    fig, [ax0, ax1] = plt.subplots(2, 1)
+    fig, [ax0, ax1] = plt.subplots(2, 1, figsize=(5.25, 3.5))
     data_1 = merge_network_heuristic_timelines(path_1, fid)
     data_2 = merge_network_heuristic_timelines(path_2, fid)
 
@@ -567,7 +567,7 @@ def gen_sw_charts(path_1, path_2, fid):
     ax1.step(r_xs_1, r_ys_1, where='post', label="CANF", color="#004a6c")
     # ax.step(h_xs, h_ys, where='post', label="Heuristic invoked")
     ax0.legend(loc='upper right')
-    ax0.set_ylabel('Transmitted data (Byte)', loc='top', rotation=0, labelpad=-95)
+    ax0.set_ylabel('Transmitted Data (Byte)', loc='top', rotation=0, labelpad=-95)
     ax0.set_xlabel('Time (Millisecond)', loc='right')
     ax0.set_xlim([7.45, 7.55])
     ax0.set_ylim([0, 700])
@@ -581,7 +581,7 @@ def gen_sw_charts(path_1, path_2, fid):
     # ax0.set_yscale('log')
 
     ax1.legend(loc='upper right')
-    ax1.set_ylabel('Received data (Byte)', loc='top', rotation=0, labelpad=-85)
+    ax1.set_ylabel('Received Data (Byte)', loc='top', rotation=0, labelpad=-85)
     ax1.set_xlabel('Time (Millisecond)', loc='right')
     ax1.set_xlim([7.45, 7.55])
     ax1.set_ylim([0, 9000])
@@ -596,8 +596,8 @@ def gen_sw_charts(path_1, path_2, fid):
     # plt.yscale('log')
     fig.tight_layout()
     # plt.xlabel('Time (Second)')
-    plt.show()
-    # plt.savefig(f'/Users/hamed/Desktop/bw_comp_canf_rs.png', dpi=300)
+    # plt.show()
+    plt.savefig(f'/Users/hamed/Desktop/bw_comp_canf_rs2.png', dpi=300)
 
 
 if __name__ == "__main__":
@@ -606,7 +606,7 @@ if __name__ == "__main__":
     # # for i in range(1):
     #
     # gen_sw_charts('/Users/hamed/Desktop/chess_bw/08_Aug_11_18_08', '/Users/hamed/Desktop/chess_rs_bw/08_Aug_12_39_53', 1)
-
+    #
     # exit()
 
     t = '0.5'
@@ -615,7 +615,7 @@ if __name__ == "__main__":
     h = 'rs'
     eta = 'K'
     # path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/c2_elastic_sender/results/test90/H:2.2_DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
-    path = f"/Users/hamed/Desktop/chess_simpler_g5_etaG"
+    path = f"/Users/hamed/Desktop/simpler_g3_g15_1.5"
     os.makedirs(os.path.join(path, 'processed'), exist_ok=True)
     elastic_post_process(path)
     # exit()
@@ -632,8 +632,8 @@ if __name__ == "__main__":
 
     # exit()
 
-    groups = [5]
-    rs = ['chess']
+    groups = [3, 15]
+    rs = [100, 1]
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
@@ -645,11 +645,11 @@ if __name__ == "__main__":
         dir_name = f"K{g}"
         subprocess.call(["mkdir", "-p", f"{path}/{dir_name}"])
         subprocess.call(f"mv {path}/*_K:{g}_*.xlsx {path}/{dir_name}", shell=True)
-        dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs, shape=True))
+        dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs, shape=False))
         # dfs.append(combine_xlsx_with_formula_static(f"{path}/{dir_name}", rs))
         # break
 
-    combine_groups(path, f'summary_chess_simpler_g5_etaG', dfs, groups, rs, 10)
+    combine_groups(path, f'summary_simpler_g3_g15_eta1.5G', dfs, groups, rs, 10)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
     # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")

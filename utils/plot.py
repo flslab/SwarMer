@@ -140,7 +140,81 @@ def rs_probability_2():
     plt.savefig('/Users/hamed/Desktop/rs_prop_g3_g5_g10_f.png', dpi=300)
 
 
+def boxplot():
+    fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(4, 3))
+
+    # Duration CANF G=10
+    # all_data = [[946.7285602, 1394.370517, 2736.752941, 758.0871108, 1763.43048, 1561.556781, 1754.412206, 1571.212268, 712.2744441, 2680.026877],
+    #             [2719.029322, 3354.961837, 3602.834491, 2835.905622, 4229.982035, 8047.31485, 2630.513689, 3015.31166, 3005.62969, 4246.568515],
+    #             [161.7461169, 288.7125499, 314.2994595, 211.4374239, 234.6104085, 181.6258986, 213.6726103, 224.6476183, 130.7561095, 154.7783368],
+    #             [7538.208493, 6133.081297, 8040.665102, 6566.946958, 12620.58903, 6061.415786, 8686.28949, 7082.164474, 10714.34987, 6828.353063]]
+
+    # Avg Dist CANF G=10
+    all_data = [[8.473661671, 8.65789498, 8.473495652, 8.454763316, 9.059855066, 9.373376612, 9.134603579, 8.559328861, 8.476735389, 8.554042898],
+                [4.597325949, 5.191147703, 5.001052744, 4.652282735, 5.015244406, 4.268838355, 3.920798704, 4.179868799, 3.84371417, 4.554568034],
+                [3.164096215, 2.841743255, 2.882807451, 2.833583283, 3.190280822, 2.82194163, 3.087084859, 3.076004453, 3.208613985, 2.892591629],
+                [2.040837016, 2.093522472, 2.042492589, 2.065352536, 2.053521794, 2.085753322, 2.082353737, 2.063859078, 2.144676911, 2.11702264]]
+    #
+    labels = ['Chess piece\n454 points', 'Dragon\n760 points', 'Skateboard\n1,727 points', 'Race car\n11,894 points']
+
+    # Duration CANF Racecar
+    # all_data = [
+    #     [2777.306456, 3522.155211, 2849.34547, 2763.388819, 2817.278669, 2837.928359, 3092.812126, 2818.806314, 2821.618072, 2868.297383],
+    #     [2448.052538, 2235.078664, 2675.756202, 2611.854666, 3021.096198, 2740.160948, 2418.35558, 2152.691467, 2139.473921, 2028.283355],
+    #     [7538.208493, 6133.081297, 8040.665102, 6566.946958, 12620.58903, 6061.415786, 8686.28949, 7082.164474, 10714.34987, 6828.353063],
+    #     [20520.21309, 22265.0391, 25624.50552, 22491.55659, 22334.5936, 22396.52249, 21234.31074, 34458.55283, 25370.595, 44600.39163]
+    # ]
+    # labels = ['G=3', 'G=5', 'G=10', 'G=20']
+
+    # plot box plot
+    axs.boxplot(all_data, showmeans=True)
+    axs.set_ylabel('Average Distance (Display cell)', loc='top', rotation=0, labelpad=-125)
+    axs.set_ylim([1, 11])
+    # axs.set_ylabel('Response Time (Second)', loc='top', rotation=0, labelpad=-100)
+    # axs.set_yscale('log')
+
+    # Duration CANF G=10
+    # y_locator = ticker.FixedLocator([1e3, 1e4])
+    # axs.yaxis.set_major_locator(y_locator)
+    # y_formatter = ticker.FixedFormatter(["1,000", "10,000"])
+    # axs.yaxis.set_major_formatter(y_formatter)
+    #
+    # y_m_locator = ticker.FixedLocator([100, 200, 300, 400, 500, 600, 700, 800, 900, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000])
+    # axs.yaxis.set_minor_locator(y_m_locator)
+    # y_m_formatter = ticker.FixedFormatter(["", "200", "", "", "500", "", "", "", "", "2,000", "", "", "5,000", "", "", "", ""])
+    # axs.yaxis.set_minor_formatter(y_m_formatter)
+
+    # Duration CANF Racecar
+    # y_locator = ticker.FixedLocator([1e4])
+    # axs.yaxis.set_major_locator(y_locator)
+    # y_formatter = ticker.FixedFormatter(["10,000"])
+    # axs.yaxis.set_major_formatter(y_formatter)
+    #
+    # y_m_locator = ticker.FixedLocator([1e3, 2e3, 3e3, 4e3, 5e3, 6e3, 7e3, 8e3, 9e3, 2e4, 3e4, 4e4, 5e4])
+    # axs.yaxis.set_minor_locator(y_m_locator)
+    # y_m_formatter = ticker.FixedFormatter(["", "2,000", "", "", "5,000", "", "", "", "", "20,000", "", "", ""])
+    # axs.yaxis.set_minor_formatter(y_m_formatter)
+
+
+    axs.yaxis.grid(True)
+    axs.yaxis.grid(True, which='minor', linestyle=':', linewidth=0.5)
+    axs.set_xticks([y + 1 for y in range(len(all_data))],
+                  labels=labels)
+    # axs.set_yticks([100, 1000, 10000], ['100', '1,000', '10,000'])
+    axs.spines['top'].set_color('white')
+    axs.spines['right'].set_color('white')
+    print(np.median(all_data, axis=1).tolist())
+
+    plt.tight_layout()
+    # plt.show()
+    # plt.savefig('/Users/hamed/Desktop/exec_time_shapes_g10_log.png', dpi=300)
+    plt.savefig('/Users/hamed/Desktop/avg_dist_shapes_g10.png', dpi=300)
+    # plt.savefig('/Users/hamed/Desktop/exec_time_racecar_g.png', dpi=300)
+
+
 if __name__ == '__main__':
     rcParams['font.family'] = 'Times New Roman'
     mpl.use('macosx')
-    rs_probability_2()
+    boxplot()
+
+    # rs_probability_2()
