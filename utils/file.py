@@ -42,6 +42,8 @@ def create_csv_from_json(directory, duration=0):
     # for filename in filenames:
     #     if filename.endswith('.c.json'):
     print(directory)
+    if len(filenames) == 0:
+        return
     with open(os.path.join(json_dir, filenames[0])) as f:
         try:
             data = json.load(f)
@@ -615,7 +617,7 @@ if __name__ == "__main__":
     h = 'rs'
     eta = 'K'
     # path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/c2_elastic_sender/results/test90/H:2.2_DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
-    path = f"/Users/hamed/Desktop/simpler_g3_g15_1.5"
+    path = f"/Users/hamed/Desktop/simpler_g5_g10/H:1_ETA_STR:1.5K"
     os.makedirs(os.path.join(path, 'processed'), exist_ok=True)
     elastic_post_process(path)
     # exit()
@@ -632,8 +634,8 @@ if __name__ == "__main__":
 
     # exit()
 
-    groups = [3, 15]
-    rs = [100, 1]
+    groups = [5, 10]
+    rs = [1, 100]
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
@@ -649,7 +651,10 @@ if __name__ == "__main__":
         # dfs.append(combine_xlsx_with_formula_static(f"{path}/{dir_name}", rs))
         # break
 
-    combine_groups(path, f'summary_simpler_g3_g15_eta1.5G', dfs, groups, rs, 10)
+    # combine_groups(path, f'summary_skateboard_vns_g3', dfs, groups, rs, 10)
+    # combine_groups(path, f'summary_skateboard_rs_etaG-1_g3', dfs, groups, rs, 10)
+    # combine_groups(path, f'summary_skateboard_simpler_etaG_g3', dfs, groups, rs, 10)
+    combine_groups(path, f'summary_simpler_g5_g10_eta1.5G', dfs, groups, rs, 10)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
     # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")
