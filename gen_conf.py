@@ -70,9 +70,9 @@ general_props = [
     {
         "keys": ["SHAPE", "K"],
         "values": [
-            {"SHAPE": "'chess'", "K": "3"},
-            {"SHAPE": "'chess'", "K": "20"},
-            {"SHAPE": "'skateboard'", "K": "5"},
+            # {"SHAPE": "'chess'", "K": "3"},
+            # {"SHAPE": "'chess'", "K": "20"},
+            {"SHAPE": "'skateboard'", "K": "20"},
         ]
     },
     # {
@@ -88,9 +88,9 @@ general_props = [
             # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "20"},
             # {"H": "2.2", "VNS_TIMEOUT": "0.1", "ETA": "K-1", "ETA_STR": "'_'"},
             {"H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},
-            {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},
-            {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},
             {"H": "1", "ETA": "K", "ETA_STR": "'G'"},
+            {"H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},
+            {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},
             # {"H": "'rs'", "ETA": "K", "ETA_STR": "'K'"},
             # {"H": "'rs'", "ETA": "3*K//2", "ETA_STR": "'1.5K'"},
         ]
