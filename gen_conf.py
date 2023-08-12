@@ -70,8 +70,8 @@ general_props = [
     {
         "keys": ["SHAPE", "K"],
         "values": [
-            {"SHAPE": "'chess'", "K": "5"},
-            {"SHAPE": "'skateboard'", "K": "3"},
+            {"SHAPE": "'chess'", "K": "3"},
+            {"SHAPE": "'chess'", "K": "20"},
             {"SHAPE": "'skateboard'", "K": "5"},
         ]
     },
