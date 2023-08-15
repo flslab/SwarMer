@@ -279,7 +279,11 @@ def combine_xlsx_with_formula(directory, rs, shape=False):
     xlsx_files = glob.glob(f"{directory}/*.xlsx")
     for file in sorted(xlsx_files):
         print(file)
-        df = pd.read_excel(file, sheet_name=['metrics', 'nodes'])
+        try:
+            df = pd.read_excel(file, sheet_name=['metrics', 'nodes'])
+        except ValueError as e:
+            print(e)
+            continue
         nodes_df = df['nodes']
         min_radio_range = nodes_df['3 max range'].loc[nodes_df['3 max range'].idxmin()]
         avg_radio_range = nodes_df['3 max range'].mean()
@@ -436,7 +440,7 @@ def combine_groups(directory, name, df_list, sheet_names, rs, num_exp):
             cell_format_bold.set_bold()
 
             if num_exp == 10:
-                cols = ['K', 'L', 'M', 'N', 'O']
+                cols = ['K', 'L', 'M', 'N', 'O', 'P', 'Q']
             elif num_exp == 3:
                 cols = ['D', 'E', 'F', 'G', 'H']
             else:
@@ -451,12 +455,33 @@ def combine_groups(directory, name, df_list, sheet_names, rs, num_exp):
                 if row % 31 == 16 or row % 31 == 17:
                     continue
 
-                cell_format_bordered = workbook.add_format()
-                cell_format_bordered.set_bottom(row % 31 == 1)
-                worksheet.write_formula(f'{cols[1]}{row}', f'=MIN(B{row}:{cols[0]}{row})', cell_format_bordered)
-                worksheet.write_formula(f'{cols[2]}{row}', f'=(SUM(B{row}:{cols[0]}{row})-{cols[1]}{row}-{cols[3]}{row})/{num_exp-2}', cell_format_bordered)
-                worksheet.write_formula(f'{cols[3]}{row}', f'=MAX(B{row}:{cols[0]}{row})', cell_format_bordered)
-                worksheet.write_formula(f'{cols[4]}{row}', f'=MEDIAN(B{row}:{cols[0]}{row})', cell_format_bordered)
+                cell_format_bordered_avg = workbook.add_format()
+                cell_format_bordered_all = workbook.add_format()
+                cell_format_bordered_avg.set_bottom(row % 31 == 1)
+                cell_format_bordered_all.set_bottom(row % 31 == 1)
+                cell_format_bordered_avg.set_bold(row % 31 == 4 or row % 31 == 0 or row % 31 == 9)
+                if row % 31 == 28 or row % 31 == 29:
+                    worksheet.write_formula(f'{cols[1]}{row}', f'=MIN(B{row}:{cols[0]}{row})/(1024*1024)',
+                                            cell_format_bordered_all)
+                    worksheet.write_formula(f'{cols[2]}{row}',
+                                            f'=(SUM(B{row}:{cols[0]}{row})-{cols[1]}{row}-{cols[3]}{row})/{num_exp - 2}/(1024*1024)',
+                                            cell_format_bordered_avg)
+                    worksheet.write_formula(f'{cols[3]}{row}', f'=MAX(B{row}:{cols[0]}{row})/(1024*1024)',
+                                            cell_format_bordered_all)
+                    worksheet.write_formula(f'{cols[4]}{row}', f'=MEDIAN(B{row}:{cols[0]}{row})/(1024*1024)',
+                                            cell_format_bordered_all)
+                    worksheet.write_formula(f'{cols[5]}{row}', f'=8*{cols[2]}{row}/{cols[2]}{4+(row//31)*31}',
+                                            cell_format_bordered_all)
+                    worksheet.write_formula(f'{cols[6]}{row}', f'={cols[5]}{row}/1024',
+                                            cell_format_bordered_all)
+                else:
+                    worksheet.write_formula(f'{cols[1]}{row}', f'=MIN(B{row}:{cols[0]}{row})', cell_format_bordered_all)
+                    worksheet.write_formula(f'{cols[2]}{row}',
+                                            f'=(SUM(B{row}:{cols[0]}{row})-{cols[1]}{row}-{cols[3]}{row})/{num_exp - 2}',
+                                            cell_format_bordered_avg)
+                    worksheet.write_formula(f'{cols[3]}{row}', f'=MAX(B{row}:{cols[0]}{row})', cell_format_bordered_all)
+                    worksheet.write_formula(f'{cols[4]}{row}', f'=MEDIAN(B{row}:{cols[0]}{row})', cell_format_bordered_all)
+
 
 
 
@@ -617,7 +642,7 @@ if __name__ == "__main__":
     h = 'rs'
     eta = 'K'
     # path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/c2_elastic_sender/results/test90/H:2.2_DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
-    path = f"/Users/hamed/Desktop/simpler_g5_g10/H:1_ETA_STR:1.5K"
+    path = f"/Users/hamed/Desktop/simpler_g5_g10/H:1_ETA_STR:K"
     os.makedirs(os.path.join(path, 'processed'), exist_ok=True)
     elastic_post_process(path)
     # exit()
@@ -635,7 +660,7 @@ if __name__ == "__main__":
     # exit()
 
     groups = [5, 10]
-    rs = [1, 100]
+    rs = [100, 1]
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
@@ -651,10 +676,10 @@ if __name__ == "__main__":
         # dfs.append(combine_xlsx_with_formula_static(f"{path}/{dir_name}", rs))
         # break
 
-    # combine_groups(path, f'summary_skateboard_vns_g3', dfs, groups, rs, 10)
-    # combine_groups(path, f'summary_skateboard_rs_etaG-1_g3', dfs, groups, rs, 10)
-    # combine_groups(path, f'summary_skateboard_simpler_etaG_g3', dfs, groups, rs, 10)
-    combine_groups(path, f'summary_simpler_g5_g10_eta1.5G', dfs, groups, rs, 10)
+    # combine_groups(path, f'summary_skateboard_elastic_g20', dfs, groups, rs, 10)
+    combine_groups(path, f'test', dfs, groups, rs, 10)
+    # combine_groups(path, f'summary_skateboard_simpler_etaG_g20', dfs, groups, rs, 10)
+    # combine_groups(path, f'summary_simpler_g5_g10_eta1.5G', dfs, groups, rs, 10)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
     # combine_xlsx(f"/Users/hamed/Desktop/all_k15", f"summary")
     # combine_xlsx("/Users/hamed/Desktop/dragon/k20", "dragon_K:20")
