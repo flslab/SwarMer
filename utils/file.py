@@ -459,7 +459,7 @@ def combine_groups(directory, name, df_list, sheet_names, rs, num_exp):
                 cell_format_bordered_all = workbook.add_format()
                 cell_format_bordered_avg.set_bottom(row % 31 == 1)
                 cell_format_bordered_all.set_bottom(row % 31 == 1)
-                cell_format_bordered_avg.set_bold(row % 31 == 4 or row % 31 == 0 or row % 31 == 9)
+                cell_format_bordered_avg.set_bold(any([row % 31 == r for r in [0, 4, 9, 14, 15]]))
                 if row % 31 == 28 or row % 31 == 29:
                     worksheet.write_formula(f'{cols[1]}{row}', f'=MIN(B{row}:{cols[0]}{row})/(1024*1024)',
                                             cell_format_bordered_all)
@@ -494,8 +494,8 @@ def elastic_post_process(path):
     xlsx_files = glob.glob(f"{path}/*.xlsx")
 
     for f in xlsx_files:
-        # m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
-        m = re.search(r'_(\d+).xlsx$', f)
+        m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
+        # m = re.search(r'_(\d+).xlsx$', f)
         datetime = m.group(1)
         exp_path = f"{path}/{datetime}"
         create_csv_from_json(exp_path)
@@ -503,8 +503,8 @@ def elastic_post_process(path):
     time.sleep(1)
 
     for f in xlsx_files:
-        # m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
-        m = re.search(r'_(\d+).xlsx$', f)
+        m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
+        # m = re.search(r'_(\d+).xlsx$', f)
         datetime = m.group(1)
         print(datetime)
         exp_path = f"{path}/{datetime}"
@@ -642,7 +642,7 @@ if __name__ == "__main__":
     h = 'rs'
     eta = 'K'
     # path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/c2_elastic_sender/results/test90/H:2.2_DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
-    path = f"/Users/hamed/Desktop/simpler_g5_g10/H:1_ETA_STR:K"
+    path = f"/Users/hamed/Desktop/dragon_vns_g3"
     os.makedirs(os.path.join(path, 'processed'), exist_ok=True)
     elastic_post_process(path)
     # exit()
@@ -659,8 +659,8 @@ if __name__ == "__main__":
 
     # exit()
 
-    groups = [5, 10]
-    rs = [100, 1]
+    groups = [3]
+    rs = ['dragon']
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
@@ -672,12 +672,12 @@ if __name__ == "__main__":
         dir_name = f"K{g}"
         subprocess.call(["mkdir", "-p", f"{path}/{dir_name}"])
         subprocess.call(f"mv {path}/*_K:{g}_*.xlsx {path}/{dir_name}", shell=True)
-        dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs, shape=False))
+        dfs.append(combine_xlsx_with_formula(f"{path}/{dir_name}", rs, shape=True))
         # dfs.append(combine_xlsx_with_formula_static(f"{path}/{dir_name}", rs))
         # break
 
     # combine_groups(path, f'summary_skateboard_elastic_g20', dfs, groups, rs, 10)
-    combine_groups(path, f'test', dfs, groups, rs, 10)
+    combine_groups(path, f'summary_dragon_vns_g3', dfs, groups, rs, 10)
     # combine_groups(path, f'summary_skateboard_simpler_etaG_g20', dfs, groups, rs, 10)
     # combine_groups(path, f'summary_simpler_g5_g10_eta1.5G', dfs, groups, rs, 10)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
