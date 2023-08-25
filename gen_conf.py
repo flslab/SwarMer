@@ -1,4 +1,5 @@
 import itertools
+import os
 import sys
 
 def_general_conf = {
@@ -87,26 +88,20 @@ general_props = [
             # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "3"},
             # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "20"},
             # {"H": "2.2", "VNS_TIMEOUT": "0.1", "ETA": "K-1", "ETA_STR": "'_'"},
-            {"SHAPE": "'dragon'", "K": "3", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 0
-            {"SHAPE": "'dragon'", "K": "3", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 1
-            {"SHAPE": "'dragon'", "K": "3", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 2
-            {"SHAPE": "'dragon'", "K": "20", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 3
-            {"SHAPE": "'dragon'", "K": "20", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 4
-            {"SHAPE": "'dragon'", "K": "20", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 5
+            {"SHAPE": "'skateboard'", "K": "10", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 0
+            {"SHAPE": "'dragon'", "K": "5", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 1
+            {"SHAPE": "'dragon'", "K": "5", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 2
+            {"SHAPE": "'dragon'", "K": "5", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 3
+            {"SHAPE": "'dragon'", "K": "10", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 4
+            {"SHAPE": "'dragon'", "K": "10", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 5
+            {"SHAPE": "'dragon'", "K": "10", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 6
 
-            {"SHAPE": "'racecar'", "K": "3", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 6
-            {"SHAPE": "'racecar'", "K": "3", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 7
-            {"SHAPE": "'racecar'", "K": "3", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 8
-            {"SHAPE": "'racecar'", "K": "20", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 9
-            {"SHAPE": "'racecar'", "K": "20", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 10
-            {"SHAPE": "'racecar'", "K": "20", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 11
+            {"SHAPE": "'chess'", "K": "10", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 7
+            {"SHAPE": "'chess'", "K": "10", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 8
 
-            {"SHAPE": "'dragon'", "K": "3", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 12
-            {"SHAPE": "'racecar'", "K": "3", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 13
-            {"SHAPE": "'dragon'", "K": "20", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 14
-            {"SHAPE": "'skateboard'", "K": "20", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 15
-            {"SHAPE": "'racecar'", "K": "20", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 16
-            {"SHAPE": "'skateboard'", "K": "5", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 17
+            {"SHAPE": "'dragon'", "K": "5", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 9
+            {"SHAPE": "'dragon'", "K": "10", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 10
+            {"SHAPE": "'chess'", "K": "10", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 11
         ]
     },
     # {
@@ -171,6 +166,9 @@ if __name__ == '__main__':
     print(props_values)
     combinations = list(itertools.product(*props_values))
     print(len(combinations))
+
+    if not os.path.exists('experiments'):
+        os.makedirs('experiments', exist_ok=True)
 
     for j in range(len(combinations)):
         c = combinations[j]

@@ -3,7 +3,7 @@
 bash gen_conf_cluster.sh
 sleep 10
 
-for i in {0..17}
+for i in {0..11}
 do
   for j in {0..9}
   do
