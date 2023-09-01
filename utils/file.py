@@ -636,13 +636,12 @@ if __name__ == "__main__":
     #
     # exit()
 
-    t = '0.5'
-    sl = 0.1
-    rl = 0
-    h = 'rs'
-    eta = 'K'
+
+    shape = 'chess'
+    g = 10
+    alg = 'rs'
     # path = f"/Users/hamed/Documents/Holodeck/SwarMerPy/scripts/aws/results/c2_elastic_sender/results/test90/H:2.2_DROP_PROB_SENDER:{sl}_DROP_PROB_RECEIVER:{rl}"
-    path = f"/Users/hamed/Desktop/dragon_elastic_g5"
+    path = f"/Users/hamed/Desktop/{shape}_{alg}_g{g}"
     os.makedirs(os.path.join(path, 'processed'), exist_ok=True)
     elastic_post_process(path)
     # exit()
@@ -659,8 +658,8 @@ if __name__ == "__main__":
 
     # exit()
 
-    groups = [5]
-    rs = ['dragon']
+    groups = [g]
+    rs = [shape]
     props_values = [groups, rs]
     combinations = list(itertools.product(*props_values))
 
@@ -677,7 +676,7 @@ if __name__ == "__main__":
         # break
 
     # combine_groups(path, f'summary_skateboard_elastic_g20', dfs, groups, rs, 10)
-    combine_groups(path, f'summary_dragon_elastic_g5', dfs, groups, rs, 10)
+    combine_groups(path, f'summary_{shape}_{alg}_g{g}', dfs, groups, rs, 10)
     # combine_groups(path, f'summary_dragon_simpler_g10_etaG', dfs, groups, rs, 10)
     # combine_groups(path, f'summary_dragon_rs_g5_etaG-1', dfs, groups, rs, 10)
     # combine_xlsx(f"/Users/hamed/Desktop/all_k11", f"summary")
