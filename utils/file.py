@@ -494,7 +494,7 @@ def elastic_post_process(path):
     xlsx_files = glob.glob(f"{path}/*.xlsx")
 
     for f in xlsx_files:
-        m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
+        m = re.search(r'(\d+_(Aug|Sep)_\d+_\d+_\d+)', f)
         # m = re.search(r'_(\d+).xlsx$', f)
         datetime = m.group(1)
         exp_path = f"{path}/{datetime}"
@@ -503,7 +503,7 @@ def elastic_post_process(path):
     time.sleep(1)
 
     for f in xlsx_files:
-        m = re.search(r'(\d+_(Aug|Jul)_\d+_\d+_\d+)', f)
+        m = re.search(r'(\d+_(Aug|Sep)_\d+_\d+_\d+)', f)
         # m = re.search(r'_(\d+).xlsx$', f)
         datetime = m.group(1)
         print(datetime)
