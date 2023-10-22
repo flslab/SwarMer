@@ -39,7 +39,7 @@ def_general_conf = {
     "VNS_TIMEOUT": "0.1",
     "MAX_NEIGHBORS": "0",
     "SHAPE": "'chess'",
-    "RESULTS_PATH": "'/proj/nova-PG0/hamed/kresults'",
+    "RESULTS_PATH": "'/proj/nova-PG0/hamed/kresults/timeline'",
     "DEBUG": "False",
     "FILE_NAME_KEYS": "['K']",
     "DIR_KEYS": "['H', 'ETA_STR']",
@@ -47,7 +47,7 @@ def_general_conf = {
     "PROCESS_JOIN_TIMEOUT": "120",
     "NUM_DISPATCHERS": "1",
     "MULTICAST": "False",
-    "TIMELINE_LOG": "False",
+    "TIMELINE_LOG": "True",
     "OPT_SORT": "True",
 }
 
@@ -88,20 +88,24 @@ general_props = [
             # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "3"},
             # {"H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'", "VNS_TIMEOUT": "0.1", "K": "20"},
             # {"H": "2.2", "VNS_TIMEOUT": "0.1", "ETA": "K-1", "ETA_STR": "'_'"},
-            {"SHAPE": "'skateboard'", "K": "10", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 0
-            {"SHAPE": "'dragon'", "K": "5", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 1
-            {"SHAPE": "'dragon'", "K": "5", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 2
-            {"SHAPE": "'dragon'", "K": "5", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 3
-            {"SHAPE": "'dragon'", "K": "10", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 4
-            {"SHAPE": "'dragon'", "K": "10", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 5
-            {"SHAPE": "'dragon'", "K": "10", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 6
+            # {"SHAPE": "'skateboard'", "K": "10", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 0
+            # {"SHAPE": "'dragon'", "K": "5", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 1
+            # {"SHAPE": "'dragon'", "K": "5", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 2
+            # {"SHAPE": "'dragon'", "K": "5", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 3
+            # {"SHAPE": "'dragon'", "K": "10", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 4
+            # {"SHAPE": "'dragon'", "K": "10", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 5
+            # {"SHAPE": "'dragon'", "K": "10", "H": "2.2", "ETA": "K-1", "ETA_STR": "'_'"},  # 6
 
-            {"SHAPE": "'chess'", "K": "10", "H": "1", "ETA": "K", "ETA_STR": "'G'"},  # 7
-            {"SHAPE": "'chess'", "K": "10", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 8
+            {"SHAPE": "'chess'", "K": "3", "H": "2.2", "ETA": "K", "ETA_STR": "'_'"},  # 7
+            {"SHAPE": "'chess'", "K": "3", "H": "2.1", "ETA": "K", "ETA_STR": "'_'"},  # 7
+            {"SHAPE": "'chess'", "K": "3", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 8
+            {"SHAPE": "'chess'", "K": "20", "H": "2.2", "ETA": "K", "ETA_STR": "'_'"},  # 7
+            {"SHAPE": "'chess'", "K": "20", "H": "2.1", "ETA": "K", "ETA_STR": "'_'"},  # 7
+            {"SHAPE": "'chess'", "K": "20", "H": "'rs'", "ETA": "K-1", "ETA_STR": "'G-1'"},  # 8
 
-            {"SHAPE": "'dragon'", "K": "5", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 9
-            {"SHAPE": "'dragon'", "K": "10", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 10
-            {"SHAPE": "'chess'", "K": "10", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 11
+            # {"SHAPE": "'dragon'", "K": "5", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 9
+            # {"SHAPE": "'dragon'", "K": "10", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 10
+            # {"SHAPE": "'chess'", "K": "10", "H": "'vns'", "ETA": "K-1", "ETA_STR": "'_'"},  # 11
         ]
     },
     # {

@@ -165,7 +165,9 @@ class WorkerContext:
         meta = {"length": length}
         msg_type = msg.type
         # self.history.log(MetricTypes.RECEIVED_MASSAGES, msg, meta)
-        self.metrics.log_received_msg(msg_type, length)
+        # time-stamp, src FID, dest FID, packet size in bytes, used radio range
+        props = [msg.fid, msg.swarm_id, msg.dest_fid, msg.dest_swarm_id, length, msg.range]
+        self.metrics.log_received_msg(msg_type, length, props)
 
     def log_dropped_send(self):
         self.metrics.log_sum("N_num_dropped_send", 1)
@@ -177,5 +179,6 @@ class WorkerContext:
         meta = {"length": length}
         msg_type = msg.type
         # self.history.log(MetricTypes.SENT_MESSAGES, msg, meta)
-        self.metrics.log_sent_msg(msg_type, length)
+        props = [msg.fid, msg.swarm_id, msg.dest_fid, msg.dest_swarm_id, length, msg.range]
+        self.metrics.log_sent_msg(msg_type, length, props)
         self.message_id += 1

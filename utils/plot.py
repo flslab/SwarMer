@@ -32,10 +32,10 @@ def quad():
     # pylab.rcParams['xtick.major.pad'] = '1'
     # pylab.rcParams['ytick.major.pad'] = '1'
     # pylab.rcParams['ztick.major.pad'] = '8'
-    shapes = ['chess', 'dragon', 'skateboard', 'racecar']
+    shapes = ['hat', 'dragon', 'skateboard', 'racecar']
     title_offset = [-.25, -.25, -.02, -.02]
     shapes_labels = ['a) Chess piece\n454 points', 'b) Dragon\n760 points', 'c) Skateboard\n1,727 points', 'd) Race car\n11,894 points']
-    fig = plt.figure(figsize=(5, 5))
+    fig = plt.figure(figsize=(5.5, 5.5))
 
     for i, shape in enumerate(shapes):
         mat = scipy.io.loadmat(f'../assets/{shapes[i]}.mat')
@@ -46,11 +46,11 @@ def quad():
         width = math.ceil(np.max(ptcld[:, 1]) / ticks_gap) * ticks_gap
         height = math.ceil(np.max(ptcld[:, 2]) / ticks_gap) * ticks_gap
         ax = fig.add_subplot(2, 2, i + 1, projection='3d', proj_type='ortho')
-        ax.scatter(ptcld[:, 0], ptcld[:, 1], ptcld[:, 2], c='blue', s=1, alpha=1, edgecolors='none')
+        ax.scatter(ptcld[:, 0], ptcld[:, 1], ptcld[:, 2], c='blue', s=1.5, alpha=1, edgecolors='none')
         ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
         ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 1.0))
         ax.zaxis.set_pane_color((0, 0, 0, 0.025))
-        ax.view_init(elev=16, azim=137, roll=0)
+        ax.view_init(elev=26, azim=-127, roll=0)
         ax.axes.set_xlim3d(left=1, right=length)
         ax.axes.set_ylim3d(bottom=1, top=width)
         ax.axes.set_zlim3d(bottom=1, top=height)
@@ -140,6 +140,57 @@ def rs_probability_2():
     plt.savefig('/Users/hamed/Desktop/rs_prop_g3_g5_g10_f.png', dpi=300)
 
 
+def rs_probability_3(g=[3, 5], linear=False):
+    fig = plt.figure(figsize=[4, 3])
+    ax = fig.add_subplot()
+
+    # F = 10, 100, 1000, 10K, 100K, 1M, 10M
+    # xs = [10, 100, 1_000, 10_000, 100_000, 1_000_000]
+    xs = range(10, 1_000_001)
+    ys_0 = [p_rs(F=f, G=g[0], eta=g[0]-1) for f in xs]
+    ys_1 = [p_rs(F=f, G=g[1], eta=g[1]-1) for f in xs]
+
+    ax.plot(xs, ys_0)
+    ax.plot(xs, ys_1)
+    plt.text(xs[-1] - 10, ys_0[-1] * 4, f'G={g[0]}', color='tab:blue')
+    plt.text(xs[-1] - 10, ys_1[-1] * 4, f'G={g[1]}', color='tab:orange')
+
+    ax.set_yscale('log')
+
+    # ax.xaxis.set_major_locator(ticker.MultipleLocator(10))
+    # ax.yaxis.set_major_locator(ticker.MultipleLocator(lambda x: x*10))
+
+    # y_formatter = ticker.FixedFormatter(["-1e7", "111", "007", "xkcd"])
+    # y_locator = ticker.FixedLocator([1e-15, 1e-13, 1e-11, 1e-9, 1e-7, 1e-5, 1e-3, 1e-1])
+    # ax.yaxis.set_major_formatter(y_formatter)
+    # ax.yaxis.set_major_locator(y_locator)
+
+    if linear:
+        x_locator = ticker.FixedLocator([0, 200_000, 400_000, 600_000, 800_000, 1_000_000])
+        ax.xaxis.set_major_locator(x_locator)
+        x_formatter = ticker.FixedFormatter(["0", "200K", "400K", "600K", "800K", "1M"])
+        ax.xaxis.set_major_formatter(x_formatter)
+
+        ax.set_xlim([0, 1_000_000])
+    else:
+        ax.set_xscale('log')
+        x_locator = ticker.FixedLocator([1e1, 1e2, 1e3, 1e4, 1e5, 1e6])
+        ax.xaxis.set_major_locator(x_locator)
+        x_formatter = ticker.FixedFormatter(["10", "100", "1K", "10K", "100K", "1M"])
+        ax.xaxis.set_major_formatter(x_formatter)
+        ax.set_xlim([10, 1_000_000])
+
+
+    ax.set_ylim([1e-24, 5])
+    ax.set_ylabel('Probability', loc='top', rotation=0, labelpad=-50)
+    ax.set_xlabel('F', loc='right')
+    ax.spines['top'].set_color('white')
+    ax.spines['right'].set_color('white')
+    plt.tight_layout()
+    # plt.show()
+    plt.savefig(f"/Users/hamed/Desktop/rs_prop_g{g[0]}_{g[1]}_f_{'lin' if linear else 'log'}.png", dpi=300)
+
+
 def boxplot():
     fig, axs = plt.subplots(nrows=1, ncols=1, figsize=(4, 3))
 
@@ -215,6 +266,6 @@ def boxplot():
 if __name__ == '__main__':
     rcParams['font.family'] = 'Times New Roman'
     mpl.use('macosx')
-    boxplot()
+    # quad()
 
-    # rs_probability_2()
+    rs_probability_3()
